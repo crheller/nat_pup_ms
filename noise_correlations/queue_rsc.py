@@ -1,0 +1,41 @@
+import nems.db as nd
+
+batch = 294
+update = False
+force_rerun = True
+
+modelnames = ['rsc', 'rsc_bal', 'rsc_pr_rm1', 'rsc_pr_bal_rm1', 'rsc_pr_rm2', 'rsc_pr_bal_rm2', 
+              'rsc_pr_lvr_rm1', 'rsc_pr_lvr_bal_rm1', 'rsc_pr_lvr_rm2', 'rsc_pr_lvr_bal_rm2']
+#modelnames = ['rsc_fft0-1', 'rsc_fft0.25-1', 'rsc_fft0.5-3', 'rsc_fft2-10', 'rsc_fft10-50']
+#modelnames = ['rsc_pr_fft0-1', 'rsc_pr_fft0.25-1', 'rsc_pr_fft0.5-3', 'rsc_pr_fft2-10', 'rsc_pr_fft10-50']
+#modelnames = ['rsc_pr_lvr_fft0-1', 'rsc_pr_lvr_fft0.25-1', 'rsc_pr_lvr_fft0.5-3', 'rsc_pr_lvr_fft2-10', 'rsc_pr_lvr_fft10-50']
+
+if (batch == 289) & update:
+    #update batch 289 03/10 - needed to (re) run some models.
+    sites = ['DRX006b.e1:64', 'DRX006b.e65:128',
+             'DRX007a.e1:64', 'DRX007a.e65:128',
+             'DRX008b.e1:64', 'DRX008b.e65:128']
+
+elif batch == 289:
+    sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
+            'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
+            'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
+            'DRX006b.e1:64', 'DRX006b.e65:128',
+            'DRX007a.e1:64', 'DRX007a.e65:128',
+            'DRX008b.e1:64', 'DRX008b.e65:128']
+            
+if batch == 294:
+    sites = ['BOL005c', 'BOL006b']
+
+script = '/auto/users/hellerc/code/projects/nat_pupil_ms/noise_correlations/cache_rsc.py'
+script = '/auto/users/hellerc/code/projects/nat_pupil_ms/noise_correlations/cache_rsc_xforms.py'
+python_path = '/auto/users/hellerc/anaconda3/envs/crh_nems/bin/python'
+
+nd.enqueue_models(celllist=sites,
+                  batch=batch,
+                  modellist=modelnames,
+                  executable_path=python_path,
+                  script_path=script,
+                  user='hellerc',
+                  force_rerun=force_rerun,
+                  reserve_gb=4)
