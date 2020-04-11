@@ -25,6 +25,7 @@ from sklearn.cross_decomposition import PLSRegression
 import os
 import pandas as pd 
 import pickle
+import sys
 
 import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
@@ -32,6 +33,7 @@ import charlieTools.nat_sounds_ms.dim_reduction as dr
 
 import nems
 import nems_lbhb.baphy as nb
+import nems.db as nd
 import logging
 
 log = logging.getLogger(__name__)
