@@ -71,12 +71,17 @@ for op in options:
         zscore = True
 # ================================= load recording ==================================
 options = {'cellid': site, 'rasterfs': 4, 'batch': batch, 'pupil': True, 'stim': False}
+if batch == 294:
+    options['runclass'] = 'VOC'
 rec = nb.baphy_load_recording_file(**options)
 rec['resp'] = rec['resp'].rasterize()
 
 # remove post stim silence (keep prestim so that can get a baseline dprime on each sound)
 rec = rec.and_mask(['PostStimSilence'], invert=True)
-epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
+if batch == 294:
+    epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_' in epoch]
+else:
+    epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
 rec = rec.and_mask(epochs)
 resp_dict = rec['resp'].extract_epochs(epochs, mask=rec['mask'], allow_incomplete=True)
 spont_signal = rec['resp'].epoch_to_signal('PreStimSilence')
