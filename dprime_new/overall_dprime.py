@@ -24,6 +24,7 @@ from sklearn.decomposition import PCA
 from sklearn.cross_decomposition import PLSRegression
 import os
 import pandas as pd 
+import pickle
 
 import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
@@ -126,7 +127,7 @@ columns = ['dp_opt_test', 'dp_diag_test', 'wopt_test', 'wdiag_test', 'var_explai
 pca_index = range(len(all_combos) * njacks)
 pca_results = pd.DataFrame(columns=columns, index=pca_index)
 
-pls_index = range(len(all_combos) * njacks * components)
+pls_index = range(len(all_combos) * njacks * (components-2))
 pls_results = pd.DataFrame(columns=columns, index=pls_index)
 
 
@@ -143,7 +144,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
         category = 'evoked_evoked'
 
     for ev_set in range(njacks):
-        log.info("est / val set {0} / {1}".format(ev_set, njacks))
+        #log.info("est / val set {0} / {1}".format(ev_set, njacks))
         X_train = est[ev_set][:, :, [combo[0], combo[1]]] 
         X_test = val[ev_set][:, :, [combo[0], combo[1]]]
 
@@ -192,9 +193,9 @@ for stim_pair_idx, combo in enumerate(all_combos):
 
         # ============================== PLS ANALYSIS ===============================
         for n_components in range(2, components):
-            log.info("PLS component {0} / {1}".format(n_components, components))
+            #log.info("PLS component {0} / {1}".format(n_components, components))
             # pls 
-            Y = dr.get_one_hot_matrix(ncategories = 2, nreps=nreps_train)
+            Y = dr.get_one_hot_matrix(ncategories=2, nreps=nreps_train)
             pls = PLSRegression(n_components=n_components, max_iter=500, tol=1e-7)
             pls.fit(xtrain.T, Y.T)
             pls_weights = pls.x_weights_
@@ -228,11 +229,48 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                             pls_evals_test, pls_evecs_test, pls_dU_test,
                                             pls_dp_train, pls_dp_train_diag, pls_wopt_train, pls_wopt_train_diag, pls_train_var,
                                             pls_evals_train, pls_evecs_train, pls_dU_train,
-                                            ev_set, 2, combo, category, site]
+                                            ev_set, n_components, combo, category, site]
                 
                 pls_idx += 1
 
+# convert columns to str
+pca_results['combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
+pls_results['combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
+
+# convert to correct dtypes
+dtypes = {'dp_opt_test': 'float64',
+            'dp_diag_test': 'float64',
+            'wopt_test': 'object',
+            'wdiag_test': 'object',
+            'var_explained_test': 'float64',
+            'evals_test': 'object',
+            'evecs_test': 'object',
+            'dU_test': 'object',
+            'dp_opt_train': 'float64',
+            'dp_diag_train': 'float64',
+            'wopt_train': 'object',
+            'wdiag_train': 'object',
+            'var_explained_train': 'float64',
+            'evals_train': 'object',
+            'evecs_train': 'object',
+            'dU_train': 'object',
+            'category': 'category',
+            'jack_idx': 'category',
+            'n_components': 'category',
+            'combo': 'category',
+            'site': 'category'}
+pca_results = pca_results.astype(dtypes)
+pls_results = pls_results.astype(dtypes)
+
+# collapse over results to save disk space by packing into "DecodingResults object"
+log.info("Compressing results into DecodingResults object... ")
+pca_results = decoding.DecodingResults(pca_results)
+pls_results = decoding.DecodingResults(pls_results)
+
 # save results
 log.info("Saving results to {}".format(path))
-pls_results.to_pickle(os.path.join(path, site, modelname, '_PLS.pickle'))
-pca_results.to_pickle(os.path.join(path, site, modelname, '_PCA.pickle'))
+if not os.path.isdir(os.path.join(path, site)):
+    os.mkdir(os.path.join(path, site))
+
+pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
+pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
