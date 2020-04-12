@@ -58,7 +58,7 @@ if queueid:
 
 # ========================== read and parse system arguments ========================
 site = sys.argv[1]  
-batch = sys.argv[2]
+batch = int(sys.argv[2])
 modelname = sys.argv[3]
 options = modelname.split('_')
 
@@ -281,3 +281,7 @@ if not os.path.isdir(os.path.join(path, site)):
 
 pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
 pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
+
+if queueid:
+    nd.update_job_complete(queueid)
+
