@@ -142,7 +142,9 @@ pls_results = pd.DataFrame(columns=columns, index=pls_index)
 pca_idx = 0
 pls_idx = 0
 for stim_pair_idx, combo in enumerate(all_combos):
-    log.info("Analyzing stimulus pair {0} / {1}".format(stim_pair_idx, len(all_combos)))
+    # print every 500th pair. Don't want to overwhelm log
+    if (stim_pair_idx % 500) == 0:
+        log.info("Analyzing stimulus pair {0} / {1}".format(stim_pair_idx, len(all_combos)))
     if combo in spont_combos:
         category = 'spont_spont'
     elif combo in spont_ev_combos:
@@ -151,7 +153,6 @@ for stim_pair_idx, combo in enumerate(all_combos):
         category = 'evoked_evoked'
 
     for ev_set in range(njacks):
-        #log.info("est / val set {0} / {1}".format(ev_set, njacks))
         X_train = est[ev_set][:, :, [combo[0], combo[1]]] 
         X_test = val[ev_set][:, :, [combo[0], combo[1]]]
 
@@ -202,15 +203,23 @@ for stim_pair_idx, combo in enumerate(all_combos):
         for n_components in range(2, components):
             #log.info("PLS component {0} / {1}".format(n_components, components))
             # pls 
-            Y = dr.get_one_hot_matrix(ncategories=2, nreps=nreps_train)
-            pls = PLSRegression(n_components=n_components, max_iter=500, tol=1e-7)
-            pls.fit(xtrain.T, Y.T)
-            pls_weights = pls.x_weights_
+            try:
+                Y = dr.get_one_hot_matrix(ncategories=2, nreps=nreps_train)
+                pls = PLSRegression(n_components=n_components, max_iter=500, tol=1e-7)
+                pls.fit(xtrain.T, Y.T)
+                pls_weights = pls.x_weights_
+                pad = False
+            except np.linalg.LinAlgError:
+                # deflated matrix on this iteration of NIPALS was ~0. e.g. the overall matrix rank may have been 6, but
+                # by the time it gets to this iteration, the last couple of indpendent dims are so small, that matrix
+                # is essentially 0 and PLS can't converge.
+                log.info("PLS can't converge. No more dimensions in the deflated matrix. Pad with nan and continue. \n"
+                              "n_components: {0} \n "
+                              "stim category: {1} \n "
+                              "stim combo: {2}".format(n_components, category, combo))
+                pad = True
 
-            if np.any(np.isnan(pls_weights)):
-                log.info("PLS not converging, save nans")
-                pls_idx += 1
-            else:
+            if not pad:
                 xtrain_pls = (xtrain.T @ pls_weights).T
                 xtest_pls = (xtest.T @ pls_weights).T
 
@@ -237,8 +246,16 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                             pls_dp_train, pls_dp_train_diag, pls_wopt_train, pls_wopt_train_diag, pls_train_var,
                                             pls_evals_train, pls_evecs_train, pls_dU_train,
                                             ev_set, n_components, combo, category, site]
-                
-                pls_idx += 1
+
+            else:
+                pls_results.loc[pls_idx] = [np.nan, np.nan, np.nan, np.nan, np.nan,
+                            np.nan, np.nan, np.nan,
+                            np.nan, np.nan, np.nan, np.nan, np.nan,
+                            np.nan, np.nan, np.nan,
+                            ev_set, n_components, combo, category, site]
+
+
+            pls_idx += 1
 
 # convert columns to str
 pca_results['combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
@@ -281,3 +298,6 @@ if not os.path.isdir(os.path.join(path, site)):
 
 pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
 pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
+
+if queueid:
+    nd.update_job_complete(queueid)
