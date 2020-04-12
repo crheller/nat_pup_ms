@@ -58,7 +58,7 @@ if queueid:
 
 # ========================== read and parse system arguments ========================
 site = sys.argv[1]  
-batch = sys.argv[2]
+batch = int(sys.argv[2])
 modelname = sys.argv[3]
 options = modelname.split('_')
 
