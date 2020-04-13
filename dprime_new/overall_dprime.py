@@ -214,52 +214,74 @@ for stim_pair_idx, combo in enumerate(all_combos):
                 # by the time it gets to this iteration, the last couple of indpendent dims are so small, that matrix
                 # is essentially 0 and PLS can't converge.
                 log.info("PLS can't converge. No more dimensions in the deflated matrix. Pad with nan and continue. \n"
-                              "n_components: {0} \n "
-                              "stim category: {1} \n "
-                              "stim combo: {2}".format(n_components, category, combo))
+                              "jack_idx: {0} \n"
+                              "n_components: {1} \n "
+                              "stim category: {2} \n "
+                              "stim combo: {3}".format(ev_set, n_components, category, combo))
                 pad = True
 
             if not pad:
                 xtrain_pls = (xtrain.T @ pls_weights).T
                 xtest_pls = (xtest.T @ pls_weights).T
 
-                xtrain_pls = nat_preproc.fold_X(xtrain_pls, nreps=nreps_train, nstim=2, nbins=1).squeeze()
-                xtest_pls = nat_preproc.fold_X(xtest_pls, nreps=nreps_test, nstim=2, nbins=1).squeeze()
+                if np.linalg.matrix_rank(xtrain_pls) < n_components:
+                    # add one more check - this will cause singular matrix. dprime fn handles this,
+                    # but to prevent a barrage of log messages, check here to prevent even attempting dprime calc.
+                    # what this means is that the last dim(s) of x_weights are 0. i.e. there is no more explainable 
+                    # information about Y in X.
+                    evec_nan = np.nan * np.ones((n_components, n_components))
+                    eval_nan = np.nan * np.ones(n_components)
+                    dU_nan = np.nan * np.ones((1, n_components))
+                    wopt_nan = np.nan * np.ones((n_components, 1)) 
+                    pls_results.loc[pls_idx] = [np.nan, np.nan, wopt_nan, wopt_nan, np.nan,
+                                eval_nan, evec_nan, dU_nan,
+                                np.nan, np.nan, wopt_nan, wopt_nan, np.nan,
+                                eval_nan, evec_nan, dU_nan,
+                                ev_set, n_components, combo, category, site]
 
-                pls_train_var = np.var(xtrain_pls.T @ pls_weights.T)  / np.var(xtrain)
-                pls_test_var = np.var(xtest_pls.T @ pls_weights.T)  / np.var(xtest)
 
-                # compute dprime metrics raw 
-                pls_dp_train, pls_wopt_train, pls_evals_train, pls_evecs_train, pls_dU_train = \
-                                        decoding.compute_dprime(xtrain_pls[:, :, 0], xtrain_pls[:, :, 1])
-                pls_dp_test, pls_wopt_test, pls_evals_test, pls_evecs_test, pls_dU_test = \
-                                        decoding.compute_dprime(xtest_pls[:, :, 0], xtest_pls[:, :, 1])
+                else:
+                    xtrain_pls = nat_preproc.fold_X(xtrain_pls, nreps=nreps_train, nstim=2, nbins=1).squeeze()
+                    xtest_pls = nat_preproc.fold_X(xtest_pls, nreps=nreps_test, nstim=2, nbins=1).squeeze()
 
-                # compute dprime metrics diag decoder
-                pls_dp_train_diag, pls_wopt_train_diag, _, _, _ = \
-                                        decoding.compute_dprime(xtrain_pls[:, :, 0], xtrain_pls[:, :, 1], diag=True)
-                pls_dp_test_diag, pls_wopt_test_diag, _, _, _ = \
-                                        decoding.compute_dprime(xtest_pls[:, :, 0], xtest_pls[:, :, 1], diag=True)
+                    pls_train_var = np.var(xtrain_pls.T @ pls_weights.T)  / np.var(xtrain)
+                    pls_test_var = np.var(xtest_pls.T @ pls_weights.T)  / np.var(xtest)
 
-                pls_results.loc[pls_idx] = [pls_dp_test, pls_dp_test_diag, pls_wopt_test, pls_wopt_test_diag, pls_test_var,
-                                            pls_evals_test, pls_evecs_test, pls_dU_test,
-                                            pls_dp_train, pls_dp_train_diag, pls_wopt_train, pls_wopt_train_diag, pls_train_var,
-                                            pls_evals_train, pls_evecs_train, pls_dU_train,
-                                            ev_set, n_components, combo, category, site]
+                    # compute dprime metrics raw 
+                    pls_dp_train, pls_wopt_train, pls_evals_train, pls_evecs_train, pls_dU_train = \
+                                            decoding.compute_dprime(xtrain_pls[:, :, 0], xtrain_pls[:, :, 1])
+                    pls_dp_test, pls_wopt_test, pls_evals_test, pls_evecs_test, pls_dU_test = \
+                                            decoding.compute_dprime(xtest_pls[:, :, 0], xtest_pls[:, :, 1])
+
+                    # compute dprime metrics diag decoder
+                    pls_dp_train_diag, pls_wopt_train_diag, _, _, _ = \
+                                            decoding.compute_dprime(xtrain_pls[:, :, 0], xtrain_pls[:, :, 1], diag=True)
+                    pls_dp_test_diag, pls_wopt_test_diag, _, _, _ = \
+                                            decoding.compute_dprime(xtest_pls[:, :, 0], xtest_pls[:, :, 1], diag=True)
+
+                    pls_results.loc[pls_idx] = [pls_dp_test, pls_dp_test_diag, pls_wopt_test, pls_wopt_test_diag, pls_test_var,
+                                                pls_evals_test, pls_evecs_test, pls_dU_test,
+                                                pls_dp_train, pls_dp_train_diag, pls_wopt_train, pls_wopt_train_diag, pls_train_var,
+                                                pls_evals_train, pls_evecs_train, pls_dU_train,
+                                                ev_set, n_components, combo, category, site]
 
             else:
-                pls_results.loc[pls_idx] = [np.nan, np.nan, np.nan, np.nan, np.nan,
-                            np.nan, np.nan, np.nan,
-                            np.nan, np.nan, np.nan, np.nan, np.nan,
-                            np.nan, np.nan, np.nan,
+                evec_nan = np.nan * np.ones((n_components, n_components))
+                eval_nan = np.nan * np.ones(n_components)
+                dU_nan = np.nan * np.ones((1, n_components))
+                wopt_nan = np.nan * np.ones((n_components, 1)) 
+                pls_results.loc[pls_idx] = [np.nan, np.nan, wopt_nan, wopt_nan, np.nan,
+                            eval_nan, evec_nan, dU_nan,
+                            np.nan, np.nan, wopt_nan, wopt_nan, np.nan,
+                            eval_nan, evec_nan, dU_nan,
                             ev_set, n_components, combo, category, site]
 
 
             pls_idx += 1
 
 # convert columns to str
-pca_results['combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
-pls_results['combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
+pca_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
+pls_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
 
 # convert to correct dtypes
 dtypes = {'dp_opt_test': 'float64',
