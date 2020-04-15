@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 force_rerun = True
 
 if batch == 289:
@@ -9,6 +9,9 @@ if batch == 289:
             'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
             'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
             'DRX006b.e1:64', 'DRX006b.e65:128',
+            'DRX007a.e1:64', 'DRX007a.e65:128',
+            'DRX008b.e1:64', 'DRX008b.e65:128']
+    sites = ['DRX006b.e1:64', 'DRX006b.e65:128',
             'DRX007a.e1:64', 'DRX007a.e65:128',
             'DRX008b.e1:64', 'DRX008b.e65:128']
             

@@ -75,6 +75,9 @@ if batch == 294:
     options['runclass'] = 'VOC'
 rec = nb.baphy_load_recording_file(**options)
 rec['resp'] = rec['resp'].rasterize()
+if 'cells_to_extract' in rec.meta.keys():
+    log.info("Extracting cellids: {0}".format(rec.meta['cells_to_extract']))
+    rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
 
 # remove post stim silence (keep prestim so that can get a baseline dprime on each sound)
 rec = rec.and_mask(['PostStimSilence'], invert=True)
