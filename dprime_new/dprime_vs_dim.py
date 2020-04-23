@@ -12,7 +12,7 @@ import os
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 modelname = 'dprime_jk10'
-plot_train = False
+plot_train = True
 dprime2 = False
 limit_ax = False
 
@@ -178,9 +178,6 @@ for site in sites:
     f.tight_layout()
 
     f.savefig(os.path.join(path, 'Figures', site+'_{}'+'.png'.format(modelname)))
-
-
-# ==================================== heatmap of results as funct of dU and eigvals ======================================
 
 
 plt.show()

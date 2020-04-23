@@ -76,8 +76,9 @@ if batch == 294:
 rec = nb.baphy_load_recording_file(**options)
 rec['resp'] = rec['resp'].rasterize()
 if 'cells_to_extract' in rec.meta.keys():
-    log.info("Extracting cellids: {0}".format(rec.meta['cells_to_extract']))
-    rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
+    if rec.meta['cells_to_extract'] is not None:
+        log.info("Extracting cellids: {0}".format(rec.meta['cells_to_extract']))
+        rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
 
 # remove post stim silence (keep prestim so that can get a baseline dprime on each sound)
 rec = rec.and_mask(['PostStimSilence'], invert=True)
@@ -154,7 +155,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
         category = 'spont_evoked'
     elif combo in ev_ev_combos:
         category = 'evoked_evoked'
-
+    
     for ev_set in range(njacks):
         X_train = est[ev_set][:, :, [combo[0], combo[1]]] 
         X_test = val[ev_set][:, :, [combo[0], combo[1]]]
@@ -246,7 +247,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
                 else:
                     xtrain_pls = nat_preproc.fold_X(xtrain_pls, nreps=nreps_train, nstim=2, nbins=1).squeeze()
                     xtest_pls = nat_preproc.fold_X(xtest_pls, nreps=nreps_test, nstim=2, nbins=1).squeeze()
-
+        
                     pls_train_var = np.var(xtrain_pls.T @ pls_weights.T)  / np.var(xtrain)
                     pls_test_var = np.var(xtest_pls.T @ pls_weights.T)  / np.var(xtest)
 
