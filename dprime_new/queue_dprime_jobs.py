@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 force_rerun = True
 
 if batch == 289:

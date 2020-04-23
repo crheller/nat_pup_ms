@@ -134,6 +134,8 @@ columns = ['dp_opt_test', 'dp_diag_test', 'wopt_test', 'wdiag_test', 'var_explai
            'evals_test', 'evecs_test', 'dU_test',
            'dp_opt_train', 'dp_diag_train', 'wopt_train', 'wdiag_train', 'var_explained_train',
            'evals_train', 'evecs_train', 'dU_train', 
+           'dU_mag_test', 'dU_dot_evec_test', 'cos_dU_wopt_test', 'dU_dot_evec_sq_test', 'evec_snr_test',
+           'dU_mag_train', 'dU_dot_evec_train', 'cos_dU_wopt_train', 'dU_dot_evec_sq_train', 'evec_snr_train',
            'jack_idx', 'n_components', 'combo', 'category', 'site']
 pca_index = range(len(all_combos) * njacks)
 pca_results = pd.DataFrame(columns=columns, index=pca_index)
@@ -155,7 +157,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
         category = 'spont_evoked'
     elif combo in ev_ev_combos:
         category = 'evoked_evoked'
-    
+
     for ev_set in range(njacks):
         X_train = est[ev_set][:, :, [combo[0], combo[1]]] 
         X_test = val[ev_set][:, :, [combo[0], combo[1]]]
@@ -194,10 +196,25 @@ for stim_pair_idx, combo in enumerate(all_combos):
         pca_dp_test_diag, pca_wopt_test_diag, _, _, _ = \
                                 decoding.compute_dprime(xtest_pca[:, :, 0], xtest_pca[:, :, 1], diag=True)
 
+        # caculate additional metrics
+        dU_mag_train         = np.linalg.norm(pca_dU_train)
+        dU_dot_evec_train    = pca_dU_train.dot(pca_evecs_train)
+        cos_dU_wopt_train    = abs(decoding.unit_vectors(pca_dU_train.T).T.dot(decoding.unit_vectors(pca_wopt_train)))
+        dU_dot_evec_sq_train = pca_dU_train.dot(pca_evecs_train) ** 2
+        evec_snr_train       = dU_dot_evec_sq_train / pca_evals_train
+
+        dU_mag_test         = np.linalg.norm(pca_dU_test)
+        dU_dot_evec_test    = pca_dU_test.dot(pca_evecs_test)
+        cos_dU_wopt_test    = abs(decoding.unit_vectors(pca_dU_test.T).T.dot(decoding.unit_vectors(pca_wopt_test)))
+        dU_dot_evec_sq_test = pca_dU_test.dot(pca_evecs_test) ** 2
+        evec_snr_test       = dU_dot_evec_sq_test / pca_evals_test
+
         pca_results.loc[pca_idx] = [pca_dp_test, pca_dp_test_diag, pca_wopt_test, pca_wopt_test_diag, pca_test_var,
                                     pca_evals_test, pca_evecs_test, pca_dU_test,
                                     pca_dp_train, pca_dp_train_diag, pca_wopt_train, pca_wopt_train_diag, pca_train_var,
                                     pca_evals_train, pca_evecs_train, pca_dU_train,
+                                    dU_mag_test, dU_dot_evec_test, cos_dU_wopt_test, dU_dot_evec_sq_test, evec_snr_test,
+                                    dU_mag_train, dU_dot_evec_train, cos_dU_wopt_train, dU_dot_evec_sq_train, evec_snr_train,
                                     ev_set, 2, combo, category, site]
         
         pca_idx += 1
@@ -241,6 +258,8 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                 eval_nan, evec_nan, dU_nan,
                                 np.nan, np.nan, wopt_nan, wopt_nan, np.nan,
                                 eval_nan, evec_nan, dU_nan,
+                                np.nan, dU_nan, np.nan, dU_nan, dU_nan,
+                                np.nan, dU_nan, np.nan, dU_nan, dU_nan,
                                 ev_set, n_components, combo, category, site]
 
 
@@ -263,11 +282,27 @@ for stim_pair_idx, combo in enumerate(all_combos):
                     pls_dp_test_diag, pls_wopt_test_diag, _, _, _ = \
                                             decoding.compute_dprime(xtest_pls[:, :, 0], xtest_pls[:, :, 1], diag=True)
 
+                    # caculate additional metrics
+                    dU_mag_train         = np.linalg.norm(pls_dU_train)
+                    dU_dot_evec_train    = pls_dU_train.dot(pls_evecs_train)
+                    cos_dU_wopt_train    = abs(decoding.unit_vectors(pls_dU_train.T).T.dot(decoding.unit_vectors(pls_wopt_train)))
+                    dU_dot_evec_sq_train = pls_dU_train.dot(pls_evecs_train) ** 2
+                    evec_snr_train       = dU_dot_evec_sq_train / pls_evals_train
+
+                    dU_mag_test         = np.linalg.norm(pls_dU_test)
+                    dU_dot_evec_test    = pls_dU_test.dot(pls_evecs_test)
+                    cos_dU_wopt_test    = abs(decoding.unit_vectors(pls_dU_test.T).T.dot(decoding.unit_vectors(pls_wopt_test)))
+                    dU_dot_evec_sq_test = pls_dU_test.dot(pls_evecs_test) ** 2
+                    evec_snr_test       = dU_dot_evec_sq_test / pls_evals_test
+
                     pls_results.loc[pls_idx] = [pls_dp_test, pls_dp_test_diag, pls_wopt_test, pls_wopt_test_diag, pls_test_var,
                                                 pls_evals_test, pls_evecs_test, pls_dU_test,
                                                 pls_dp_train, pls_dp_train_diag, pls_wopt_train, pls_wopt_train_diag, pls_train_var,
                                                 pls_evals_train, pls_evecs_train, pls_dU_train,
+                                                dU_mag_test, dU_dot_evec_test, cos_dU_wopt_test, dU_dot_evec_sq_test, evec_snr_test,
+                                                dU_mag_train, dU_dot_evec_train, cos_dU_wopt_train, dU_dot_evec_sq_train, evec_snr_train,
                                                 ev_set, n_components, combo, category, site]
+
 
             else:
                 evec_nan = np.nan * np.ones((n_components, n_components))
@@ -278,6 +313,8 @@ for stim_pair_idx, combo in enumerate(all_combos):
                             eval_nan, evec_nan, dU_nan,
                             np.nan, np.nan, wopt_nan, wopt_nan, np.nan,
                             eval_nan, evec_nan, dU_nan,
+                            np.nan, dU_nan, np.nan, dU_nan, dU_nan,
+                            np.nan, dU_nan, np.nan, dU_nan, dU_nan,
                             ev_set, n_components, combo, category, site]
 
 
@@ -304,6 +341,16 @@ dtypes = {'dp_opt_test': 'float64',
             'evals_train': 'object',
             'evecs_train': 'object',
             'dU_train': 'object',
+            'dU_mag_test': 'float64',
+            'dU_dot_evec_test': 'object',
+            'cos_dU_wopt_test': 'float64',
+            'dU_dot_evec_sq_test': 'object',
+            'evec_snr_test': 'object', 
+            'dU_mag_train': 'float64',
+            'dU_dot_evec_train': 'object',
+            'cos_dU_wopt_train': 'float64',
+            'dU_dot_evec_sq_train': 'object',
+            'evec_snr_train': 'object', 
             'category': 'category',
             'jack_idx': 'category',
             'n_components': 'category',
