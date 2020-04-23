@@ -1,8 +1,9 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
+batch = 294
 force_rerun = True
+subset_289 = True
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
@@ -11,6 +12,12 @@ if batch == 289:
             'DRX006b.e1:64', 'DRX006b.e65:128',
             'DRX007a.e1:64', 'DRX007a.e65:128',
             'DRX008b.e1:64', 'DRX008b.e65:128']
+    if subset_289:
+        # list of sites with > 10 reps of each stimulus
+        sites = ['TAR010c', 'TAR017b', 
+                'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
+                'DRX007a.e1:64', 'DRX007a.e65:128', 
+                'DRX008b.e1:64', 'DRX008b.e65:128']
             
 elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
