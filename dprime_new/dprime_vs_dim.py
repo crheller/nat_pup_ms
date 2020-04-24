@@ -22,7 +22,7 @@ sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
          'DRX007a.e1:64', 'DRX007a.e65:128', 
          'DRX008b.e1:64', 'DRX008b.e65:128']
 
-for site in sites:
+for site in [sites[1]]:
 
     fn = os.path.join(path, site, modelname+'_PLS.pickle')
     results = loader.load_results(fn)
@@ -79,7 +79,7 @@ for site in sites:
 
     # ====================================== evoked vs. spont =========================================
     # (average over all sounds)
-    evsp_idx = results.spont_evoked_stimulus_pairs
+    evsp_idx = results.spont_evoked_stimulus_pairs[0]
     evsp_results = results.numeric_results.loc[idx[evsp_idx, :], :]
     err_cols = [c for c in evsp_results.columns if '_sem' in c]
     cols = [c for c in evsp_results.columns if '_sem' not in c]
@@ -126,7 +126,7 @@ for site in sites:
 
     # ====================================== evoked vs. evoked =========================================
     # (average over all sounds)
-    ev_idx = results.evoked_stimulus_pairs
+    ev_idx = results.evoked_stimulus_pairs[0]
     ev_results = results.numeric_results.loc[idx[ev_idx, :], :]
     err_cols = [c for c in ev_results.columns if '_sem' in c]
     cols = [c for c in ev_results.columns if '_sem' not in c]

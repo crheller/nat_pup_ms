@@ -188,7 +188,10 @@ for stim_pair_idx, combo in enumerate(all_combos):
         pca_dp_train, pca_wopt_train, pca_evals_train, pca_evecs_train, pca_dU_train = \
                                 decoding.compute_dprime(xtrain_pca[:, :, 0], xtrain_pca[:, :, 1])
         pca_dp_test, pca_wopt_test, pca_evals_test, pca_evecs_test, pca_dU_test = \
-                                decoding.compute_dprime(xtest_pca[:, :, 0], xtest_pca[:, :, 1])
+                                decoding.compute_dprime(xtest_pca[:, :, 0], xtest_pca[:, :, 1], wopt=pca_wopt_train)
+
+        # overwrite test decoder with training, since it's fixed
+        pca_wopt_test = pca_wopt_train
 
         # compute dprime metrics diag decoder
         pca_dp_train_diag, pca_wopt_train_diag, _, _, x = \
@@ -276,7 +279,10 @@ for stim_pair_idx, combo in enumerate(all_combos):
                     pls_dp_train, pls_wopt_train, pls_evals_train, pls_evecs_train, pls_dU_train = \
                                             decoding.compute_dprime(xtrain_pls[:, :, 0], xtrain_pls[:, :, 1])
                     pls_dp_test, pls_wopt_test, pls_evals_test, pls_evecs_test, pls_dU_test = \
-                                            decoding.compute_dprime(xtest_pls[:, :, 0], xtest_pls[:, :, 1])
+                                            decoding.compute_dprime(xtest_pls[:, :, 0], xtest_pls[:, :, 1], wopt=pls_wopt_train)
+
+                    # override test decoder as train decoder
+                    pls_wopt_test = pls_wopt_train
 
                     # compute dprime metrics diag decoder
                     pls_dp_train_diag, pls_wopt_train_diag, _, _, _ = \
