@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
+batch = 294
 force_rerun = True
 subset_289 = True
 
@@ -24,7 +24,7 @@ elif batch == 294:
 
 modellist = ['dprime_jk10']
 
-script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/overall_dprime.py'
+script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/crh_nems/bin/python'
 
 nd.enqueue_models(celllist=sites,
@@ -34,4 +34,4 @@ nd.enqueue_models(celllist=sites,
                   script_path=script,
                   user='hellerc',
                   force_rerun=force_rerun,
-                  reserve_gb=2)
+                  reserve_gb=4)

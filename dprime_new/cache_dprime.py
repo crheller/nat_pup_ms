@@ -174,7 +174,7 @@ pls_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results
 
 # convert to correct dtypes
 pca_results = decoding.cast_dtypes(pca_results)
-pls_results = decoding.cast_dtypes(pls_results))
+pls_results = decoding.cast_dtypes(pls_results)
 
 # collapse over results to save disk space by packing into "DecodingResults object"
 log.info("Compressing results into DecodingResults object... ")
