@@ -69,31 +69,9 @@ for op in options:
         njacks = int(op[2:])
     if 'zscore' in op:
         zscore = True
+
 # ================================= load recording ==================================
-options = {'cellid': site, 'rasterfs': 4, 'batch': batch, 'pupil': True, 'stim': False}
-if batch == 294:
-    options['runclass'] = 'VOC'
-rec = nb.baphy_load_recording_file(**options)
-rec['resp'] = rec['resp'].rasterize()
-if 'cells_to_extract' in rec.meta.keys():
-    if rec.meta['cells_to_extract'] is not None:
-        log.info("Extracting cellids: {0}".format(rec.meta['cells_to_extract']))
-        rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
-
-# remove post stim silence (keep prestim so that can get a baseline dprime on each sound)
-rec = rec.and_mask(['PostStimSilence'], invert=True)
-if batch == 294:
-    epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_' in epoch]
-else:
-    epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
-rec = rec.and_mask(epochs)
-resp_dict = rec['resp'].extract_epochs(epochs, mask=rec['mask'], allow_incomplete=True)
-spont_signal = rec['resp'].epoch_to_signal('PreStimSilence')
-sp_dict = spont_signal.extract_epochs(epochs, mask=rec['mask'], allow_incomplete=True)
-
-# create response matrix, X
-X = nat_preproc.dict_to_X(resp_dict)
-sp_bins = nat_preproc.dict_to_X(sp_dict)
+X, sp_bins, X_pup = decoding.load_site(site=site, batch=batch)
 ncells = X.shape[0]
 nreps = X.shape[1]
 nstim = X.shape[2]
@@ -119,7 +97,6 @@ else:
     # just center data
     log.info("center est / val sets")
     est, val = nat_preproc.scale_est_val(est, val, sd=False)
-
 
 # =========================== generate a list of stim pairs ==========================
 all_combos = list(combinations(range(nstim), 2))

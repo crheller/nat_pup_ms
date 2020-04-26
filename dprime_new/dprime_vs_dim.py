@@ -13,6 +13,7 @@ loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 modelname = 'dprime_jk10'
 plot_train = True
+plot_diag = False
 dprime2 = False
 limit_ax = False
 
@@ -22,8 +23,8 @@ sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
          'DRX007a.e1:64', 'DRX007a.e65:128', 
          'DRX008b.e1:64', 'DRX008b.e65:128']
 
-for site in [sites[1]]:
-
+for site in sites:
+    print('analyzing site {}'.format(site))
     fn = os.path.join(path, site, modelname+'_PLS.pickle')
     results = loader.load_results(fn)
     if not dprime2:
@@ -43,19 +44,20 @@ for site in [sites[1]]:
     ax[0, 0].plot(components, spont_results.dp_opt_test, 'o-', label='wopt, test')
     ax[0, 0].fill_between(components, spont_results.dp_opt_test - spont_results.dp_opt_test_sem,
                                 spont_results.dp_opt_test + spont_results.dp_opt_test_sem, alpha=0.5)
-
-    ax[0, 0].plot(components, spont_results.dp_diag_test, 'o-', label='wdiag, test')
-    ax[0, 0].fill_between(components, spont_results.dp_diag_test - spont_results.dp_diag_test_sem,
-                                spont_results.dp_diag_test + spont_results.dp_diag_test_sem, alpha=0.5)
+    if plot_diag:
+        ax[0, 0].plot(components, spont_results.dp_diag_test, 'o-', label='wdiag, test')
+        ax[0, 0].fill_between(components, spont_results.dp_diag_test - spont_results.dp_diag_test_sem,
+                                    spont_results.dp_diag_test + spont_results.dp_diag_test_sem, alpha=0.5)
 
     if plot_train:
         ax[0, 0].plot(components, spont_results.dp_opt_train, 'o-', label='wopt, train')
         ax[0, 0].fill_between(components, spont_results.dp_opt_train - spont_results.dp_opt_train_sem,
                                     spont_results.dp_opt_train + spont_results.dp_opt_train_sem, alpha=0.5)
 
-        ax[0, 0].plot(components, spont_results.dp_diag_train, 'o-', label='wdiag, train')
-        ax[0, 0].fill_between(components, spont_results.dp_diag_train - spont_results.dp_diag_train_sem,
-                                    spont_results.dp_diag_train + spont_results.dp_diag_train_sem, alpha=0.5)
+        if plot_diag:
+            ax[0, 0].plot(components, spont_results.dp_diag_train, 'o-', label='wdiag, train')
+            ax[0, 0].fill_between(components, spont_results.dp_diag_train - spont_results.dp_diag_train_sem,
+                                        spont_results.dp_diag_train + spont_results.dp_diag_train_sem, alpha=0.5)
 
     ax[0, 0].axhline(0, linestyle='--', lw=3, color='grey')
     ax[0, 0].legend(frameon=False)
@@ -89,19 +91,20 @@ for site in [sites[1]]:
     ax[0, 1].plot(components, evsp_collapse.dp_opt_test, 'o-', label='wopt, test')
     ax[0, 1].fill_between(components, evsp_collapse.dp_opt_test - evsp_collapse_err.dp_opt_test_sem,
                                 evsp_collapse.dp_opt_test + evsp_collapse_err.dp_opt_test_sem, alpha=0.5)
-
-    ax[0, 1].plot(components, evsp_collapse.dp_diag_test, 'o-', label='wdiag, test')
-    ax[0, 1].fill_between(components, evsp_collapse.dp_diag_test - evsp_collapse_err.dp_diag_test_sem,
-                                evsp_collapse.dp_diag_test + evsp_collapse_err.dp_diag_test_sem, alpha=0.5)
+    if plot_diag:
+        ax[0, 1].plot(components, evsp_collapse.dp_diag_test, 'o-', label='wdiag, test')
+        ax[0, 1].fill_between(components, evsp_collapse.dp_diag_test - evsp_collapse_err.dp_diag_test_sem,
+                                    evsp_collapse.dp_diag_test + evsp_collapse_err.dp_diag_test_sem, alpha=0.5)
 
     if plot_train:
         ax[0, 1].plot(components, evsp_collapse.dp_opt_train, 'o-', label='wopt, train')
         ax[0, 1].fill_between(components, evsp_collapse.dp_opt_train - evsp_collapse_err.dp_opt_train_sem,
                                     evsp_collapse.dp_opt_train + evsp_collapse_err.dp_opt_train_sem, alpha=0.5)
 
-        ax[0, 1].plot(components, evsp_collapse.dp_diag_train, 'o-', label='wdiag, train')
-        ax[0, 1].fill_between(components, evsp_collapse.dp_diag_train - evsp_collapse_err.dp_diag_train_sem,
-                                    evsp_collapse.dp_diag_train + evsp_collapse_err.dp_diag_train_sem, alpha=0.5)
+        if plot_diag:
+            ax[0, 1].plot(components, evsp_collapse.dp_diag_train, 'o-', label='wdiag, train')
+            ax[0, 1].fill_between(components, evsp_collapse.dp_diag_train - evsp_collapse_err.dp_diag_train_sem,
+                                        evsp_collapse.dp_diag_train + evsp_collapse_err.dp_diag_train_sem, alpha=0.5)
 
     ax[0, 1].axhline(0, linestyle='--', lw=3, color='grey')
     ax[0, 1].legend(frameon=False)
@@ -137,18 +140,20 @@ for site in [sites[1]]:
     ax[0, 2].fill_between(components, ev_collapse.dp_opt_test - ev_collapse_err.dp_opt_test_sem,
                                 ev_collapse.dp_opt_test + ev_collapse_err.dp_opt_test_sem, alpha=0.5)
 
-    ax[0, 2].plot(components, ev_collapse.dp_diag_test, 'o-', label='wdiag, test')
-    ax[0, 2].fill_between(components, ev_collapse.dp_diag_test - ev_collapse_err.dp_diag_test_sem,
-                                ev_collapse.dp_diag_test + ev_collapse_err.dp_diag_test_sem, alpha=0.5)
+    if plot_diag:
+        ax[0, 2].plot(components, ev_collapse.dp_diag_test, 'o-', label='wdiag, test')
+        ax[0, 2].fill_between(components, ev_collapse.dp_diag_test - ev_collapse_err.dp_diag_test_sem,
+                                    ev_collapse.dp_diag_test + ev_collapse_err.dp_diag_test_sem, alpha=0.5)
 
     if plot_train:
         ax[0, 2].plot(components, ev_collapse.dp_opt_train, 'o-', label='wopt, train')
         ax[0, 2].fill_between(components, ev_collapse.dp_opt_train - ev_collapse_err.dp_opt_train_sem,
                                     ev_collapse.dp_opt_train + ev_collapse_err.dp_opt_train_sem, alpha=0.5)
 
-        ax[0, 2].plot(components, ev_collapse.dp_diag_train, 'o-', label='wdiag, train')
-        ax[0, 2].fill_between(components, ev_collapse.dp_diag_train - ev_collapse_err.dp_diag_train_sem,
-                                    ev_collapse.dp_diag_train + ev_collapse_err.dp_diag_train_sem, alpha=0.5)
+        if plot_diag:
+            ax[0, 2].plot(components, ev_collapse.dp_diag_train, 'o-', label='wdiag, train')
+            ax[0, 2].fill_between(components, ev_collapse.dp_diag_train - ev_collapse_err.dp_diag_train_sem,
+                                        ev_collapse.dp_diag_train + ev_collapse_err.dp_diag_train_sem, alpha=0.5)
 
     ax[0, 2].axhline(0, linestyle='--', lw=3, color='grey')
     ax[0, 2].legend(frameon=False)
@@ -177,7 +182,7 @@ for site in [sites[1]]:
 
     f.tight_layout()
 
-    f.savefig(os.path.join(path, 'Figures', site+'_{}'+'.png'.format(modelname)))
+    f.savefig(os.path.join(path, 'Figures', site+'_{}.png'.format(modelname)))
 
 
 plt.show()

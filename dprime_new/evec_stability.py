@@ -61,6 +61,7 @@ for site in sites:
 
     f.tight_layout()
     f.canvas.set_window_title(site)
+    f.savefig(os.path.join(path, 'Figures', site+'_evecs_{}.png'.format(modelname)))
 #cax,kw = mpl.colorbar.make_axes([a for a in ax[0].flat])
 #f.colorbar(im, cax=cax, **kw)
 

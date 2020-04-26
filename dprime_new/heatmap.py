@@ -14,7 +14,7 @@ modelname = 'dprime_jk10'
 site = 'BOL006b'
 nbins = 15
 
-fn = os.path.join(path, site, modelname+'_PCA.pickle')
+fn = os.path.join(path, site, modelname+'_PLS.pickle')
 results = loader.load_results(fn)
 
 n_components = 2

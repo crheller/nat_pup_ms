@@ -20,13 +20,16 @@ batch = 289
 fs = 4
 z_score = False
 jk_sets = 10
-single_stim = [('STIM_00ferretmixed41.wav', 0, 1),
+single_stim = None 
+
+"""
+[('STIM_00ferretmixed41.wav', 0, 1),
                      ('STIM_00ferretmixed41.wav', 1, 2),
                      ('STIM_00ferretmixed41.wav', 2, 5),
                      ('STIM_00ferretmixed41.wav', 3, 6),
                      ('STIM_00ferretmixed41.wav', 6, 7),
                      ('STIM_00ferretmixed41.wav', 10, 11)]
-
+"""
 # =======================================================================================
 # load recording
 options = {'cellid': site, 'rasterfs': fs, 'batch': batch, 'pupil': True, 'stim': False}
@@ -41,7 +44,7 @@ epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
 rec = rec.and_mask(epochs)
 resp_dict_all= rec['resp'].extract_epochs(epochs, mask=rec['mask'], allow_incomplete=True)
 if single_stim is None:
-    pairs = None
+    pairs = [None]
 else:
     pairs = single_stim
 
