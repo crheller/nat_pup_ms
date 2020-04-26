@@ -179,7 +179,7 @@ pls_results = decoding.cast_dtypes(pls_results)
 # collapse over results to save disk space by packing into "DecodingResults object"
 log.info("Compressing results into DecodingResults object... ")
 pca_results = decoding.DecodingResults(pca_results, pupil_range=pupil_range)
-pls_results = decoding.DecodingResults(pls_results, pupil_range=pupil_rangeim)
+pls_results = decoding.DecodingResults(pls_results, pupil_range=pupil_range)
 
 # save results
 log.info("Saving results to {}".format(path))
