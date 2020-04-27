@@ -107,10 +107,14 @@ else:
     log.info("center est / val sets")
     est, val = nat_preproc.scale_est_val(est, val, sd=False)
 
-# set up data frames to save results
-pca_results = pd.DataFrame()
-pls_results = pd.DataFrame()
-
+# set up data frames to save results (preallocate space on first
+# iteration, because then we'll have the columns)
+temp_pca_results = pd.DataFrame()
+temp_pls_results = pd.DataFrame()
+pls_index = range(len(all_combos) * njacks * (components-2))
+pca_index = range(len(all_combos) * njacks)
+pca_idx = 0
+pls_idx = 0
 # ============================== Loop over stim pairs ================================
 for stim_pair_idx, combo in enumerate(all_combos):
     # print every 500th pair. Don't want to overwhelm log
@@ -146,7 +150,18 @@ for stim_pair_idx, combo in enumerate(all_combos):
             'category': category,
             'site': site
         })
-        pca_results = pca_results.append([_pca_results])
+        # preallocate space for subsequent iterations
+        if pca_idx == 0:
+            temp_pca_results = temp_pca_results.append([_pca_results])
+            pca_results = pd.DataFrame(index=pca_index, columns=temp_pca_results.columns)
+            pca_results.loc[pca_idx] = temp_pca_results.iloc[0].values
+            temp_pca_results = pd.DataFrame()
+
+        else:
+            temp_pca_results = temp_pca_results.append([_pca_results])
+            pca_results.loc[pca_idx] = temp_pca_results.iloc[0].values
+            temp_pca_results = pd.DataFrame()
+        pca_idx += 1
 
         # ============================== PLS ANALYSIS ===============================
         for n_components in range(2, components):
@@ -166,6 +181,20 @@ for stim_pair_idx, combo in enumerate(all_combos):
                 'site': site
             })
             pls_results = pls_results.append([_pls_results])
+        
+            # preallocate space for subsequent iterations
+            if pls_idx == 0:
+                temp_pls_results = temp_pls_results.append([_pls_results])
+                pls_results = pd.DataFrame(index=pls_index, columns=temp_pls_results.columns)
+                pls_results.loc[pls_idx] = temp_pls_results.iloc[0].values
+                temp_pls_results = pd.DataFrame()
+
+            else:
+                temp_pls_results = temp_pls_results.append([_pls_results])
+                pls_results.loc[pls_idx] = temp_pls_results.iloc[0].values
+                temp_pls_results = pd.DataFrame()
+
+            pls_idx += 1
 
  
 # convert columns to str
