@@ -180,7 +180,6 @@ for stim_pair_idx, combo in enumerate(all_combos):
                 'category': category,
                 'site': site
             })
-            pls_results = pls_results.append([_pls_results])
         
             # preallocate space for subsequent iterations
             if pls_idx == 0:
