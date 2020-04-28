@@ -11,7 +11,7 @@ import os
 
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-modelname = 'dprime_jk10'
+modelname = 'dprime_jk10_zscore'
 plot_train = True
 plot_diag = False
 dprime2 = False

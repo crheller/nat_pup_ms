@@ -66,9 +66,13 @@ for op in options:
         zscore = True
     if op == 'pr':
         regress_pupil = True
+    if op == 'sim1':
+        sim1 = True
+    if op == 'sim2': 
+        sim2 = True
 
 # ================================= load recording ==================================
-X, sp_bins, X_pup = decoding.load_site(site=site, batch=batch, 
+X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
                                        sim_first_order=sim1, 
                                        sim_second_order=sim2,
                                        regress_pupil=regress_pupil)
@@ -77,7 +81,7 @@ nreps = X.shape[1]
 nstim = X.shape[2]
 nbins = X.shape[3]
 X = X.reshape(ncells, nreps, nstim * nbins)
-sp_bins = sp_bins.reshape(1, nreps, nstim * nbins)
+sp_bins = sp_bins.reshape(1, sp_bins.shape[1], nstim * nbins)
 nstim = nstim * nbins
 
 # =========================== generate a list of stim pairs ==========================
@@ -88,14 +92,17 @@ ev_ev_combos = [c for c in all_combos if (c[0] not in spont_bins) & (c[1] not in
 spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in spont_combos)]
 
 # =============================== make pupil mask ===================================
-# mask pupil per stimulus, rather than overall
-X_pup = X_pup.reshape(1, nreps, nstim)
-pup_mask = X_pup >= np.tile(np.median(X_pup, axis=1), [1, X_pup.shape[1], 1])
-nstim = nstim * nbins
+# mask pupil per stimulus, rather than overall (need a temp pupil mask, not just use one
+# returned above, because if sim data, mask much bigger than X_pup)
+X_pup = X_pup.reshape(1, X_pup.shape[1], nstim)
+pup_mask_temp = X_pup >= np.tile(np.median(X_pup, axis=1), [1, X_pup.shape[1], 1])
+
+# reshape true mask
+pup_mask = pup_mask.reshape(1, nreps, nstim)
 
 # ============================== get pupil variance ==================================
 # figure out pupil variance per stimulus
-pupil_range = nat_preproc.get_pupil_range(X_pup, pup_mask)
+pupil_range = nat_preproc.get_pupil_range(X_pup, pup_mask_temp)
 
 # =========================== generate list of est/val sets ==========================
 log.info("Generate list of {0} est / val sets".format(njacks))
@@ -104,7 +111,8 @@ nreps_train = est[0].shape[1]
 nreps_test = val[0].shape[1]
 
 # determine number of dim reduction components (bounded by ndim in dataset) 
-components = np.min([ncells, nreps_train])
+# force to less than 10, for speed purposes.
+components = np.min([ncells, nreps_train, 10])
 
 # ============================ preprocess est / val sets =============================
 if zscore:

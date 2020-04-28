@@ -15,7 +15,7 @@ import os
 
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-modelname = 'dprime_jk10'
+modelname = 'dprime_pr_jk10_zscore'
 n_components = 2
 pup_var_pairs = pd.read_csv(path+'high_pvar_stim_combos.csv')
 
@@ -24,13 +24,13 @@ sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
          'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
          'DRX007a.e1:64', 'DRX007a.e65:128', 
          'DRX008b.e1:64', 'DRX008b.e65:128']
-site = 'DRX006b.e1:64'
+site = 'BOL005c'
 
 fn = os.path.join(path, site, modelname+'_PLS.pickle')
 results = loader.load_results(fn)
 
 pairs = results.evoked_stimulus_pairs
-pairs = [p for p in pairs if p in pup_var_pairs['combo'].values]
+#pairs = [p for p in pairs if p in pup_var_pairs['combo'].values]
 
 df = results.numeric_results.loc[pd.IndexSlice[pairs, 2], :]
 
@@ -93,5 +93,7 @@ ax[2, 0].set_title(r'$\lambda_{2} / \lambda_{1}$')
 ax[2, 0].set_xlabel("Small pupil")
 
 f.tight_layout()
+
+f.canvas.set_window_title(site + ', ' + modelname)
 
 plt.show()

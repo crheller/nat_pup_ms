@@ -10,7 +10,7 @@ import pandas as pd
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10'
+modelname = 'dprime_jk10_zscore'
 site = 'TAR010c'
 nbins = 15
 val = 'dp_opt_test'  #'state_diff'  #'dp_opt_test'

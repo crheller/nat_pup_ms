@@ -12,27 +12,33 @@ import charlieTools.nat_sounds_ms.dim_reduction as dr
 
 #np.random.seed(123)
 
-zscore = False
+zscore = True
+regress_pupil = False
+el_only = False
+sim1 = False
+sim2 = False
 njacks = 10 # generate one random est / val set
 jk_set = 2 # which jack set to use for plotting 
 combo = (14, 56)  # if None, just using first evoked/evoked combo
 site = 'TAR010c'
 batch = 289
 
-
 # ================================= load recording ==================================
-X, sp_bins, X_pup = decoding.load_site(site=site, batch=batch)
+X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
+                                                            sim_first_order=sim1,
+                                                            sim_second_order=sim2,
+                                                            regress_pupil=regress_pupil)
 ncells = X.shape[0]
 nreps = X.shape[1]
 nstim = X.shape[2]
 nbins = X.shape[3]
 X = X.reshape(ncells, nreps, nstim * nbins)
-sp_bins = sp_bins.reshape(1, nreps, nstim * nbins)
+sp_bins = sp_bins.reshape(1, sp_bins.shape[1], nstim * nbins)
 
 # mask pupil per stimulus, rather than overall
-X_pup = X_pup.reshape(1, nreps, nstim * nbins)
-pup_mask = X_pup >= np.tile(np.median(X_pup, axis=1), [1, X_pup.shape[1], 1])
+pup_mask = pup_mask.reshape(1, nreps, nstim * nbins)
 nstim = nstim * nbins
+
 
 # =========================== generate list of est/val sets ==========================
 est, val, p_est, p_val = nat_preproc.get_est_val_sets(X, pup_mask=pup_mask, njacks=njacks)
@@ -77,7 +83,8 @@ f = decoding.plot_pair(xtrain, xtest,
                        nreps_train=nreps_train, 
                        nreps_test=nreps_test,
                        train_pmask=p_est,
-                       test_pmask=p_val)
+                       test_pmask=p_val,
+                       el_only=el_only)
 
 
 plt.show()
