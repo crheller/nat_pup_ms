@@ -56,14 +56,22 @@ options = modelname.split('_')
 
 njacks = 10
 zscore = False
+regress_pupil = False
+sim1 = False
+sim2 = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
     if 'zscore' in op:
         zscore = True
+    if op == 'pr':
+        regress_pupil = True
 
 # ================================= load recording ==================================
-X, sp_bins, X_pup = decoding.load_site(site=site, batch=batch)
+X, sp_bins, X_pup = decoding.load_site(site=site, batch=batch, 
+                                       sim_first_order=sim1, 
+                                       sim_second_order=sim2,
+                                       regress_pupil=regress_pupil)
 ncells = X.shape[0]
 nreps = X.shape[1]
 nstim = X.shape[2]
@@ -107,7 +115,7 @@ else:
     log.info("center est / val sets")
     est, val = nat_preproc.scale_est_val(est, val, sd=False)
 
-# set up data frames to save results (preallocate space on first
+# set up data frames to save results (wait to preallocate space on first
 # iteration, because then we'll have the columns)
 temp_pca_results = pd.DataFrame()
 temp_pls_results = pd.DataFrame()

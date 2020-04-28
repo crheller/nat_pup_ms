@@ -26,8 +26,8 @@ modelnames = ['ns.fs4.pup-ld-st.pup-hrc-psthfr-aev_slogsig.SxR_basic',
 
 # 04/26/2020 - Queue sdexp models again. New sdexp architecture allows easy extraction 
 # gain params. Should be easy to invert these models to get rid of first order pupil
-modelnames = ['ns.fs4.pup-ld-st.pup-hrc-psthfr_sdexp.SxR_jk.nf20-basic',
-              'ns.fs4.pup-ld-st.pup0-hrc-psthfr_sdexp.SxR_jk.nf20-basic']
+modelnames = ['ns.fs4.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
+              'ns.fs4.pup-ld-st.pup0-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic']
 
 if batch == 294:
     modelnames = [m.replace('fs4.pup', 'fs4.pup.voc') for m in modelnames]

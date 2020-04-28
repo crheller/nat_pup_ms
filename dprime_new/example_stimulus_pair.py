@@ -10,14 +10,14 @@ import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.dim_reduction as dr
 
-np.random.seed(123)
+#np.random.seed(123)
 
 zscore = False
 njacks = 10 # generate one random est / val set
 jk_set = 2 # which jack set to use for plotting 
-combo = (30, 37)  # if None, just using first evoked/evoked combo
-site = 'BOL006b'
-batch = 294
+combo = (14, 56)  # if None, just using first evoked/evoked combo
+site = 'TAR010c'
+batch = 289
 
 
 # ================================= load recording ==================================

@@ -23,6 +23,7 @@ elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
 
 modellist = ['dprime_jk10']
+modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore', 'dprime_pr_jk10']
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/crh_nems/bin/python'
