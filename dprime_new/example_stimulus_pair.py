@@ -19,15 +19,16 @@ sim1 = False
 sim2 = False
 njacks = 10 # generate one random est / val set
 jk_set = 2 # which jack set to use for plotting 
-combo = (14, 56)  # if None, just using first evoked/evoked combo
+combo = (8, 10)  # if None, just using first evoked/evoked combo
 site = 'TAR010c'
 batch = 289
 
 # ================================= load recording ==================================
-X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
-                                                            sim_first_order=sim1,
-                                                            sim_second_order=sim2,
-                                                            regress_pupil=regress_pupil)
+X, sp_bins, X_pup, pup_mask, X_raw, pup_mask_raw = decoding.load_site(site=site, batch=batch, 
+                                                                        sim_first_order=sim1,
+                                                                        sim_second_order=sim2,
+                                                                        regress_pupil=regress_pupil,
+                                                                        verbose=True)
 ncells = X.shape[0]
 nreps = X.shape[1]
 nstim = X.shape[2]

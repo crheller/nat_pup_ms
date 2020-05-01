@@ -6,7 +6,7 @@ import pandas as pd
 import scipy.stats as ss
 
 sig_pairs = True
-path = '/auto/users/hellerc/code/projects/nat_pupil_ms_final/noise_correlations/results/'
+path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
 df_all = ld.load_noise_correlation('rsc_bal', path=path)
 df_pr = ld.load_noise_correlation('rsc_pr_bal_rm1', path=path)
 xf_model = 'ns.fs4.pup-ld.pop-st.pup-hrc-apm-psthfr-addmeta-aev_stategain.SxR-lv.2xR.f2.pred-stategain.3xR.lv_init.i0.xx1.t7-init.f0.t7.pLV0,3'
