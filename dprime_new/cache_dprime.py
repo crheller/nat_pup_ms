@@ -127,10 +127,13 @@ else:
 # iteration, because then we'll have the columns)
 temp_pca_results = pd.DataFrame()
 temp_pls_results = pd.DataFrame()
+temp_tdr_results = pd.DataFrame()
 pls_index = range(len(all_combos) * njacks * (components-2))
 pca_index = range(len(all_combos) * njacks)
+tdr_index = range(len(all_combos) * njacks)
 pca_idx = 0
 pls_idx = 0
+tdr_idx = 0
 # ============================== Loop over stim pairs ================================
 for stim_pair_idx, combo in enumerate(all_combos):
     # print every 500th pair. Don't want to overwhelm log
@@ -179,6 +182,35 @@ for stim_pair_idx, combo in enumerate(all_combos):
             temp_pca_results = pd.DataFrame()
         pca_idx += 1
 
+        # ============================== TDR ANALYSIS ==============================
+        # custom dim reduction onto plane defined by dU and first PC of noise covariance
+        _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
+                                                       xtest,
+                                                       nreps_train,
+                                                       nreps_test,
+                                                       ptrain_mask=ptrain_mask,
+                                                       ptest_mask=ptest_mask)
+        
+        _tdr_results.update({
+            'n_components': 2,
+            'jack_idx': ev_set,
+            'combo': combo,
+            'category': category,
+            'site': site
+        })
+        # preallocate space for subsequent iterations
+        if tdr_idx == 0:
+            temp_tdr_results = temp_tdr_results.append([_tdr_results])
+            tdr_results = pd.DataFrame(index=tdr_index, columns=temp_tdr_results.columns)
+            tdr_results.loc[tdr_idx] = temp_tdr_results.iloc[0].values
+            temp_tdr_results = pd.DataFrame()
+
+        else:
+            temp_tdr_results = temp_tdr_results.append([_tdr_results])
+            tdr_results.loc[tdr_idx] = temp_tdr_results.iloc[0].values
+            temp_tdr_results = pd.DataFrame()
+        tdr_idx += 1
+
         # ============================== PLS ANALYSIS ===============================
         for n_components in range(2, components):
 
@@ -214,15 +246,18 @@ for stim_pair_idx, combo in enumerate(all_combos):
  
 # convert columns to str
 pca_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
+tdr_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in tdr_results.combo.values]
 pls_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
 
 # convert to correct dtypes
 pca_results = decoding.cast_dtypes(pca_results)
+tdr_results = decoding.cast_dtypes(tdr_results)
 pls_results = decoding.cast_dtypes(pls_results)
 
 # collapse over results to save disk space by packing into "DecodingResults object"
 log.info("Compressing results into DecodingResults object... ")
 pca_results = decoding.DecodingResults(pca_results, pupil_range=pupil_range)
+tdr_results = decoding.DecodingResults(tdr_results, pupil_range=pupil_range)
 pls_results = decoding.DecodingResults(pls_results, pupil_range=pupil_range)
 
 # save results
@@ -231,6 +266,7 @@ if not os.path.isdir(os.path.join(path, site)):
     os.mkdir(os.path.join(path, site))
 
 pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
+tdr_results.save_pickle(os.path.join(path, site, modelname+'_TDR.pickle'))
 pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
 
 if queueid:
