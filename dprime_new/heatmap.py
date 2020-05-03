@@ -16,12 +16,12 @@ mpl.rcParams['axes.spines.top'] = False
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore'
+modelname = 'dprime_sim1_jk10_zscore'
 xaxis_data = 'dprime_jk10_zscore'
 nbins = 20
 val = 'state_diff'  #'state_diff'  #'dp_opt_test'
 xaxis = 'cos_dU_evec'  #'dU_dot_evec_sq'  # 'cos_dU_evec'
-high_var_only = False
+high_var_only = True
 plot_sites = False
 
 if val == 'state_diff':

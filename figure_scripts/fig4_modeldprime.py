@@ -18,7 +18,7 @@ mpl.rcParams['axes.spines.top'] = False
 savefig = True
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/auto/users/hellerc/code/projects/nat_pupil_ms/py_figures/fig3_modeldprime.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig3_modeldprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore'
 val = 'dp_opt_test'

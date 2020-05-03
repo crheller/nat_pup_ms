@@ -24,7 +24,10 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
+savefig = True
+
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig2_overall_dprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore'
 val = 'dp_opt_test'
@@ -191,5 +194,8 @@ decoding.plot_stimulus_pair(site,
                             ax=q4ax)
 
 f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
 
 plt.show()
