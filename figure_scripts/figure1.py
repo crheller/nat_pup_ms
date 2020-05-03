@@ -29,6 +29,8 @@ r = rec['resp'].extract_epoch('STIM_00Oxford_male2b.wav')
 spec = rec['stim'].extract_epoch('STIM_00Oxford_male2b.wav')
 p = rec['pupil'].extract_epoch('STIM_00Oxford_male2b.wav')
 
+# TODO - load waveform from baphy, generate spectrogram with gtgram function in nems
+
 psth = sf.gaussian_filter1d(r.mean(axis=(0, 1)), sigma) * fs
 psth1 = sf.gaussian_filter1d(r[rep1, :, :].mean(axis=0), sigma) * fs
 psth2 = sf.gaussian_filter1d(r[rep2, :, :].mean(axis=0), sigma) * fs

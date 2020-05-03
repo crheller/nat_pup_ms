@@ -16,7 +16,6 @@ path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore'
 pr = 'dprime_pr_jk10_zscore'
-site = 'DRX006b.e1:64'
 n_components = 2
 
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
@@ -36,9 +35,9 @@ sp_var1 = []
 sp_var2 = []
 for site in sites:
 
-    fn = os.path.join(path, site, modelname+'_PLS.pickle')
+    fn = os.path.join(path, site, modelname+'_TDR.pickle')
     results = loader.load_results(fn)
-    fn = os.path.join(path, site, pr+'_PLS.pickle')
+    fn = os.path.join(path, site, pr+'_TDR.pickle')
     pr_results = loader.load_results(fn)
 
     pairs = pr_results.evoked_stimulus_pairs

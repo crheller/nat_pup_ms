@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 force_rerun = True
 subset_289 = True
 
@@ -23,9 +23,9 @@ elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
 
 modellist = ['dprime_jk10']
-modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore', 'dprime_pr_jk10']
-modellist = ['dprime_sim1_jk10_zscore', 'dprime_sim2_jk10_zscore', 'dprime_sim1_pr_jk10_zscore', 'dprime_sim2_pr_jk10_zscore',
-             'dprime_sim1_jk10', 'dprime_sim2_jk10', 'dprime_sim1_pr_jk10', 'dprime_sim2_pr_jk10']
+modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
+            'dprime_sim1_jk10_zscore', 'dprime_sim2_jk10_zscore', 
+            'dprime_sim1_pr_jk10_zscore', 'dprime_sim2_pr_jk10_zscore']
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/crh_nems/bin/python'

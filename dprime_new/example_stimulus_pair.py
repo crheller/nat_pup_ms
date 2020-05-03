@@ -19,7 +19,7 @@ sim1 = False
 sim2 = False
 njacks = 10 # generate one random est / val set
 jk_set = 2 # which jack set to use for plotting 
-combo = (8, 10)  # if None, just using first evoked/evoked combo
+combo = (56, 58)  # if None, just using first evoked/evoked combo
 site = 'TAR010c'
 batch = 289
 
@@ -73,12 +73,15 @@ p_est = p_est[jk_set][:, :, [combo[0], combo[1]]]
 p_val = p_val[jk_set][:, :, [combo[0], combo[1]]]
 
 Y = dr.get_one_hot_matrix(ncategories=2, nreps=nreps_train)
-pls = PLSRegression(n_components=2, max_iter=500, tol=1e-7)
-pls.fit(xtrain.T, Y.T)
-pls_weights = pls.x_weights_
+#pls = PLSRegression(n_components=2, max_iter=500, tol=1e-7)
+#pls.fit(xtrain.T, Y.T)
+#pls_weights = pls.x_weights_
+tdr = dr.TDR()
+tdr.fit(xtrain.T, Y.T)
+tdr_weights = tdr.weights
 
-xtrain = (xtrain.T @ pls_weights).T
-xtest = (xtest.T @ pls_weights).T
+xtrain = (xtrain.T @ tdr_weights.T).T
+xtest = (xtest.T @ tdr_weights.T).T
 
 f = decoding.plot_pair(xtrain, xtest, 
                        nreps_train=nreps_train, 

@@ -11,9 +11,9 @@ import os
 
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-modelname = 'dprime_jk10_zscore'
-sim1 = 'dprime_sim1_jk10_zscore'
-sim2 = 'dprime_sim2_jk10_zscore'
+modelname = 'dprime_pr_jk10_zscore'
+sim1 = 'dprime_sim1_pr_jk10_zscore'
+sim2 = 'dprime_sim2_pr_jk10_zscore'
 n_components = 2
 
 # list of sites with > 10 reps of each stimulus
@@ -21,13 +21,13 @@ sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
          'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
          'DRX007a.e1:64', 'DRX007a.e65:128', 
          'DRX008b.e1:64', 'DRX008b.e65:128']
-site = 'TAR017b'
+site = 'DRX006b.e65:128'
 
-fn = os.path.join(path, site, modelname+'_PLS.pickle')
+fn = os.path.join(path, site, modelname+'_TDR.pickle')
 results = loader.load_results(fn)
-fn = os.path.join(path, site, sim1+'_PLS.pickle')
+fn = os.path.join(path, site, sim1+'_TDR.pickle')
 sim1 = loader.load_results(fn)
-fn = os.path.join(path, site, sim2+'_PLS.pickle')
+fn = os.path.join(path, site, sim2+'_TDR.pickle')
 sim2 = loader.load_results(fn)
 
 pairs = results.evoked_stimulus_pairs

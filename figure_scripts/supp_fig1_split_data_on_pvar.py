@@ -15,14 +15,17 @@ import numpy as np
 import statsmodels.api as sm
 from scipy.optimize import curve_fit
 import os
-
+import matplotlib as mpl
+mpl.rcParams['axes.spines.right'] = False
+mpl.rcParams['axes.spines.top'] = False
 
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 cache_file = path + 'high_pvar_stim_combos.csv'
 figsave = 'inkscape_figures/supp_fig1_split_data.svg'
-modelname = 'dprime_jk10'
+modelname = 'dprime_jk10_zscore'
 n_components = 2
+savefig = True
 
 # list of sites with > 10 reps of each stimulus
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
@@ -33,7 +36,7 @@ sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
 # for each site extract dprime and site. Concat into master df
 df = pd.DataFrame()
 for site in sites:
-    fn = os.path.join(path, site, modelname+'_PLS.pickle')
+    fn = os.path.join(path, site, modelname+'_TDR.pickle')
     results = loader.load_results(fn)
 
     bp = results.get_result('bp_dp', results.evoked_stimulus_pairs, n_components)[0]
@@ -76,19 +79,18 @@ ax[0].legend(frameon=False)
 
 # keep only data in the right-most hump of the distribution
 mean = params[3]
-sd = params[4]
+sd = params[4] * 3
 mask = ((mean - abs(sd)) <= df['p_range']) & (df['p_range'] < (mean + abs(sd)))
 # save sites / combos where mask is True
 df[mask][['site']].to_csv(cache_file)
 
 
-# add ax.scatter(df[df['p_range']>median].groupby(by='site').mean()['sp_dp'] ** (1/2), 
-ax[1].scatter(df[mask].groupby(by='site').mean()['sp_dp'] ** (1/2), 
-           df[mask].groupby(by='site').mean()['bp_dp'] ** (1/2),
-           color='r', edgecolor='white', s=50, label='large pupil variance')
 ax[1].scatter(df[~mask].groupby(by='site').mean()['sp_dp'] ** (1/2), 
            df[~mask].groupby(by='site').mean()['bp_dp'] ** (1/2),
            color='b', edgecolor='white', s=50, label='small pupil variance')
+ax[1].scatter(df[mask].groupby(by='site').mean()['sp_dp'] ** (1/2), 
+           df[mask].groupby(by='site').mean()['bp_dp'] ** (1/2),
+           color='r', edgecolor='white', s=50, label='large pupil variance')
 ax[1].plot([0, 10], [0, 10], '--', color='grey')
 ax[1].axhline(0, linestyle='--', color='grey')
 ax[1].axvline(0, linestyle='--', color='grey')
@@ -99,6 +101,7 @@ ax[1].legend(frameon=False)
 
 f.tight_layout()
 
-f.savefig(figsave)
+if savefig:
+    f.savefig(figsave)
 
 plt.show()

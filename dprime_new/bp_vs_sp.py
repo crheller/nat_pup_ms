@@ -15,7 +15,7 @@ import os
 
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-modelname = 'dprime_sim2_pr_jk10_zscore'
+modelname = 'dprime_jk10_zscore'
 n_components = 2
 pup_var_pairs = pd.read_csv(path+'high_pvar_stim_combos.csv')
 
@@ -24,9 +24,9 @@ sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
          'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
          'DRX007a.e1:64', 'DRX007a.e65:128', 
          'DRX008b.e1:64', 'DRX008b.e65:128']
-site = 'TAR010c'
+site = 'TAR017b'
 
-fn = os.path.join(path, site, modelname+'_PLS.pickle')
+fn = os.path.join(path, site, modelname+'_TDR.pickle')
 results = loader.load_results(fn)
 
 pairs = results.evoked_stimulus_pairs
