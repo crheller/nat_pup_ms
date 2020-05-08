@@ -18,7 +18,7 @@ mpl.rcParams['axes.spines.top'] = False
 savefig = True
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig1_example.svg'
 
-f = plt.figure(figsize=(9, 8))
+f = plt.figure(figsize=(6, 6))
 
 # leave first subplot blank (for experimental setup)
 pax = plt.subplot2grid((6, 3), (2, 0), rowspan=4)
@@ -28,8 +28,8 @@ p2ax = plt.subplot2grid((6, 3), (4, 1), colspan=2, rowspan=2)
 
 site = 'TAR010c'
 batch = 289
-fs = 1000
-options = {'batch': batch, 'cellid': site, 'pupil': True, 'stim': True, 'rasterfs': fs}
+rasterfs = 1000
+options = {'batch': batch, 'cellid': site, 'pupil': True, 'stim': True, 'rasterfs': rasterfs}
 sigma = 30
 rep1 = -12
 rep2 = -2
@@ -52,21 +52,22 @@ mean_pupil1 = p[rep1].mean(axis=-1).squeeze()
 mean_pupil2 = p[rep2].mean(axis=-1).squeeze()
 
 # psths
-p1ax.plot(psth, color='grey', lw=2)
-p1ax.plot(psth1, color='firebrick', lw=2)
+time = np.linspace(-2, (psth.shape[0] / rasterfs) - 2, psth.shape[0])
+p1ax.plot(time, psth, color='grey', lw=2)
+p1ax.plot(time, psth1, color='firebrick', lw=2)
 p1ax.set_ylabel("Spk / s")
 p1ax.set_title(r"$\bar p_{k} = %s$" % np.round(mean_pupil1, 2))
 
-p2ax.plot(psth, color='grey', lw=2)
-p2ax.plot(psth2, color='navy', lw=2)
+p2ax.plot(time, psth, color='grey', lw=2)
+p2ax.plot(time, psth2, color='navy', lw=2)
 p2ax.set_ylabel("Spk / s")
 p2ax.set_title(r"$\bar p_{k} = %s$" % np.round(mean_pupil2, 2))
 p2ax.set_xlabel('Time (s)')
 
 # rasters
 lim = 40
-p1ax.plot(spk_times1[1], lim + (spk_times1[0] / 2), '|', color='k', markersize=1)
-p2ax.plot(spk_times2[1], lim + (spk_times2[0] / 2), '|', color='k', markersize=1)
+p1ax.plot((spk_times1[1] / rasterfs) - 2, lim + (spk_times1[0] / 2), '.', color='k', markersize=1)
+p2ax.plot((spk_times2[1] / rasterfs) - 2, lim + (spk_times2[0] / 2), '.', color='k', markersize=1)
 
 # spectrogram
 fs, data = wavfile.read(soundfile)
@@ -89,8 +90,10 @@ p2_idx = np.argwhere(p.mean(axis=-1).squeeze()==mean_pupil2)[0][0]
 im = pax.imshow(p, aspect='auto', cmap='Purples', origin='lower')
 pax.axhline(p1_idx, lw=2, color='firebrick')
 pax.axhline(p2_idx, lw=2, color='navy')
-pax.set_ylabel('Trial')
-pax.set_xlabel('Time')
+pax.set_xticks([0*rasterfs, 2*rasterfs, 5*rasterfs])
+pax.set_xticklabels([-2, 0, 3])
+pax.set_ylabel(r'Trial $k$')
+pax.set_xlabel('Time (s)')
 pax.set_title("Pupil Size")
 f.colorbar(im, ax=pax)
 
