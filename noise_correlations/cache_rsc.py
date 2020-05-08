@@ -98,7 +98,8 @@ if batch == 294:
 
 log.info("Load recording from xforms model {}".format(xforms_modelname))
 rec_path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
-cellid = [c for c in nd.get_batch_cells(batch).cellid if site in c]
+
+cellid, _ = nb.parse_cellid({'batch': batch, 'cellid': site})
 rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modelname, cellids=cellid, 
                                         cache_path=rec_path, recache=False)
 
