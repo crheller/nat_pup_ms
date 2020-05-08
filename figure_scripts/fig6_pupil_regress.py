@@ -1,9 +1,12 @@
 """
-Demonstrate that both first and second order differences between large and small pupil 
-contibute. 
-Show that effects are in different areas of the heatmap.
-    (with heatmap? Or with bar plots per quadrant? Or with linear regression model?)
+Illustrate that first and second order effects are independent by regressing out
+pupil-explained variance. Show that delta noise correlations and decoding improvement
+persist. 
+
+Show that overall noise correlations can be predicted from first order effects, while
+delta noise correlations cannot.
 """
+
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
@@ -17,13 +20,12 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
-
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig5_decoding_simulation.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig6_pupil_regression.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore'
-sim1 = 'dprime_sim1_jk10_zscore'
-sim2 = 'dprime_sim2_jk10_zscore'
+modelname = 'dprime_pr_jk10_zscore'
+sim1 = 'dprime_sim1_pr_jk10_zscore'
+sim2 = 'dprime_sim2_pr_jk10_zscore'
 estval = '_train'
 nbins = 20
 cmap = 'PRGn'
@@ -38,11 +40,10 @@ elif estval == '_test':
     y_cut = (0.35, 1) 
 
 # set up subplots
-f = plt.figure(figsize=(9, 3))
+f = plt.figure(figsize=(4, 4))
 
-bax = plt.subplot2grid((1, 3), (0, 0))
-s1ax = plt.subplot2grid((1, 3), (0, 1))
-s2ax = plt.subplot2grid((1, 3), (0, 2))
+dbax = plt.subplot2grid((1, 1), (0, 0))
+
 
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
         'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
@@ -105,50 +106,15 @@ df['sim1'] = df_sim1['state_diff']
 df['sim2'] = df_sim2['state_diff']
 
 # bar plot of delta dprime for raw data, 1st order, and 2nd order simulation
-bax.bar([0, 1, 2], 
+dbax.bar([0, 1, 2], 
         [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean()],
         yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem()],
         edgecolor='k', color=['k', 'orange', 'blue'], lw=2, width=0.5)
-bax.set_xticks([0, 1, 2])
-bax.set_xticklabels(['Raw', '1st order', '2nd order'])
-bax.set_ylabel(r"$\Delta d'^{2}$")
+dbax.set_xticks([0, 1, 2])
+dbax.set_xticklabels(['Raw', '1st order', '2nd order'])
+dbax.set_ylabel(r"$\Delta d'^{2}$")
 
-# plot delta dprime heatmaps for 1st and 2nd order
-df.plot.hexbin(x='dU_mag'+estval, 
-                  y='cos_dU_evec'+estval, 
-                  C='sim1', 
-                  gridsize=nbins, ax=s1ax, cmap=cmap, vmin=-3, vmax=3) 
-s1ax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-s1ax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-s1ax.spines['bottom'].set_color('orange')
-s1ax.spines['bottom'].set_lw(2)
-s1ax.xaxis.label.set_color('orange')
-s1ax.tick_params(axis='x', colors='orange')
-s1ax.spines['left'].set_color('purple')
-s1ax.spines['left'].set_lw(2)
-s1ax.yaxis.label.set_color('purple')
-s1ax.tick_params(axis='y', colors='purple')
-s1ax.set_title(r"$\Delta d'^2$, 1st order")
-
-df.plot.hexbin(x='dU_mag'+estval, 
-                  y='cos_dU_evec'+estval, 
-                  C='sim2', 
-                  gridsize=nbins, ax=s2ax, cmap=cmap, vmin=-3, vmax=3) 
-s2ax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-s2ax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-s2ax.spines['bottom'].set_color('orange')
-s2ax.spines['bottom'].set_lw(2)
-s2ax.xaxis.label.set_color('orange')
-s2ax.tick_params(axis='x', colors='orange')
-s2ax.spines['left'].set_color('purple')
-s2ax.spines['left'].set_lw(2)
-s2ax.yaxis.label.set_color('purple')
-s2ax.tick_params(axis='y', colors='purple')
-s2ax.set_title(r"$\Delta d'^2$, 2nd order")
 
 f.tight_layout()
-
-if savefig:
-    f.savefig(fig_fn)
 
 plt.show()

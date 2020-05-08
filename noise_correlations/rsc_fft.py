@@ -1,21 +1,22 @@
 import load_results as ld
 import matplotlib.pyplot as plt
-import plotting as cplt
+import charlieTools.plotting as cplt
 
 nc = ld.load_noise_correlation('rsc')
-mask = (nc['p_all'] < 1) & (nc['site']=='BRT026c')
+mask = (nc['p_all'] < 1) #& (nc['site']=='BRT026c')
+rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
 
-nc_1 = ld.load_noise_correlation('rsc_fft0-0.25')[mask]
-nc_2 = ld.load_noise_correlation('rsc_fft0.25-1')[mask]
-nc_3 = ld.load_noise_correlation('rsc_fft0.5-3')[mask]
-nc_4 = ld.load_noise_correlation('rsc_fft2-10')[mask]
-nc_5 = ld.load_noise_correlation('rsc_fft10-50')[mask]
+nc_1 = ld.load_noise_correlation('rsc_fft0-0.25', path=rsc_path)[mask]
+nc_2 = ld.load_noise_correlation('rsc_fft0.25-1', path=rsc_path)[mask]
+nc_3 = ld.load_noise_correlation('rsc_fft0.5-3', path=rsc_path)[mask]
+nc_4 = ld.load_noise_correlation('rsc_fft2-10', path=rsc_path)[mask]
+nc_5 = ld.load_noise_correlation('rsc_fft10-50', path=rsc_path)[mask]
 
-nc_pr_1 = ld.load_noise_correlation('rsc_pr_fft0-0.25')[mask]
-nc_pr_2 = ld.load_noise_correlation('rsc_pr_fft0.25-1')[mask]
-nc_pr_3 = ld.load_noise_correlation('rsc_pr_fft0.5-3')[mask]
-nc_pr_4 = ld.load_noise_correlation('rsc_pr_fft2-10')[mask]
-nc_pr_5 = ld.load_noise_correlation('rsc_pr_fft10-50')[mask]
+nc_pr_1 = ld.load_noise_correlation('rsc_pr_fft0-0.25', path=rsc_path)[mask]
+nc_pr_2 = ld.load_noise_correlation('rsc_pr_fft0.25-1', path=rsc_path)[mask]
+nc_pr_3 = ld.load_noise_correlation('rsc_pr_fft0.5-3', path=rsc_path)[mask]
+nc_pr_4 = ld.load_noise_correlation('rsc_pr_fft2-10', path=rsc_path)[mask]
+nc_pr_5 = ld.load_noise_correlation('rsc_pr_fft10-50', path=rsc_path)[mask]
 
 
 f, ax = plt.subplots(1, 2, sharey=True)

@@ -38,7 +38,7 @@ mask = (rsc_df['g1'] < .5) & (rsc_df['g2'] < .5)
 # heatmap of delta n.c vs. gain of each neuron
 f, ax = plt.subplots(1, 3, figsize=(15, 5))
 
-nbins = 10
+nbins = 15
 vm = rsc_df[mask]['all'].std() 
 rsc_df[mask].plot.hexbin(x='g1', y='g2', C='all', cmap='PRGn', vmin=-vm, vmax=vm, gridsize=nbins, ax=ax[0])
 ax[0].set_xlabel(r"$g_{i}$", fontsize=14)
