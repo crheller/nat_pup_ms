@@ -59,6 +59,7 @@ zscore = False
 regress_pupil = False
 sim1 = False
 sim2 = False
+do_pls = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -77,7 +78,7 @@ if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
 else:
     log.info("Only performing trial averaged PCA and TDR dimensionality reduction. No PLS")
-    
+
 # ================================= load recording ==================================
 X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
                                        sim_first_order=sim1, 
