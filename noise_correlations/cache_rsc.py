@@ -128,6 +128,8 @@ elif pupil_regress:
     else:
         raise ValueError("No regression method specified!")
 
+rec = rec.apply_mask(reset_epochs=True)
+
 if filt:
     log.info("Band-pass filter spike counts between {0} and {1} Hz".format(low_c, high_c))
     rec = preproc.bandpass_filter_resp(rec, low_c, high_c)
@@ -141,11 +143,11 @@ ops = {'state': 'small', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse':
 rec_sp = rec.copy()
 rec_sp = create_pupil_mask(rec_sp, **ops)
 
-eps = np.unique([s for s in rec.apply_mask(reset_epochs=True).epochs.name if 'STIM' in s]).tolist()
+eps = np.unique([s for s in rec.epochs.name if 'STIM' in s]).tolist()
 
 log.info("Extracting spike count dictionaries for big pupil, \n \
     small pupil, and all pupil trials.")
-real_dict_all = rec['resp'].extract_epochs(eps, mask=rec['mask'])
+real_dict_all = rec['resp'].extract_epochs(eps)
 real_dict_small = rec_sp['resp'].extract_epochs(eps, mask=rec_sp['mask'])
 real_dict_big = rec_bp['resp'].extract_epochs(eps, mask=rec_bp['mask'])
 

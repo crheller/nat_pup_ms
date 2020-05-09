@@ -32,7 +32,7 @@ modelnames = ['ns.fs100.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
               'ns.fs100.pup-ld-st.pup0-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic']
 
 if batch == 294:
-    modelnames = [m.replace('fs4.pup', 'fs4.pup.voc') for m in modelnames]
+    modelnames = [m.replace('pup-ld', 'pup.voc-ld') for m in modelnames]
 
 cellids = nd.get_batch_cells(batch).cellid.tolist()
 
