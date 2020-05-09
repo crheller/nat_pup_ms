@@ -94,7 +94,7 @@ else:
         xforms_modelname = 'ns.fs4.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'
 
 if batch == 294:
-    xforms_modelname = xforms_modelname.replace('fs4.pup', 'fs4.pup.voc')
+    xforms_modelname = xforms_modelname.replace('pup-ld', 'pup.voc-ld')
 
 log.info("Load recording from xforms model {}".format(xforms_modelname))
 rec_path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
