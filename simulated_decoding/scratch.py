@@ -9,8 +9,8 @@ import charlieTools.plotting as cplt
 
 np.random.seed(123)
 
-Ndim = 500
-Ntrials= 1000
+Ndim = 100
+Ntrials= 5000
 var_ratio = 3 # pc1 has X times the variance as pc2
 
 # simulated data
@@ -23,7 +23,7 @@ u = np.stack((np.random.poisson(u1, Ndim), np.random.poisson(u2, Ndim)))
 dU = u[[1], :] - u[[0], :]
 dU = dU / np.linalg.norm(dU)
 
-diff_cor = dU + np.random.normal(0, 0.01, dU.shape)
+diff_cor = dU + np.random.normal(0, 0.001, dU.shape)
 diff_cor = diff_cor / np.linalg.norm(diff_cor) * 5 
 pc1 = np.random.normal(0, 1, dU.shape)
 pc1 = (pc1 / np.linalg.norm(pc1)) * 5 * var_ratio
@@ -104,7 +104,7 @@ ax[1].axis('square')
 
 # ====================== perform same analysis as above, but use cross-validation ======================
 # determine if decoding in full space is overfitting
-njacks = 500
+njacks = 5
 X = X_raw
 
 # generate est / val

@@ -70,7 +70,14 @@ for op in options:
         sim1 = True
     if op == 'sim2': 
         sim2 = True
+    if op == 'PLS':
+        do_pls = True
 
+if do_pls:
+    log.info("Also running PLS dimensionality reduction for N components. Will be slower")
+else:
+    log.info("Only performing trial averaged PCA and TDR dimensionality reduction. No PLS")
+    
 # ================================= load recording ==================================
 X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
                                        sim_first_order=sim1, 
@@ -211,63 +218,69 @@ for stim_pair_idx, combo in enumerate(all_combos):
             temp_tdr_results = pd.DataFrame()
         tdr_idx += 1
 
-        # ============================== PLS ANALYSIS ===============================
-        for n_components in range(2, components):
+        if do_pls:
+            # ============================== PLS ANALYSIS ===============================
+            for n_components in range(2, components):
 
-            _pls_results = decoding.do_pls_dprime_analysis(xtrain, 
-                                                           xtest, 
-                                                           nreps_train,
-                                                           nreps_test,
-                                                           ptrain_mask=ptrain_mask,
-                                                           ptest_mask=ptest_mask,
-                                                           n_components=n_components)
-            _pls_results.update({
-                'n_components': n_components,
-                'jack_idx': ev_set,
-                'combo': combo,
-                'category': category,
-                'site': site
-            })
-        
-            # preallocate space for subsequent iterations
-            if pls_idx == 0:
-                temp_pls_results = temp_pls_results.append([_pls_results])
-                pls_results = pd.DataFrame(index=pls_index, columns=temp_pls_results.columns)
-                pls_results.loc[pls_idx] = temp_pls_results.iloc[0].values
-                temp_pls_results = pd.DataFrame()
+                _pls_results = decoding.do_pls_dprime_analysis(xtrain, 
+                                                            xtest, 
+                                                            nreps_train,
+                                                            nreps_test,
+                                                            ptrain_mask=ptrain_mask,
+                                                            ptest_mask=ptest_mask,
+                                                            n_components=n_components)
+                _pls_results.update({
+                    'n_components': n_components,
+                    'jack_idx': ev_set,
+                    'combo': combo,
+                    'category': category,
+                    'site': site
+                })
+            
+                # preallocate space for subsequent iterations
+                if pls_idx == 0:
+                    temp_pls_results = temp_pls_results.append([_pls_results])
+                    pls_results = pd.DataFrame(index=pls_index, columns=temp_pls_results.columns)
+                    pls_results.loc[pls_idx] = temp_pls_results.iloc[0].values
+                    temp_pls_results = pd.DataFrame()
 
-            else:
-                temp_pls_results = temp_pls_results.append([_pls_results])
-                pls_results.loc[pls_idx] = temp_pls_results.iloc[0].values
-                temp_pls_results = pd.DataFrame()
+                else:
+                    temp_pls_results = temp_pls_results.append([_pls_results])
+                    pls_results.loc[pls_idx] = temp_pls_results.iloc[0].values
+                    temp_pls_results = pd.DataFrame()
 
-            pls_idx += 1
+                pls_idx += 1
 
  
 # convert columns to str
 pca_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
 tdr_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in tdr_results.combo.values]
-pls_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
+if do_pls:
+    pls_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
 
 # convert to correct dtypes
 pca_results = decoding.cast_dtypes(pca_results)
 tdr_results = decoding.cast_dtypes(tdr_results)
-pls_results = decoding.cast_dtypes(pls_results)
+if do_pls:
+    pls_results = decoding.cast_dtypes(pls_results)
 
 # collapse over results to save disk space by packing into "DecodingResults object"
 log.info("Compressing results into DecodingResults object... ")
 pca_results = decoding.DecodingResults(pca_results, pupil_range=pupil_range)
 tdr_results = decoding.DecodingResults(tdr_results, pupil_range=pupil_range)
-pls_results = decoding.DecodingResults(pls_results, pupil_range=pupil_range)
+if do_pls:
+    pls_results = decoding.DecodingResults(pls_results, pupil_range=pupil_range)
 
 # save results
 log.info("Saving results to {}".format(path))
 if not os.path.isdir(os.path.join(path, site)):
     os.mkdir(os.path.join(path, site))
 
-pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
 tdr_results.save_pickle(os.path.join(path, site, modelname+'_TDR.pickle'))
 pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
+
+if do_pls:
+    pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
 
 if queueid:
     nd.update_job_complete(queueid)
