@@ -15,6 +15,16 @@ modelnames = ['rsc', 'rsc_bal', 'rsc_pr_rm1', 'rsc_pr_bal_rm1', 'rsc_pr_rm2', 'r
 modelnames = ['rsc', 'rsc_pr_rm2']
 modelnames = ['rsc_fft0-1', 'rsc_fft0.25-1', 'rsc_fft0.5-3', 'rsc_fft2-10', 'rsc_fft10-50',
                 'rsc_pr_rm2_fft0-1', 'rsc_pr_rm2_fft0.25-1', 'rsc_pr_rm2_fft0.5-3', 'rsc_pr_rm2_fft2-10', 'rsc_pr_rm2_fft10-50']
+modelnames = ['rsc_fft0-0.1', 'rsc_pr_rm2_fft0-0.1']
+modelnames = ['rsc_fft0.25-4', 'rsc_pr_rm2_fft0.25-4',
+              'rsc_fft5-10', 'rsc_pr_rm2_fft5-10',
+              'rsc_fft25-50', 'rsc_pr_rm2_fft25-50']
+modelnames = ['rsc_fft10-25', 'rsc_pr_rm2_fft10-25']
+modelnames = ['rsc_fft0-0.05', 'rsc_pr_rm2_fft0-0.05',
+               'rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5']
+modelnames = ['rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
+             'rsc_fft0.1-4', 'rsc_pr_rm2_fft0.1-4']
+
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
             'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',

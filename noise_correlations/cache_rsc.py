@@ -101,6 +101,7 @@ rec_path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
 
 cellid, _ = nb.parse_cellid({'batch': batch, 'cellid': site})
 rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modelname, cellids=cellid, 
+                                        siteid=site,
                                         cache_path=rec_path, recache=False)
 
 # filtering / pupil regression must always go first!
