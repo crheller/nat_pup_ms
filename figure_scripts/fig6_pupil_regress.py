@@ -40,10 +40,11 @@ elif estval == '_test':
     y_cut = (0.35, 1) 
 
 # set up subplots
-f = plt.figure(figsize=(4, 4))
+f = plt.figure(figsize=(9, 3))
 
-dbax = plt.subplot2grid((1, 1), (0, 0))
-
+dbax = plt.subplot2grid((1, 3), (0, 0))
+ncax = plt.subplot2grid((1, 3), (0, 1))
+bsax = plt.subplot2grid((1, 3), (0, 2))
 
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
         'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
@@ -114,7 +115,48 @@ dbax.set_xticks([0, 1, 2])
 dbax.set_xticklabels(['Raw', '1st order', '2nd order'])
 dbax.set_ylabel(r"$\Delta d'^{2}$")
 
+nc1 = ld.load_noise_correlation('rsc_fft0-0.05').loc[pairs]
+nc2 = ld.load_noise_correlation('rsc_fft0.1-4').loc[pairs]
+nc3 = ld.load_noise_correlation('rsc_fft4-10').loc[pairs]
+nc4 = ld.load_noise_correlation('rsc_fft10-25').loc[pairs]
+nc5 = ld.load_noise_correlation('rsc_fft25-50').loc[pairs]
+
+nc1pr = ld.load_noise_correlation('rsc_pr_rm2_fft0-0.05').loc[pairs]
+nc2pr = ld.load_noise_correlation('rsc_pr_rm2_fft0.1-4').loc[pairs]
+nc3pr = ld.load_noise_correlation('rsc_pr_rm2_fft4-10').loc[pairs]
+nc4pr = ld.load_noise_correlation('rsc_pr_rm2_fft10-25').loc[pairs]
+nc5pr = ld.load_noise_correlation('rsc_pr_rm2_fft25-50').loc[pairs]
+
+xticks = np.arange(0, 5)
+xlabs = ['DC', '0.1 - 4 Hz', '4 - 10 Hz', '10 - 25 Hz', '25 - 50 Hz']
+
+all_raw = [nc1['all'].mean(), nc2['all'].mean(), nc3['all'].mean(), nc4['all'].mean(), nc5['all'].mean()]
+all_raw_err = [nc1['all'].sem(), nc2['all'].sem(), nc3['all'].sem(), nc4['all'].sem(), nc5['all'].sem()]
+all_pr = [nc1pr['all'].mean(), nc2pr['all'].mean(), nc3pr['all'].mean(), nc4pr['all'].mean(), nc5pr['all'].mean()]
+all_pr_err = [nc1pr['all'].sem(), nc2pr['all'].sem(), nc3pr['all'].sem(), nc4pr['all'].sem(), nc5pr['all'].sem()]
+
+bp = [nc1pr['bp'].mean(), nc2pr['bp'].mean(), nc3pr['bp'].mean(), nc4pr['bp'].mean(), nc5pr['bp'].mean()]
+bp_err = [nc1pr['bp'].sem(), nc2pr['bp'].sem(), nc3pr['bp'].sem(), nc4pr['bp'].sem(), nc5pr['bp'].sem()]
+sp = [nc1pr['sp'].mean(), nc2pr['sp'].mean(), nc3pr['sp'].mean(), nc4pr['sp'].mean(), nc5pr['sp'].mean()]
+sp_err = [nc1pr['sp'].sem(), nc2pr['sp'].sem(), nc3pr['sp'].sem(), nc4pr['sp'].sem(), nc5pr['sp'].sem()]
+
+ncax.errorbar(xticks, all_raw, yerr=all_raw_err, color='forestgreen', marker='.')
+ncax.errorbar(xticks, all_pr, yerr=all_pr_err, color='purple', marker='.')
+ncax.set_xticks(xticks)
+ncax.set_xticklabels(xlabs, rotation=45, fontsize=10)
+ncax.set_ylabel('rsc')
+ncax.set_xlabel('Frequency band')
+
+bsax.errorbar(xticks, bp, yerr=bp_err, color='firebrick', marker='.')
+bsax.errorbar(xticks, sp, yerr=sp_err, color='navy', marker='.')
+bsax.set_xticks(xticks)
+bsax.set_xticklabels(xlabs, rotation=45, fontsize=10)
+bsax.set_xlabel('Frequency band')
+
 
 f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
 
 plt.show()

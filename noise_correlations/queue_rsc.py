@@ -1,6 +1,6 @@
 import nems.db as nd
 
-batch = 294
+batch = 289
 update = False
 force_rerun = True
 
@@ -24,6 +24,13 @@ modelnames = ['rsc_fft0-0.05', 'rsc_pr_rm2_fft0-0.05',
                'rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5']
 modelnames = ['rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
              'rsc_fft0.1-4', 'rsc_pr_rm2_fft0.1-4']
+
+modelnames = ['rsc', 'rsc_pr_rm2', 
+              'rsc_fft0-0.05', 'rsc_pr_rm2_fft0-0.05',
+              'rsc_fft0.1-4', 'rsc_pr_rm2_fft0.1-4',
+              'rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
+              'rsc_fft10-25', 'rsc_pr_rm2_fft10-25',
+              'rsc_fft25-50', 'rsc_pr_rm2_fft25-50']
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',

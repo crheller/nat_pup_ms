@@ -7,7 +7,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
 nc = ld.load_noise_correlation('rsc')
-mask = (nc['p_all'] < 0.05) #& (nc['site']=='BRT026c')
+mask = (nc['p_all'] < 1) #& (nc['site']=='BRT026c')
 pairs = nc.loc[mask].index
 
 nc1 = ld.load_noise_correlation('rsc_fft0-0.05').loc[pairs]

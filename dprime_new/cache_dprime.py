@@ -57,6 +57,7 @@ options = modelname.split('_')
 njacks = 10
 zscore = False
 regress_pupil = False
+use_xforms = False
 sim1 = False
 sim2 = False
 do_pls = False
@@ -73,6 +74,8 @@ for op in options:
         sim2 = True
     if op == 'PLS':
         do_pls = True
+    if op == 'rm2':
+        use_xforms = True
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
@@ -83,7 +86,8 @@ else:
 X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
                                        sim_first_order=sim1, 
                                        sim_second_order=sim2,
-                                       regress_pupil=regress_pupil)
+                                       regress_pupil=regress_pupil,
+                                       use_xforms=use_xforms)
 ncells = X.shape[0]
 nreps = X.shape[1]
 nstim = X.shape[2]
