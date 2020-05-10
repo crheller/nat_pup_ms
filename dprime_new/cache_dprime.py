@@ -61,6 +61,7 @@ use_xforms = False
 sim1 = False
 sim2 = False
 do_pls = False
+var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -76,6 +77,9 @@ for op in options:
         do_pls = True
     if op == 'rm2':
         use_xforms = True
+    if op == 'vso':
+        # v - variance, s - second, o - order
+        var_first_order = False
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
@@ -86,6 +90,7 @@ else:
 X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
                                        sim_first_order=sim1, 
                                        sim_second_order=sim2,
+                                       var_first_order=var_first_order,
                                        regress_pupil=regress_pupil,
                                        use_xforms=use_xforms)
 ncells = X.shape[0]
