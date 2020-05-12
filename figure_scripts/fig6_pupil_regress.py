@@ -7,6 +7,7 @@ Show that overall noise correlations can be predicted from first order effects, 
 delta noise correlations cannot.
 """
 
+import load_results as ld
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
@@ -23,9 +24,9 @@ savefig = True
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig6_pupil_regression.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_pr_jk10_zscore'
-sim1 = 'dprime_sim1_pr_jk10_zscore'
-sim2 = 'dprime_sim2_pr_jk10_zscore'
+modelname = 'dprime_pr_rm2_jk10_zscore'
+sim1 = 'dprime_sim1_pr_rm2_jk10_zscore'
+sim2 = 'dprime_sim2_pr_rm2_jk10_zscore'
 estval = '_train'
 nbins = 20
 cmap = 'PRGn'
@@ -115,17 +116,17 @@ dbax.set_xticks([0, 1, 2])
 dbax.set_xticklabels(['Raw', '1st order', '2nd order'])
 dbax.set_ylabel(r"$\Delta d'^{2}$")
 
-nc1 = ld.load_noise_correlation('rsc_fft0-0.05').loc[pairs]
-nc2 = ld.load_noise_correlation('rsc_fft0.1-4').loc[pairs]
-nc3 = ld.load_noise_correlation('rsc_fft4-10').loc[pairs]
-nc4 = ld.load_noise_correlation('rsc_fft10-25').loc[pairs]
-nc5 = ld.load_noise_correlation('rsc_fft25-50').loc[pairs]
+nc1 = ld.load_noise_correlation('rsc_fft0-0.05') #.loc[pairs]
+nc2 = ld.load_noise_correlation('rsc_fft0.1-4') #.loc[pairs]
+nc3 = ld.load_noise_correlation('rsc_fft4-10') #.loc[pairs]
+nc4 = ld.load_noise_correlation('rsc_fft10-25') #.loc[pairs]
+nc5 = ld.load_noise_correlation('rsc_fft25-50') #.loc[pairs]
 
-nc1pr = ld.load_noise_correlation('rsc_pr_rm2_fft0-0.05').loc[pairs]
-nc2pr = ld.load_noise_correlation('rsc_pr_rm2_fft0.1-4').loc[pairs]
-nc3pr = ld.load_noise_correlation('rsc_pr_rm2_fft4-10').loc[pairs]
-nc4pr = ld.load_noise_correlation('rsc_pr_rm2_fft10-25').loc[pairs]
-nc5pr = ld.load_noise_correlation('rsc_pr_rm2_fft25-50').loc[pairs]
+nc1pr = ld.load_noise_correlation('rsc_pr_rm2_fft0-0.05') #.loc[pairs]
+nc2pr = ld.load_noise_correlation('rsc_pr_rm2_fft0.1-4') #.loc[pairs]
+nc3pr = ld.load_noise_correlation('rsc_pr_rm2_fft4-10') #.loc[pairs]
+nc4pr = ld.load_noise_correlation('rsc_pr_rm2_fft10-25') #.loc[pairs]
+nc5pr = ld.load_noise_correlation('rsc_pr_rm2_fft25-50') #.loc[pairs]
 
 xticks = np.arange(0, 5)
 xlabs = ['DC', '0.1 - 4 Hz', '4 - 10 Hz', '10 - 25 Hz', '25 - 50 Hz']
