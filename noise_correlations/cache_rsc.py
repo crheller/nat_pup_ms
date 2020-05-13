@@ -133,7 +133,17 @@ elif pupil_regress:
 
 if filt:
     log.info("Band-pass filter spike counts between {0} and {1} Hz".format(low_c, high_c))
+    # before filtering, pad nans with 0 (these are non-validation stimuli. eg. stims with only one rep)
+    # for filtering to be approx in real time, need these periods too
+    resp_data = rec['resp']._data.copy()
+    nan_idx = np.isnan(resp_data[0, :])
+    resp_data[:, nan_idx] = 0
+    rec['resp'] = rec['resp']._modified_copy(resp_data)
+
     rec = preproc.bandpass_filter_resp(rec, low_c, high_c, boxcar=boxcar)
+
+# also mask evoked periods only ?
+# rec = rec.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
 
 rec = rec.apply_mask(reset_epochs=True)
 
@@ -157,7 +167,6 @@ real_dict_big = rec_bp['resp'].extract_epochs(eps, mask=rec_bp['mask'])
 df_all = nc.compute_rsc(real_dict_all, chans=rec['resp'].chans)
 df_big = nc.compute_rsc(real_dict_big, chans=rec['resp'].chans)
 df_small = nc.compute_rsc(real_dict_small, chans=rec['resp'].chans)
-
 
 cols = ['all', 'p_all', 'bp', 'p_bp', 'sp', 'p_sp', 'site']
 df = pd.DataFrame(columns=cols, index=df_all.index)
