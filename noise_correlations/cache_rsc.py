@@ -65,11 +65,13 @@ if balanced:
     raise DeprecationWarning("Removed pupil balancing option (temporarily?) CRH 05/08/2020")
 
 keys = modelname.split('_')
+boxcar = False
 for k in keys:
     if 'fft' in k:
         low_c = np.float(k.split('-')[0][3:])
         high_c = np.float(k.split('-')[1])
-
+    if 'boxcar' in k:
+        boxcar = True
 path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
 
 log.info('Computing noise correlations for site: {0} with options: \n \
@@ -129,11 +131,11 @@ elif pupil_regress:
     else:
         raise ValueError("No regression method specified!")
 
-rec = rec.apply_mask(reset_epochs=True)
-
 if filt:
     log.info("Band-pass filter spike counts between {0} and {1} Hz".format(low_c, high_c))
-    rec = preproc.bandpass_filter_resp(rec, low_c, high_c)
+    rec = preproc.bandpass_filter_resp(rec, low_c, high_c, boxcar=boxcar)
+
+rec = rec.apply_mask(reset_epochs=True)
 
 log.info("Mask large and small pupil")
 # handle using xforms pupil mask

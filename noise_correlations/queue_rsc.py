@@ -31,7 +31,9 @@ modelnames = ['rsc', 'rsc_pr_rm2',
               'rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
               'rsc_fft10-25', 'rsc_pr_rm2_fft10-25',
               'rsc_fft25-50', 'rsc_pr_rm2_fft25-50']
-
+if boxcar:
+    modelnames = [m.replace('fft', 'boxcar_fft') for m in modelnames]
+    
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
             'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
