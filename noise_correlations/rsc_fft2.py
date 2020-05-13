@@ -11,17 +11,16 @@ mask = (nc['p_all'] < 1) #& (nc['site']=='BRT026c')
 pairs = nc.loc[mask].index
 boxcar = 'boxcar_'
 
-nc1 = ld.load_noise_correlation('rsc_{}fft0-0.05'.format(boxcar)).loc[pairs]
-nc2 = ld.load_noise_correlation('rsc_{}fft0.1-4'.format(boxcar)).loc[pairs]
-nc3 = ld.load_noise_correlation('rsc_{}fft4-10'.format(boxcar)).loc[pairs]
-nc4 = ld.load_noise_correlation('rsc_{}fft10-25'.format(boxcar)).loc[pairs]
-nc5 = ld.load_noise_correlation('rsc_{}fft25-50'.format(boxcar)).loc[pairs]
-
-nc1pr = ld.load_noise_correlation('rsc_pr_rm2_{}fft0-0.05'.format(boxcar)).loc[pairs]
-nc2pr = ld.load_noise_correlation('rsc_pr_rm2_{}fft0.1-4'.format(boxcar)).loc[pairs]
-nc3pr = ld.load_noise_correlation('rsc_pr_rm2_{}fft4-10'.format(boxcar)).loc[pairs]
-nc4pr = ld.load_noise_correlation('rsc_pr_rm2_{}fft10-25'.format(boxcar)).loc[pairs]
-nc5pr = ld.load_noise_correlation('rsc_pr_rm2_{}fft25-50'.format(boxcar)).loc[pairs]
+nc1 = ld.load_noise_correlation('rsc_ev_{}fft0-0.25'.format(boxcar)).loc[pairs]
+nc2 = ld.load_noise_correlation('rsc_ev_{}fft0.5-2'.format(boxcar)).loc[pairs]
+nc3 = ld.load_noise_correlation('rsc_ev_{}fft0.25-4'.format(boxcar)).loc[pairs]
+nc4 = ld.load_noise_correlation('rsc_ev_{}fft10-25'.format(boxcar)).loc[pairs]
+nc5 = ld.load_noise_correlation('rsc_ev_{}fft25-50'.format(boxcar)).loc[pairs]
+nc1pr = ld.load_noise_correlation('rsc_ev_pr_rm2_{}fft0-0.25'.format(boxcar)).loc[pairs]
+nc2pr = ld.load_noise_correlation('rsc_ev_pr_rm2_{}fft0.5-2'.format(boxcar)).loc[pairs]
+nc3pr = ld.load_noise_correlation('rsc_ev_pr_rm2_{}fft0.25-4'.format(boxcar)).loc[pairs]
+nc4pr = ld.load_noise_correlation('rsc_ev_pr_rm2_{}fft10-25'.format(boxcar)).loc[pairs]
+nc5pr = ld.load_noise_correlation('rsc_ev_pr_rm2_{}fft25-50'.format(boxcar)).loc[pairs]
 
 xticks = np.arange(0, 5)
 xlabs = ['DC', '0.1 - 4 Hz', '4 - 10 Hz', '10 - 25 Hz', '25 - 50 Hz']

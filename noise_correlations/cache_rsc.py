@@ -67,6 +67,7 @@ if balanced:
 keys = modelname.split('_')
 boxcar = False
 evoked = False
+fs4 = False
 for k in keys:
     if 'fft' in k:
         low_c = np.float(k.split('-')[0][3:])
@@ -75,6 +76,8 @@ for k in keys:
         boxcar = True
     if 'ev' in k:
         evoked = True
+    if 'fs4' in k:
+        fs4 = True
 path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
 
 log.info('Computing noise correlations for site: {0} with options: \n \
@@ -85,7 +88,7 @@ log.info('Computing noise correlations for site: {0} with options: \n \
 log.info("Saving results to: {}".format(path))
 
 batch = int(batch)
-if filt:
+if filt & (fs4 == False):
     fs = 100
     xforms_modelname = 'ns.fs100.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'
     #xforms_modelname = 'ns.fs100.pup-ld-st.pup-hrc-psthfr-ev_slogsig.SxR-lv.1xR-lvlogsig.2xR_jk.nf5.p-pupLVbasic.a0:0'

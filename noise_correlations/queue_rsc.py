@@ -1,6 +1,6 @@
 import nems.db as nd
 
-batch = 294
+batch = 289
 update = False
 force_rerun = True
 boxcar = True
@@ -43,7 +43,10 @@ if boxcar:
     modelnames = [m.replace('fft', 'boxcar_fft') for m in modelnames]
 
 if evoked:
-    modelnames = [m for m in replace('rsc', 'rsc_ev') for m in modelnames]
+    modelnames = [m.replace('rsc', 'rsc_ev') for m in modelnames]
+
+if slow:
+    modelnames = [m.replace('fft', 'fs4_fft')]
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
