@@ -4,6 +4,7 @@ batch = 294
 update = False
 force_rerun = True
 boxcar = True
+evoked = True
 
 '''
 modelnames = ['rsc', 'rsc_bal', 'rsc_pr_rm1', 'rsc_pr_bal_rm1', 'rsc_pr_rm2', 'rsc_pr_bal_rm2', 
@@ -40,6 +41,9 @@ modelnames = ['rsc', 'rsc_pr_rm2',
               'rsc_fft25-50', 'rsc_pr_rm2_fft25-50']
 if boxcar:
     modelnames = [m.replace('fft', 'boxcar_fft') for m in modelnames]
+
+if evoked:
+    modelnames = [m for m in replace('rsc', 'rsc_ev') for m in modelnames]
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',

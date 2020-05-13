@@ -66,12 +66,15 @@ if balanced:
 
 keys = modelname.split('_')
 boxcar = False
+evoked = False
 for k in keys:
     if 'fft' in k:
         low_c = np.float(k.split('-')[0][3:])
         high_c = np.float(k.split('-')[1])
     if 'boxcar' in k:
         boxcar = True
+    if 'ev' in k:
+        evoked = True
 path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
 
 log.info('Computing noise correlations for site: {0} with options: \n \
@@ -143,7 +146,10 @@ if filt:
     rec = preproc.bandpass_filter_resp(rec, low_c, high_c, boxcar=boxcar)
 
 # also mask evoked periods only ?
-# rec = rec.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
+if evoked:
+    # double check that mask is cast to bool
+    rec['mask'] = rec['mask']._modified_copy(rec['mask']._data.astype(bool))
+    rec = rec.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
 
 rec = rec.apply_mask(reset_epochs=True)
 

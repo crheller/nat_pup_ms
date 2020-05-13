@@ -32,8 +32,8 @@ ops = {'batch': batch, 'cellid': site}
 xmodel = 'ns.fs100.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'
 path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
 n_components = 30
-low = 0.1
-high = 25
+low = 0.5
+high = 10
 
 cells, _ = parse_cellid(ops)
 rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,
