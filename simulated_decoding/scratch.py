@@ -7,15 +7,21 @@ import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.plotting as cplt
 
+import matplotlib as mpl
+mpl.rcParams['axes.spines.right'] = False
+mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams.update({'svg.fonttype': 'none'})
+
+
 np.random.seed(123)
 
-Ndim = 100
-Ntrials= 5000
+Ndim = 25
+Ntrials= 100
 var_ratio = 3 # pc1 has X times the variance as pc2
 
 # simulated data
 u1 = 4
-u2 = 4
+u2 = 8
 u = np.stack((np.random.poisson(u1, Ndim), np.random.poisson(u2, Ndim)))
 
 # make two dimensional noise:
@@ -101,6 +107,44 @@ ax[1].set_title(r"$d'^{2}_{tdr} = %s, \Delta \mathbf{\mu} = %s$"
                                           round(dp), round(np.linalg.norm(dU), 2)))
 ax[1].legend()
 ax[1].axis('square')
+
+# plot this on its own too, just for the sake of visualization
+_f, _ax = plt.subplots(1, 1, figsize=(4, 4))
+_ax.scatter(Xtdr[0, :, 0], Xtdr[1, :, 0], s=20, color='r', edgecolor='white', alpha=0.5)
+_ax.scatter(Xtdr[0, :, 1], Xtdr[1, :, 1], s=20, color='b', edgecolor='white', alpha=0.5)
+_ax.plot(el1[0], el1[1], color='r', lw=2)
+_ax.plot(el2[0], el2[1], color='b', lw=2)
+
+# plot wopt 
+'''
+wopt_unit = wopt_tdr / np.linalg.norm(wopt_tdr) * (np.linalg.norm(dU_tdr) / 2)
+wopt_raw = (wopt / np.linalg.norm(wopt)).T.dot(tdr.weights.T).T
+wopt_raw = wopt_raw / np.linalg.norm(wopt_raw) * (np.linalg.norm(dU_tdr) / 2)
+_ax.plot([0, wopt_unit[0]], [0, wopt_unit[1]], 'k-', lw=2, label=r"$w_{opt, tdr}$")
+_ax.plot([0, -wopt_unit[0]], [0, -wopt_unit[1]], 'k-', lw=2)
+_ax.plot([0, wopt_raw[0]], [0, wopt_raw[1]], color='orange', lw=2, label=r"$w_{opt, raw}$")
+_ax.plot([0, -wopt_raw[0]], [0, -wopt_raw[1]], color='orange', lw=2)
+'''
+
+# plot first noise pc (for reduced space, and the projection from the high d space)
+noise_tdr = evecs_tdr[:, 0] / np.linalg.norm(evecs_tdr[:, 0]) * (np.linalg.norm(dU_tdr) / 2) * 3
+noise_raw = evecs[:, 0].dot(tdr.weights.T)
+noise_raw = noise_raw / np.linalg.norm(noise_raw) * (np.linalg.norm(dU_tdr) / 2) * 3
+_ax.plot([0, noise_tdr[0]], [0, noise_tdr[1]], color='grey', lw=5, label=r"$\mathbf{e}_{1, tdr}$")
+_ax.plot([0, -noise_tdr[0]], [0, -noise_tdr[1]], color='grey', lw=5)
+_ax.plot([0, noise_raw[0]], [0, noise_raw[1]], linestyle='dotted', color='magenta', lw=2, label=r"$\mathbf{e}_{1, raw}$")
+_ax.plot([0, -noise_raw[0]], [0, -noise_raw[1]], linestyle='dotted', color='magenta', lw=2)
+
+_ax.set_xlabel(r"$\Delta \mathbf{\mu}$")
+_ax.set_ylabel("TDR 2")
+_ax.set_title(r"$d'^{2}_{tdr} = %s, \Delta \mathbf{\mu} = %s$" 
+                "\n"
+                r"$d'^{2}_{raw} = %s, \Delta \mathbf{\mu} = %s$" % (round(dp_tdr), round(np.linalg.norm(dU_tdr), 2), 
+                                          round(dp), round(np.linalg.norm(dU), 2)))
+_ax.legend(frameon=False)
+_ax.axis('square')
+ 
+_f.tight_layout()
 
 # ====================== perform same analysis as above, but use cross-validation ======================
 # determine if decoding in full space is overfitting

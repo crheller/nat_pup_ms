@@ -15,6 +15,9 @@ Also, label the heatmap axis values for each example pair, and illustrate
 what the respective angles / vectors are (done inside plot fn)
 """
 
+import colors as color
+import ax_labels as alab
+
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
 import matplotlib.pyplot as plt
@@ -23,6 +26,7 @@ import numpy as np
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 
@@ -44,7 +48,7 @@ elif estval == '_test':
     x_cut = (1, 9)
     y_cut = (0.35, 1) 
 
-f = plt.figure(figsize=(12, 8))
+f = plt.figure(figsize=(9, 6))
 
 hax = plt.subplot2grid((2, 3), (0, 0))
 cax = plt.subplot2grid((2, 3), (1, 0))
@@ -90,16 +94,16 @@ df_dp.plot.hexbin(x='dU_mag'+estval,
                   y='cos_dU_evec'+estval, 
                   C=val, 
                   gridsize=nbins, ax=hax, cmap=cmap) 
-hax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-hax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-hax.spines['bottom'].set_color('orange')
+hax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+hax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+hax.spines['bottom'].set_color(color.SIGNAL)
 hax.spines['bottom'].set_lw(2)
-hax.xaxis.label.set_color('orange')
-hax.tick_params(axis='x', colors='orange')
-hax.spines['left'].set_color('purple')
+hax.xaxis.label.set_color(color.SIGNAL)
+hax.tick_params(axis='x', colors=color.SIGNAL)
+hax.spines['left'].set_color(color.COSTHETA)
 hax.spines['left'].set_lw(2)
-hax.yaxis.label.set_color('purple')
-hax.tick_params(axis='y', colors='purple')
+hax.yaxis.label.set_color(color.COSTHETA)
+hax.tick_params(axis='y', colors=color.COSTHETA)
 hax.set_title(r"$d'^2$")
 
 # plot count histogram
@@ -115,53 +119,55 @@ line = np.array([[x_cut[0], y_cut[0]],
                  [x_cut[0], y_cut[0]]])
 cax.plot(line[:, 0], line[:, 1], linestyle='--', lw=2, color='k')
 
-cax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-cax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-cax.spines['bottom'].set_color('orange')
+cax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+cax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+cax.spines['bottom'].set_color(color.SIGNAL)
 cax.spines['bottom'].set_lw(2)
-cax.xaxis.label.set_color('orange')
-cax.tick_params(axis='x', colors='orange')
-cax.spines['left'].set_color('purple')
+cax.xaxis.label.set_color(color.SIGNAL)
+cax.tick_params(axis='x', colors=color.SIGNAL)
+cax.spines['left'].set_color(color.COSTHETA)
 cax.spines['left'].set_lw(2)
-cax.yaxis.label.set_color('purple')
-cax.tick_params(axis='y', colors='purple')
+cax.yaxis.label.set_color(color.COSTHETA)
+cax.tick_params(axis='y', colors=color.COSTHETA)
 cax.set_title('Count')
 
-ylim = (-6, 10)
-xlim = (-14, 14)
+xlim = (-10, 10)
+ylim = (-10, 10)
 # plot quadrant 1 example
-mask1 = (df_dp['cos_dU_evec'+estval] >0.1) & (df_dp['cos_dU_evec'+estval] < 0.2)
-mask2 = (df_dp['dU_mag'+estval] > 3) & (df_dp['dU_mag'+estval] < 4)
+mask1 = (df_dp['cos_dU_evec'+estval] > 0) & (df_dp['cos_dU_evec'+estval] < 0.2)
+mask2 = (df_dp['dU_mag'+estval] > 2) & (df_dp['dU_mag'+estval] < 4)
 mask3 = df_dp['site'] == 'TAR010c'
-df_dp[mask1 & mask2 & mask3]
+df_dp[mask1 & mask2 & mask3][['dp_opt_test', 'dp_opt_train']]
 
-# 51_54 TAR010c
-pair, site, batch = (51, 54), 'TAR010c', 289
+# 51_54 TAR010c **
+# 10_33
+pair, site, batch = (32, 49), 'TAR010c', 289
 decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
-                            colors=['red', 'blue'],
-                            axlabs=['TDR 1', 'TDR 2'],
+                            colors=[color.STIMA, color.STIMB],
+                            axlabs=[alab.DU, 'TDR 2'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,
+                            ax_length=5,
                             ax=q1ax)
 
 # plot quadrant 2 example
 # 17_74 DRX006b.e1:64
-# 7_74 DRX006b.e1:64
 # 7_78 DRX006b.e1:64
 # 19_76 DRX007a.e1:64
 # 4_46 DRX007a.e1:64
-pair, site, batch = (76, 77), 'DRX007a.e1:64', 289
+pair, site, batch = (30, 37), 'TAR010c', 289
 decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
-                            colors=['red', 'blue'],
-                            axlabs=['TDR 1', 'TDR 2'],
+                            colors=[color.STIMA, color.STIMB],
+                            axlabs=[alab.DU, 'TDR 2'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,
+                            ax_length=5,
                             ax=q2ax)
 
 # plot quadrant 3 example
@@ -169,28 +175,30 @@ decoding.plot_stimulus_pair(site,
 #36_38 TAR010c
 #48_49 TAR010c
 #50_54 TAR010c *
-pair, site, batch = (50, 54), 'TAR010c', 289
+pair, site, batch = (29, 37), 'TAR010c', 289
 decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
-                            colors=['red', 'blue'],
-                            axlabs=['TDR 1', 'TDR 2'],
+                            colors=[color.STIMA, color.STIMB],
+                            axlabs=[alab.DU, 'TDR 2'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,
+                            ax_length=5,
                             ax=q3ax)
 
 # plot quadrant 4 example
 # 11_50 TAR010c
-pair, site, batch = (11, 50), 'TAR010c', 289
+pair, site, batch = (14, 59), 'TAR010c', 289
 decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
-                            colors=['red', 'blue'],
-                            axlabs=['TDR 1', 'TDR 2'],
+                            colors=[color.STIMA, color.STIMB],
+                            axlabs=[alab.DU, 'TDR 2'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,
+                            ax_length=5,
                             ax=q4ax)
 
 f.tight_layout()

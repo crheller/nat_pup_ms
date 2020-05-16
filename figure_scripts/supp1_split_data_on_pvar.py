@@ -18,6 +18,7 @@ import os
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams.update({'svg.fonttype': 'none'})
 
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'

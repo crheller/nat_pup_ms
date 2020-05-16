@@ -1,53 +1,80 @@
 import load_results as ld
 import matplotlib.pyplot as plt
-import charlieTools.plotting as cplt
+import numpy as np
+import scipy.stats as ss
+import matplotlib as mpl
+mpl.rcParams['axes.spines.right'] = False
+mpl.rcParams['axes.spines.top'] = False
 
-nc = ld.load_noise_correlation('rsc')
-mask = (nc['p_all'] < 1) #& (nc['site']=='BRT026c')
-rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
+#nc = ld.load_noise_correlation('rsc')
+#mask = (nc['p_all'] < 1) #& (nc['site']=='BRT026c')
+#pairs = nc.loc[mask].index
+boxcar = True
+evoked = True
+fs4 = False
 
-nc_1 = ld.load_noise_correlation('rsc_fft0-0.25', path=rsc_path)[mask]
-nc_2 = ld.load_noise_correlation('rsc_fft0.25-1', path=rsc_path)[mask]
-nc_3 = ld.load_noise_correlation('rsc_fft0.5-3', path=rsc_path)[mask]
-nc_4 = ld.load_noise_correlation('rsc_fft2-10', path=rsc_path)[mask]
-nc_5 = ld.load_noise_correlation('rsc_fft10-50', path=rsc_path)[mask]
+modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
+              'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2',
+              'rsc_fft2-4', 'rsc_pr_rm2_fft2-4',
+              'rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
+              'rsc_fft10-25', 'rsc_pr_rm2_fft10-25',
+              'rsc_fft25-50', 'rsc_pr_rm2_fft25-50'
+              ]
+if fs4:
+    modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
+                'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2']
+if evoked:
+    modelnames = [m.replace('rsc', 'rsc_ev') for m in modelnames]
+if boxcar:
+    modelnames = [m.replace('fft', 'boxcar_fft') for m in modelnames]
+if fs4:
+    modelnames = [m.replace('fft', 'fs4_fft') for m in modelnames]
 
-nc_pr_1 = ld.load_noise_correlation('rsc_pr_fft0-0.25', path=rsc_path)[mask]
-nc_pr_2 = ld.load_noise_correlation('rsc_pr_fft0.25-1', path=rsc_path)[mask]
-nc_pr_3 = ld.load_noise_correlation('rsc_pr_fft0.5-3', path=rsc_path)[mask]
-nc_pr_4 = ld.load_noise_correlation('rsc_pr_fft2-10', path=rsc_path)[mask]
-nc_pr_5 = ld.load_noise_correlation('rsc_pr_fft10-50', path=rsc_path)[mask]
+raw = [m for m in modelnames if 'pr' not in m]
+corr = [m for m in modelnames if 'pr' in m]
+f_band = [m.split('fft')[-1] for m in raw]
+
+raw_results = []
+for r in raw:
+    print('loading {}'.format(r))
+    raw_results.append(ld.load_noise_correlation(r))
+
+corr_results = []
+for c in corr:
+    print('loading {}'.format(c))
+    corr_results.append(ld.load_noise_correlation(c))
 
 
-f, ax = plt.subplots(1, 2, sharey=True)
+# plot results
+xvals = range(len(raw_results))
+raw_nc = [r['all'].mean() for r in raw_results]
+raw_sem = [r['all'].sem() for r in raw_results]
+corr_nc = [c['all'].mean() for c in corr_results]
+corr_sem = [c['all'].sem() for c in corr_results]
 
-ax[0].errorbar([0, 1, 2, 3, 4], [nc_1['all'].mean(), nc_2['all'].mean(), nc_3['all'].mean(), nc_4['all'].mean(), nc_5['all'].mean()],
-            yerr=[nc_1['all'].sem(), nc_2['all'].sem(), nc_3['all'].sem(), nc_4['all'].sem(), nc_5['all'].sem()], 
-            color='green')
+bp_nc = [r['bp'].mean() for r in raw_results]
+bp_sem = [r['bp'].sem() for r in raw_results]
+sp_nc = [r['sp'].mean() for r in raw_results]
+sp_sem = [r['sp'].sem() for r in raw_results]
 
-ax[0].errorbar([0, 1, 2, 3, 4], [nc_pr_1['all'].mean(), nc_pr_2['all'].mean(), nc_pr_3['all'].mean(), nc_pr_4['all'].mean(), nc_pr_5['all'].mean()],
-            yerr=[nc_pr_1['all'].sem(), nc_pr_2['all'].sem(), nc_pr_3['all'].sem(), nc_pr_4['all'].sem(), nc_pr_5['all'].sem()], 
-            color='purple')
+f, ax = plt.subplots(1, 2, figsize=(10, 5), sharey=True)
 
+ax[0].errorbar(xvals, raw_nc, yerr=raw_sem, marker='.', color='forestgreen', label='Raw')
+ax[0].errorbar(xvals, corr_nc, yerr=corr_sem, marker='.', color='purple', label='Corrected')
+ax[0].axhline(0, linestyle='--', lw=2, color='grey')
+ax[0].legend(frameon=False)
+ax[0].set_xticks(xvals)
+ax[0].set_xticklabels(f_band, rotation=45)
+ax[0].set_ylabel('rsc')
 
-ax[1].errorbar([0, 1, 2, 3, 4], [nc_pr_1['bp'].mean(), nc_pr_2['bp'].mean(), nc_pr_3['bp'].mean(), nc_pr_4['bp'].mean(), nc_pr_5['bp'].mean()],
-            yerr=[nc_pr_1['bp'].sem(), nc_pr_2['bp'].sem(), nc_pr_3['bp'].sem(), nc_pr_4['bp'].sem(), nc_pr_5['bp'].sem()], 
-            color='firebrick')
+ax[1].errorbar(xvals, bp_nc, yerr=bp_sem, marker='.', color='firebrick', label='Large')
+ax[1].errorbar(xvals, sp_nc, yerr=sp_sem, marker='.', color='navy', label='Small')
+ax[1].axhline(0, linestyle='--', lw=2, color='grey')
+ax[1].legend(frameon=False)
+ax[1].set_xticks(xvals)
+ax[1].set_xticklabels(f_band, rotation=45)
+ax[1].set_ylabel('rsc')
 
-ax[1].errorbar([0, 1, 2, 3, 4], [nc_pr_1['sp'].mean(), nc_pr_2['sp'].mean(), nc_pr_3['sp'].mean(), nc_pr_4['sp'].mean(), nc_pr_5['sp'].mean()],
-            yerr=[nc_pr_1['sp'].sem(), nc_pr_2['sp'].sem(), nc_pr_3['sp'].sem(), nc_pr_4['sp'].sem(), nc_pr_5['sp'].sem()], 
-            color='navy')
-
-#ax[1].errorbar([0, 1, 2, 3, 4], [nc_1['bp'].mean(), nc_2['bp'].mean(), nc_3['bp'].mean(), nc_4['bp'].mean(), nc_5['bp'].mean()],
-#            yerr=[nc_1['bp'].sem(), nc_2['bp'].sem(), nc_3['bp'].sem(), nc_4['bp'].sem(), nc_5['bp'].sem()], 
-#            color='firebrick')
-
-#ax[1].errorbar([0, 1, 2, 3, 4], [nc_1['sp'].mean(), nc_2['sp'].mean(), nc_3['sp'].mean(), nc_4['sp'].mean(), nc_5['sp'].mean()],
-#            yerr=[nc_1['sp'].sem(), nc_2['sp'].sem(), nc_3['sp'].sem(), nc_4['sp'].sem(), nc_5['sp'].sem()], 
-#            color='navy')
-
-ax[1].set_aspect(cplt.get_square_asp(ax[1]))
-ax[0].set_aspect(cplt.get_square_asp(ax[0]))
 
 f.tight_layout()
 

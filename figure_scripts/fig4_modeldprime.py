@@ -4,6 +4,9 @@ Model overall dprime (and delta dprime) in cropped space from fig 2.
 Compare model weights for predicting delta vs. predicting overall.
 """
 
+import colors as color
+import ax_labels as alab
+
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
 import matplotlib.pyplot as plt
@@ -14,6 +17,7 @@ import scipy.stats as ss
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 
@@ -36,12 +40,12 @@ elif estval == '_test':
     y_cut = (0.35, 1) 
 
 # set up subplots
-f = plt.figure(figsize=(16, 4))
+f = plt.figure(figsize=(6, 6))
 
-dpax = plt.subplot2grid((1, 4), (0, 0))
-hax = plt.subplot2grid((1, 4), (0, 1))
-scax = plt.subplot2grid((1, 4), (0, 2))
-cax = plt.subplot2grid((1, 4), (0, 3))
+dpax = plt.subplot2grid((2, 2), (0, 0))
+hax = plt.subplot2grid((2, 2), (0, 1))
+scax = plt.subplot2grid((2, 2), (1, 0))
+cax = plt.subplot2grid((2, 2), (1, 1))
 
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
          'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
@@ -80,7 +84,7 @@ df = df[mask1 & mask2]
 dfg = df.groupby(by='site').mean()
 mi = np.min([dfg['sp_dp'].min(), dfg['bp_dp'].min()])
 ma = np.max([dfg['sp_dp'].max(), dfg['bp_dp'].max()])
-dpax.scatter(dfg['sp_dp'], dfg['bp_dp'], color='k', s=100, edgecolor='white')
+dpax.scatter(dfg['sp_dp'], dfg['bp_dp'], color='k', s=50, edgecolor='white')
 dpax.plot([mi, ma], [mi, ma], color='grey', linestyle='--')
 dpax.set_xlabel('Small pupil')
 dpax.set_ylabel('Large pupil')
@@ -91,16 +95,16 @@ df.plot.hexbin(x='dU_mag'+estval,
                   y='cos_dU_evec'+estval, 
                   C='state_diff', 
                   gridsize=nbins, ax=hax, cmap=cmap, vmin=-3, vmax=3) 
-hax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-hax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-hax.spines['bottom'].set_color('orange')
+hax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+hax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+hax.spines['bottom'].set_color(color.SIGNAL)
 hax.spines['bottom'].set_lw(2)
-hax.xaxis.label.set_color('orange')
-hax.tick_params(axis='x', colors='orange')
-hax.spines['left'].set_color('purple')
+hax.xaxis.label.set_color(color.SIGNAL)
+hax.tick_params(axis='x', colors=color.SIGNAL)
+hax.spines['left'].set_color(color.COSTHETA)
 hax.spines['left'].set_lw(2)
-hax.yaxis.label.set_color('purple')
-hax.tick_params(axis='y', colors='purple')
+hax.yaxis.label.set_color(color.COSTHETA)
+hax.tick_params(axis='y', colors=color.COSTHETA)
 hax.set_title(r"$\Delta d'^2$")
 
 # linear model to predict delta dprime and overall dprime
@@ -136,8 +140,8 @@ beta_overall = np.stack(beta_overall)
 beta_delta = np.stack(beta_delta)
 
 # plot beta weights
-scax.scatter(beta_overall[:, 1], beta_delta[:, 1], color='purple', s=100, edgecolor='white', label=r'$k = |cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$')
-scax.scatter(beta_overall[:, 2], beta_delta[:, 2], color='orange', s=100, edgecolor='white', label=r"$k = |\Delta \mathbf{\mu}|$")
+scax.scatter(beta_overall[:, 1], beta_delta[:, 1], color=color.COSTHETA, s=50, edgecolor='white', label=alab.COSTHETA)
+scax.scatter(beta_overall[:, 2], beta_delta[:, 2], color=color.SIGNAL, s=50, edgecolor='white', label=alab.SIGNAL)
 scax.axhline(0, linestyle='--', color='k')
 scax.axvline(0, linestyle='--', color='k')
 scax.set_xlabel(r"$\beta_{k}$"
@@ -166,16 +170,16 @@ for i, site in enumerate(df.site.unique()):
     seg = cset.allsegs[1][0]
     cax.plot(seg[:, 1], seg[:, 0], '-', color=colors(i), label=site, lw=2)
 
-cax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-cax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-cax.spines['bottom'].set_color('orange')
+cax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+cax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+cax.spines['bottom'].set_color(color.SIGNAL)
 cax.spines['bottom'].set_lw(2)
-cax.xaxis.label.set_color('orange')
-cax.tick_params(axis='x', colors='orange')
-cax.spines['left'].set_color('purple')
+cax.xaxis.label.set_color(color.SIGNAL)
+cax.tick_params(axis='x', colors=color.SIGNAL)
+cax.spines['left'].set_color(color.COSTHETA)
 cax.spines['left'].set_lw(2)
-cax.yaxis.label.set_color('purple')
-cax.tick_params(axis='y', colors='purple')
+cax.yaxis.label.set_color(color.COSTHETA)
+cax.tick_params(axis='y', colors=color.COSTHETA)
 cax.set_title("Equi-density contours")
 #cax.legend()
 

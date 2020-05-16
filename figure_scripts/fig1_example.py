@@ -14,6 +14,7 @@ import nems.analysis.gammatone.gtgram as gt
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig1_example.svg'

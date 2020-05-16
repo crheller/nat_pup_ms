@@ -5,6 +5,9 @@ Show that effects are in different areas of the heatmap.
     (with heatmap? Or with bar plots per quadrant? Or with linear regression model?)
 """
 
+import colors as color
+import ax_labels as alab
+
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
 import matplotlib.pyplot as plt
@@ -15,6 +18,7 @@ import scipy.stats as ss
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 
@@ -108,42 +112,43 @@ df['sim2'] = df_sim2['state_diff']
 bax.bar([0, 1, 2], 
         [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean()],
         yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem()],
-        edgecolor='k', color=['k', 'orange', 'blue'], lw=2, width=0.5)
+        edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
 bax.set_xticks([0, 1, 2])
 bax.set_xticklabels(['Raw', '1st order', '2nd order'])
 bax.set_ylabel(r"$\Delta d'^{2}$")
+bax.set_ylim((-0.1, 1.25))
 
 # plot delta dprime heatmaps for 1st and 2nd order
 df.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
                   C='sim1', 
                   gridsize=nbins, ax=s1ax, cmap=cmap, vmin=-3, vmax=3) 
-s1ax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-s1ax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-s1ax.spines['bottom'].set_color('orange')
+s1ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+s1ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+s1ax.spines['bottom'].set_color(color.SIGNAL)
 s1ax.spines['bottom'].set_lw(2)
-s1ax.xaxis.label.set_color('orange')
-s1ax.tick_params(axis='x', colors='orange')
-s1ax.spines['left'].set_color('purple')
+s1ax.xaxis.label.set_color(color.SIGNAL)
+s1ax.tick_params(axis='x', colors=color.SIGNAL)
+s1ax.spines['left'].set_color(color.COSTHETA)
 s1ax.spines['left'].set_lw(2)
-s1ax.yaxis.label.set_color('purple')
-s1ax.tick_params(axis='y', colors='purple')
+s1ax.yaxis.label.set_color(color.COSTHETA)
+s1ax.tick_params(axis='y', colors=color.COSTHETA)
 s1ax.set_title(r"$\Delta d'^2$, 1st order")
 
 df.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
                   C='sim2', 
                   gridsize=nbins, ax=s2ax, cmap=cmap, vmin=-3, vmax=3) 
-s2ax.set_xlabel(r'$|\Delta \mathbf{\mu}|$', color='orange')
-s2ax.set_ylabel(r'$|cos(\Delta \mathbf{\mu}, \mathbf{e}_{\alpha})|$', color='purple')
-s2ax.spines['bottom'].set_color('orange')
+s2ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+s2ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+s2ax.spines['bottom'].set_color(color.SIGNAL)
 s2ax.spines['bottom'].set_lw(2)
-s2ax.xaxis.label.set_color('orange')
-s2ax.tick_params(axis='x', colors='orange')
-s2ax.spines['left'].set_color('purple')
+s2ax.xaxis.label.set_color(color.SIGNAL)
+s2ax.tick_params(axis='x', colors=color.SIGNAL)
+s2ax.spines['left'].set_color(color.COSTHETA)
 s2ax.spines['left'].set_lw(2)
-s2ax.yaxis.label.set_color('purple')
-s2ax.tick_params(axis='y', colors='purple')
+s2ax.yaxis.label.set_color(color.COSTHETA)
+s2ax.tick_params(axis='y', colors=color.COSTHETA)
 s2ax.set_title(r"$\Delta d'^2$, 2nd order")
 
 f.tight_layout()
