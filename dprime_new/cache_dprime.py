@@ -73,6 +73,8 @@ for op in options:
         sim1 = True
     if op == 'sim2': 
         sim2 = True
+    if op == 'sim12':
+        sim12 = True
     if op == 'PLS':
         do_pls = True
     if op == 'rm2':
@@ -90,6 +92,7 @@ else:
 X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
                                        sim_first_order=sim1, 
                                        sim_second_order=sim2,
+                                       sim_all=sim12,
                                        var_first_order=var_first_order,
                                        regress_pupil=regress_pupil,
                                        use_xforms=use_xforms)
