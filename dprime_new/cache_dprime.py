@@ -60,6 +60,7 @@ regress_pupil = False
 use_xforms = False
 sim1 = False
 sim2 = False
+sim12 = False
 do_pls = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
 for op in options:
