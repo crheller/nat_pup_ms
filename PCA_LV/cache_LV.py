@@ -145,6 +145,8 @@ for site in sites:
         'var_2nd_order': var_2nd_order,
         'pc_variance': pc_variance,
         'filt_params': filt_params,
+        'beta1': fow_nspace,
+        'beta2': sow_nspace,
         'site': site
     }
 
