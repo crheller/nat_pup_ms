@@ -44,8 +44,8 @@
      showgrid="false"
      units="in"
      inkscape:zoom="1.0213765"
-     inkscape:cx="188.25804"
-     inkscape:cy="305.57143"
+     inkscape:cx="198.37061"
+     inkscape:cy="386.87079"
      inkscape:window-x="0"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
@@ -181,7 +181,7 @@
   <g
      id="patch_2"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="translate(-7.5)">
+     transform="translate(-4.5,9)">
     <path
        d="m 51.68,390.04 h 65.64319 V 153.61917 H 51.68 Z"
        style="fill:#ffffff;stroke-linecap:butt;stroke-linejoin:round"
@@ -192,7 +192,7 @@
      clip-path="url(#p5cdfde33bb)"
      id="g826"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="matrix(1.4034046,0,0,1,-28.347951,0)">
+     transform="matrix(1.4034046,0,0,1,-25.347951,9)">
     <image
        height="236.88"
        id="imagecc0d61e40e"
@@ -206,7 +206,7 @@
   <g
      id="line2d_1"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="translate(-7.5)">
+     transform="translate(-4.5,9)">
     <defs
        id="defs829">
       <path
@@ -231,7 +231,7 @@
   <g
      id="text_1"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="translate(-7.5)">
+     transform="translate(-4.5,9)">
     <!-- -2 -->
     <defs
        id="defs838">
@@ -269,7 +269,7 @@
     </g>
   </g>
   <g
-     transform="matrix(1.4034046,0,0,1,-28.347951,0)"
+     transform="matrix(1.4034046,0,0,1,-25.347951,9)"
      id="line2d_2"
      style="stroke-linecap:butt;stroke-linejoin:round">
     <g
@@ -286,7 +286,7 @@
     </g>
   </g>
   <g
-     transform="translate(2.1341209)"
+     transform="translate(5.134121,9)"
      id="text_2"
      style="stroke-linecap:butt;stroke-linejoin:round">
     <!-- 0 -->
@@ -313,7 +313,7 @@
     </g>
   </g>
   <g
-     transform="matrix(1.4034046,0,0,1,-28.347951,0)"
+     transform="matrix(1.4034046,0,0,1,-25.347951,9)"
      id="line2d_3"
      style="stroke-linecap:butt;stroke-linejoin:round">
     <g
@@ -330,7 +330,7 @@
     </g>
   </g>
   <g
-     transform="translate(16.595366)"
+     transform="translate(19.595366,9)"
      id="text_3"
      style="stroke-linecap:butt;stroke-linejoin:round">
     <!-- 3 -->
@@ -359,7 +359,7 @@
   <g
      style="stroke-linecap:butt;stroke-linejoin:round"
      id="text_4"
-     transform="translate(6.1841343)">
+     transform="translate(9.184134,9)">
     <!-- Time (s) -->
     <defs
        id="defs884">
@@ -477,7 +477,7 @@
   <g
      id="matplotlib.axis_2"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="translate(-7.5)">
+     transform="translate(-4.5,9)">
     <g
        id="ytick_1"
        style="stroke-linecap:butt;stroke-linejoin:round">
@@ -956,7 +956,7 @@
   <g
      id="patch_3"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="translate(-7.5)">
+     transform="translate(-4.5,9)">
     <path
        d="M 51.68,390.04 V 153.61917"
        style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:square;stroke-linejoin:miter"
@@ -966,7 +966,7 @@
   <g
      id="patch_4"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="matrix(1.3907329,0,0,1,-27.536782,0)">
+     transform="matrix(1.3907329,0,0,1,-24.536782,9)">
     <path
        d="m 51.68,390.04 h 65.64319"
        style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:square;stroke-linejoin:miter"
@@ -976,7 +976,7 @@
   <g
      style="stroke-linecap:butt;stroke-linejoin:round"
      id="axes_2"
-     transform="translate(9)">
+     transform="translate(13.5,13.5)">
     <g
        style="stroke-linecap:butt;stroke-linejoin:round"
        id="patch_5">
@@ -1010,7 +1010,7 @@
   <g
      style="stroke-linecap:butt;stroke-linejoin:round"
      id="axes_3"
-     transform="translate(9)">
+     transform="translate(13.5,9)">
     <g
        style="stroke-linecap:butt;stroke-linejoin:round"
        id="patch_6">
@@ -41197,7 +41197,7 @@
   <g
      style="stroke-linecap:butt;stroke-linejoin:round"
      id="axes_4"
-     transform="translate(9)">
+     transform="translate(13.5,9)">
     <g
        style="stroke-linecap:butt;stroke-linejoin:round"
        id="patch_9">
@@ -74219,7 +74219,7 @@
   <g
      id="patch_12"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="matrix(0,0.67015659,-0.28125,0,166.27003,57.509247)">
+     transform="matrix(0,0.67015659,-0.28125,0,169.27003,66.509247)">
     <path
        clip-path="url(#p299c825941)"
        d="m 121.42589,390.04 v -0.92352 -234.57379 -0.92352 h 11.82104 v 0.92352 234.57379 0.92352 z"
@@ -74232,14 +74232,14 @@
      id="image48bcf67522"
      transform="matrix(0,1,1,0,0,0)"
      width="7.7202044"
-     x="139.05391"
+     x="148.05391"
      xlink:href="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAABAAAAFJCAYAAACSBa3qAAAABHNCSVQICAgIfAhkiAAAAY1JREFUeJztm8kNAzEMA5Vg+284x+aREihgaIL5ryCPJeqA83i/PvcIv6fy8czMdd+SA7oHG0egPRga4iUimGtEC7IHC7cgnoFnIHuwEUinQzRQJFUPMgJJNICLakJlwtM54BbkwsIfgfcgAGKApAUw4PuDhVzQb0GFSAsKP7mWQUijWQa8HvCSxst6hgf8LZwu6/wRysChLhTizi5NNFCIBkdwUCS8R8JvoYFUVZ7pxPI38G0k4qFcBiayjjMQszGhtOmr8WZjBgPVA720NRvLwMADg2zEFxANpMr6igcRgaQ50ECy8MDhiSUN0SIbVQP0FqfZaBJIPETNgEEgJTSa9OC5ANFgEaUy6GabZ2CQjQsMVANf6XuPPhFm4BBIOoPjFckgmeQ3mueXNjmQ2mStPPYtA1wTDca+BQaaBwaKZLCIwgOpDBImV4cmixbVMnCoCxv9gWqAnhs3JhbRgMHEgkNsMhmswvhQbn+w4IEBxIRsPF6RDJosPBcsFEk0cH6n6tCt07Ie8BdN+Qg/UpYeUTK3E6gAAAAASUVORK5CYII="
-     y="56.51503"
+     y="59.51503"
      style="stroke-linecap:butt;stroke-linejoin:round" />
   <g
      id="text_38"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="matrix(0.88268295,0,0,0.88268298,-68.893261,-203.684)">
+     transform="matrix(0.88268295,0,0,0.88268298,-65.893261,-194.684)">
     <!-- 10 -->
     <g
        transform="matrix(0.1,0,0,-0.1,140.24693,384.3048)"
@@ -74266,7 +74266,7 @@
   <g
      id="text_41"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="matrix(0.88268299,0,0,0.88268295,-39.149839,-111.26615)">
+     transform="matrix(0.88268299,0,0,0.88268295,-36.149839,-102.26615)">
     <!-- 40 -->
     <g
        transform="matrix(0.1,0,0,-0.1,140.24693,279.50665)"
@@ -74293,7 +74293,7 @@
   <g
      id="text_44"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="matrix(0.88268299,0,0,0.88268298,-9.8215538,-18.716034)">
+     transform="matrix(0.88268299,0,0,0.88268298,-6.8215538,-9.716034)">
     <!-- 70 -->
     <g
        transform="matrix(0.1,0,0,-0.1,140.24693,174.7085)"
@@ -74320,7 +74320,7 @@
   <g
      id="patch_13"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="matrix(0,0.67015659,-0.28125,0,166.27003,57.509247)">
+     transform="matrix(0,0.67015659,-0.28125,0,169.27003,66.509247)">
     <path
        d="m 121.42589,390.04 v -0.92352 -234.57379 -0.92352 h 11.82104 v 0.92352 234.57379 0.92352 z"
        style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:butt;stroke-linejoin:miter"
@@ -74387,17 +74387,17 @@
   </defs>
   <path
      style="fill:none;stroke:#b22222;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker30710)"
-     d="m 157.44012,250.05397 c -15.76012,0 -15.76012,0 -15.76012,0"
+     d="m 160.44012,259.05397 c -15.76012,0 -15.76012,0 -15.76012,0"
      id="path29842"
      inkscape:connector-curvature="0" />
   <path
      style="fill:none;stroke:#000080;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker30710-3)"
-     d="m 157.44012,160.1768 c -15.76012,0 -15.76012,0 -15.76012,0"
+     d="m 160.44012,169.1768 c -15.76012,0 -15.76012,0 -15.76012,0"
      id="path29842-7"
      inkscape:connector-curvature="0" />
   <g
      id="g195873"
-     transform="matrix(0.32717047,0,0,-0.32717047,-27.413714,319.47256)"
+     transform="matrix(0.32717047,0,0,-0.32717047,-39.413714,319.47256)"
      style="stroke-linecap:butt;stroke-linejoin:round">
     <g
        clip-path="url(#clipPath195879-5)"
@@ -75051,4 +75051,70 @@
       </g>
     </g>
   </g>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:24px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     x="13.248851"
+     y="29.601864"
+     id="text10364"><tspan
+       sodipodi:role="line"
+       id="tspan10362"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+       x="13.248851"
+       y="29.601864">A</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:24px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     x="11.748849"
+     y="135.37291"
+     id="text10368"><tspan
+       sodipodi:role="line"
+       id="tspan10366"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+       x="11.748849"
+       y="135.37291">B</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:24px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     x="160.81241"
+     y="29.565865"
+     id="text10372"><tspan
+       sodipodi:role="line"
+       id="tspan10370"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+       x="160.81241"
+       y="29.565865">C</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:14px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     x="173.70265"
+     y="56.739685"
+     id="text10376"><tspan
+       sodipodi:role="line"
+       id="tspan10374"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+       x="173.70265"
+       y="56.739685">I</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:14px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     x="177.09264"
+     y="144.6991"
+     id="text10380"><tspan
+       sodipodi:role="line"
+       id="tspan10378"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+       x="177.09264"
+       y="144.6991">II</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:14px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     x="180.48262"
+     y="286.18518"
+     id="text10380-3"><tspan
+       sodipodi:role="line"
+       id="tspan10378-6"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+       x="180.48262"
+       y="286.18518">III</tspan></text>
 </svg>
