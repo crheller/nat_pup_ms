@@ -22,17 +22,15 @@ if batch == 289:
 elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
 
-modellist = ['dprime_jk10']
+#modellist = ['dprime_jk10']
 modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
-            'dprime_sim1_jk10_zscore', 'dprime_sim2_jk10_zscore', 
-            'dprime_sim1_pr_jk10_zscore', 'dprime_sim2_pr_jk10_zscore']
-modellist = ['dprime_pr_rm2_jk10_zscore', 'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore']
-
-modellist = ['dprime_sim1_vso_jk10_zscore', 'dprime_sim2_vso_jk10_zscore', 
-             'dprime_sim1_vso_pr_rm2_jk10_zscore', 'dprime_sim2_vso_pr_rm2_jk10_zscore']
+            'dprime_sim1_jk10_zscore', 'dprime_sim2_jk10_zscore', 'dprime_sim12_jk10_zscore',
+            'dprime_sim1_pr_jk10_zscore', 'dprime_sim2_pr_jk10_zscore', 'dprime_sim12_pr_jk10_zscore',
+            'dprime_pr_rm2_jk10_zscore', 
+            'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore']
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
-python_path = '/auto/users/hellerc/anaconda3/envs/crh_nems/bin/python'
+python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
 
 nd.enqueue_models(celllist=sites,
                   batch=batch,

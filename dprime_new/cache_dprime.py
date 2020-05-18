@@ -63,6 +63,7 @@ sim2 = False
 sim12 = False
 do_pls = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
+latent_var = True
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -155,6 +156,18 @@ tdr_index = range(len(all_combos) * njacks)
 pca_idx = 0
 pls_idx = 0
 tdr_idx = 0
+
+# get latent variable dims for this site
+if latent_var:
+    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/pca_regression_lvs.pickle'
+    # load results from pickle file
+    with open(fn, 'rb') as handle:
+        lv_results = pickle.load(handle)
+    beta1 = lv_results[site]['beta1']
+    beta2 = lv_results[site]['beta2']
+else:
+    beta1 = None
+    beta2 = None
 # ============================== Loop over stim pairs ================================
 for stim_pair_idx, combo in enumerate(all_combos):
     # print every 500th pair. Don't want to overwhelm log
@@ -209,6 +222,8 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                                        xtest,
                                                        nreps_train,
                                                        nreps_test,
+                                                       beta1=beta1,
+                                                       beta2=beta2,
                                                        ptrain_mask=ptrain_mask,
                                                        ptest_mask=ptest_mask)
         

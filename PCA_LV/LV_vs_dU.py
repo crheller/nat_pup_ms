@@ -56,12 +56,12 @@ for site in sites:
     if len(stim) == 0:
         pass
     else:
-        _df = decoding_results.numeric_results
+        _df = sim2_results.numeric_results
         _df = _df.loc[pd.IndexSlice[stim, 2], :]
         _df['cos_dU_evec_test'] = decoding_results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
         _df['cos_dU_evec_train'] = decoding_results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
 
-        dU = decoding_results.get_result('wopt_all', stim, 2)[0]
+        dU = sim2_results.get_result('wopt_all', stim, 2)[0]
 
         fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/pca_regression_lvs.pickle'
         # load results from pickle file

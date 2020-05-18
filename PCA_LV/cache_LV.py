@@ -70,18 +70,24 @@ for site in sites:
     cells, _ = parse_cellid(ops)
     rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,
                                         cache_path=path, recache=False)
-    ff_residuals = rec['resp']._data - rec['psth_sp']._data
+    epochs = [e for e in rec.epochs.name.unique() if 'STIM' in e]
+    dresp = rec['resp'].extract_epochs(epochs)
+    zresp = cpreproc.zscore_per_stim(dresp, d2=None)
+    zresp = rec['resp'].replace_epochs(zresp, mask=rec['mask'])
+    rec['zresp'] = zresp
+
+    ff_residuals = rec['zresp']._data.copy()
     nan_idx = np.isnan(ff_residuals[0, :])
     ff_residuals[:, nan_idx] = 0
     ff_residuals = bandpass_filter_resp(ff_residuals, low, high, fs=fs, boxcar=True)
     rec['ff_residuals'] = rec['resp']._modified_copy(ff_residuals)
     rec = rec.apply_mask()
 
+    raw_residual = rec['zresp']._data
     pupil = rec['pupil']._data
-    raw_residual = rec['resp']._data - rec['psth_sp']._data
-    cor_residual = rec['resp']._data - rec['psth']._data
 
     # first, do full PCA on residuals
+    raw_residual = scale(raw_residual, with_mean=True, with_std=True)
     pca = PCA()
     pca.fit(raw_residual.T)
     pca_transform = raw_residual.T.dot(pca.components_.T).T
