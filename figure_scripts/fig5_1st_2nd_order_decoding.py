@@ -28,6 +28,7 @@ loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore'
 sim1 = 'dprime_sim1_jk10_zscore'
 sim2 = 'dprime_sim2_jk10_zscore'
+sim12 = 'dprime_sim12_jk10_zscore'
 estval = '_train'
 nbins = 20
 cmap = 'PRGn'
@@ -35,7 +36,7 @@ high_var_only = True
 
 # where to crop the data
 if estval == '_train':
-    x_cut = (2, 9.5)
+    x_cut = (2.5, 9.5)
     y_cut = (0.05, .5) 
 elif estval == '_test':
     x_cut = (1, 9)
@@ -55,6 +56,7 @@ sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
 df = []
 df_sim1 = []
 df_sim2 = []
+df_sim12 = []
 for site in sites:
     fn = os.path.join(path, site, modelname+'_TDR.pickle')
     results = loader.load_results(fn)
@@ -67,6 +69,10 @@ for site in sites:
     fn = os.path.join(path, site, sim2+'_TDR.pickle')
     results_sim2 = loader.load_results(fn)
     _df_sim2 = results_sim2.numeric_results
+
+    fn = os.path.join(path, site, sim12+'_TDR.pickle')
+    results_sim12 = loader.load_results(fn)
+    _df_sim12 = results_sim12.numeric_results
 
     stim = results.evoked_stimulus_pairs
     high_var_pairs = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/dprime_new/high_pvar_stim_combos.csv', index_col=0)
@@ -93,9 +99,15 @@ for site in sites:
         _df_sim2['site'] = site
         df_sim2.append(_df_sim2)
 
+        _df_sim12 = _df_sim12.loc[pd.IndexSlice[stim, 2], :]
+        _df_sim12['state_diff'] = (_df_sim12['bp_dp'] - _df_sim12['sp_dp']) / _df['dp_opt_test']
+        _df_sim12['site'] = site
+        df_sim12.append(_df_sim12)
+
 df = pd.concat(df)
 df_sim1 = pd.concat(df_sim1)
 df_sim2 = pd.concat(df_sim2)
+df_sim12 = pd.concat(df_sim12)
 
 # filter based on x_cut / y_cut
 mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
@@ -103,18 +115,20 @@ mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cu
 df = df[mask1 & mask2]
 df_sim1 = df_sim1[mask1 & mask2]
 df_sim2 = df_sim2[mask1 & mask2]
+df_sim12 = df_sim12[mask1 & mask2]
 
 # append the simulation results as columns in the raw dataframe
 df['sim1'] = df_sim1['state_diff']
 df['sim2'] = df_sim2['state_diff']
+df['sim12'] = df_sim12['state_diff']
 
 # bar plot of delta dprime for raw data, 1st order, and 2nd order simulation
-bax.bar([0, 1, 2], 
-        [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean()],
-        yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem()],
+bax.bar([0, 1, 2, 3], 
+        [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean(), df['sim12'].mean()],
+        yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem(), df['sim12'].sem()],
         edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
 bax.set_xticks([0, 1, 2])
-bax.set_xticklabels(['Raw', '1st order', '2nd order'])
+bax.set_xticklabels(['Raw', '1st order', '2nd order', 'Full simulation'])
 bax.set_ylabel(r"$\Delta d'^{2}$")
 bax.set_ylim((-0.1, 1.25))
 

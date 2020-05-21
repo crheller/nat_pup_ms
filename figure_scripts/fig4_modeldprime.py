@@ -33,8 +33,8 @@ high_var_only = True
 
 # where to crop the data
 if estval == '_train':
-    x_cut = (2, 9.5)
-    y_cut = (0.05, .5) 
+    x_cut = (3, 8.5)
+    y_cut = (0.1, .45) 
 elif estval == '_test':
     x_cut = (1, 9)
     y_cut = (0.35, 1) 

@@ -51,7 +51,7 @@ nan_idx = np.isnan(ff_residuals[0, :])
 ff_residuals[:, nan_idx] = 0
 ff_residuals = bandpass_filter_resp(ff_residuals, low, high, fs=fs, boxcar=True)
 rec['ff_residuals'] = rec['resp']._modified_copy(ff_residuals)
-rec = rec.apply_mask()
+rec = rec.apply_mask(reset_epochs=True)
 
 raw_residual = rec['zresp']._data
 pupil = rec['pupil']._data
@@ -66,10 +66,20 @@ pca_transform = raw_residual.T.dot(pca.components_.T).T
 X = pca_transform
 X = scale(X, with_mean=True, with_std=True, axis=-1)
 y = scale(pupil, with_mean=True, with_std=True, axis=-1)
-lr = LinearRegression(fit_intercept=True)
-lr.fit(X.T, y.squeeze())
-first_order_weights = lr.coef_
-fow_norm = lr.coef_ / np.linalg.norm(lr.coef_)
+fow_weights = []
+fo_p_corr = []
+for i in range(X.shape[0]):
+    lr = LinearRegression(fit_intercept=True)
+    lr.fit(X.T, y.squeeze())
+    first_order_weights = lr.coef_
+    fow_norm = lr.coef_ / np.linalg.norm(lr.coef_)
+
+    fow_weights.append(fow_norm)
+    pred = X.T.dot(fow_norm)
+    fo_p_corr.append(np.corrcoef(pred.squeeze(), pupil.squeeze())[0, 1])
+
+    r1 = X.T.dot(fow_norm)[:, np.newaxis] @ fow_norm[np.newaxis, :]
+    X = X - r1.T
 
 # do second order regression
 ff = rec['ff_residuals']._data
@@ -84,21 +94,35 @@ power = np.stack(power)
 t, _p = sliding_window(pupil, fs=fs, window_size=4, step_size=2)
 pds = np.mean(_p, axis=-1)[np.newaxis, :]
 
-power = scale(power, with_mean=True, with_std=True, axis=-1)
-pds = scale(pds, with_mean=True, with_std=True, axis=-1)
+sow_weights = []
+p_corr = []
+for i in range(X.shape[0]):
+    power = scale(power, with_mean=True, with_std=True, axis=-1)
+    pds = scale(pds, with_mean=True, with_std=True, axis=-1)
 
-# do nnls regression to avoid to sign ambiguity due to power conversion
-x, r = nnls(-power.T, pds.squeeze())
-second_order_weights = x
+    # do nnls regression to avoid to sign ambiguity due to power conversion
+    x, r = nnls(power.T, -pds.squeeze())
+    second_order_weights = x
 
-if np.linalg.norm(x)==0:
-    sow_norm = x
-else:
-    sow_norm = x / np.linalg.norm(x)
+    if np.linalg.norm(x)==0:
+        sow_norm = x
+    else:
+        sow_norm = x / np.linalg.norm(x)
+
+    sow_weights.append(sow_norm)
+
+    pred = power.T.dot(sow_norm)
+    p_corr.append(np.corrcoef(pred, pds.squeeze())[0, 1])
+
+    r1 = power.T.dot(sow_norm)[:, np.newaxis] @ sow_norm[np.newaxis,:]
+    power = power - r1.T
 
 # project weights back into neuron space (then the can be compared with PC weights too)
-fow_nspace = pca.components_.T.dot(fow_norm)
-sow_nspace = pca.components_.T.dot(sow_norm)
+fow_nspace = pca.components_.T.dot(fow_weights[0])
+sow_nspace = pca.components_.T.dot(sow_weights[0])
+
+fow_norm = fow_weights[0]
+sow_norm = sow_weights[0]
 
 # now, compare the two dimensions, 
 # the amount of variance explained by each

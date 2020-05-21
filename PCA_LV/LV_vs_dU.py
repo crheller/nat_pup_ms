@@ -92,7 +92,8 @@ df = pd.concat(df)
 # filter based on x_cut / y_cut
 mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
 mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cut[0])
-df_dp = df[mask1 & mask2]
+mask3 = (df['beta1_snr'] < 2000) & (df['beta2_snr'] < 2000)
+df_dp = df[mask1 & mask2 & mask3]
 
 df_dp['state_diff'] = ((df_dp['bp_dp'] - df_dp['sp_dp']) / df_dp['dp_opt_test']).values
 

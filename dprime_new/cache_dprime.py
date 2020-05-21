@@ -63,7 +63,8 @@ sim2 = False
 sim12 = False
 do_pls = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
-latent_var = True
+pca_lv = False
+nc_lv = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -84,11 +85,34 @@ for op in options:
     if op == 'vso':
         # v - variance, s - second, o - order
         var_first_order = False
+    if op == 'pcalv':
+        pca_lv = True
+    if op == 'nclv':
+        nc_lv = True
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
 else:
     log.info("Only performing trial averaged PCA and TDR dimensionality reduction. No PLS")
+
+# ================ load LV information for this site =======================
+if pca_lv:
+    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/pca_regression_lvs.pickle'
+    # load results from pickle file
+    with open(fn, 'rb') as handle:
+        lv_results = pickle.load(handle)
+    beta1 = lv_results[site]['beta1']
+    beta2 = lv_results[site]['beta2']
+elif nc_lv:
+    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'
+    # load results from pickle file
+    with open(fn, 'rb') as handle:
+        lv_results = pickle.load(handle)
+    beta1 = None
+    beta2 = lv_results[site]
+else:
+    beta1 = None
+    beta2 = None
 
 # ================================= load recording ==================================
 X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
@@ -157,17 +181,6 @@ pca_idx = 0
 pls_idx = 0
 tdr_idx = 0
 
-# get latent variable dims for this site
-if latent_var:
-    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/pca_regression_lvs.pickle'
-    # load results from pickle file
-    with open(fn, 'rb') as handle:
-        lv_results = pickle.load(handle)
-    beta1 = lv_results[site]['beta1']
-    beta2 = lv_results[site]['beta2']
-else:
-    beta1 = None
-    beta2 = None
 # ============================== Loop over stim pairs ================================
 for stim_pair_idx, combo in enumerate(all_combos):
     # print every 500th pair. Don't want to overwhelm log

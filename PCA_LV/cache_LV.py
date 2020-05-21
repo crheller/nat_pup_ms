@@ -27,6 +27,7 @@ import pickle
 from charlieTools.preprocessing import generate_state_corrected_psth, bandpass_filter_resp, sliding_window
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.nat_sounds_ms.preprocessing as preproc
+import charlieTools.preprocessing as cpreproc
 
 from nems_lbhb.baphy import parse_cellid
 
@@ -118,7 +119,7 @@ for site in sites:
     pds = scale(pds, with_mean=True, with_std=True, axis=-1)
 
     # do nnls regression to avoid to sign ambiguity due to power conversion
-    x, r = nnls(-power.T, pds.squeeze())
+    x, r = nnls(power.T, -pds.squeeze())
     second_order_weights = x
 
     if np.linalg.norm(x)==0:
@@ -151,8 +152,8 @@ for site in sites:
         'var_2nd_order': var_2nd_order,
         'pc_variance': pc_variance,
         'filt_params': filt_params,
-        'beta1': fow_nspace,
-        'beta2': sow_nspace,
+        'beta1': fow_nspace[:, np.newaxis],
+        'beta2': sow_nspace[:, np.newaxis],
         'site': site
     }
 
