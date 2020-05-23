@@ -40,10 +40,10 @@ df = []
 for site in sites:
     loader = decoding.DecodingResults()
     path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-    modelname = 'dprime_jk10_zscore'
+    modelname = 'dprime_jk10_zscore_nclv'
     fn = os.path.join(path, site, modelname+'_TDR.pickle')
     decoding_results = loader.load_results(fn)
-    modelname = 'dprime_sim2_jk10_zscore'
+    modelname = 'dprime_sim2_jk10_zscore_nclv'
     fn = os.path.join(path, site, modelname+'_TDR.pickle')
     sim2_results = loader.load_results(fn)
 
@@ -92,8 +92,8 @@ df = pd.concat(df)
 # filter based on x_cut / y_cut
 mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
 mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cut[0])
-mask3 = (df['beta1_snr'] < 2000) & (df['beta2_snr'] < 2000)
-df_dp = df[mask1 & mask2 & mask3]
+#mask3 = (df['beta1_snr'] < 2000) & (df['beta2_snr'] < 2000)
+df_dp = df[mask1 & mask2]
 
 df_dp['state_diff'] = ((df_dp['bp_dp'] - df_dp['sp_dp']) / df_dp['dp_opt_test']).values
 
@@ -124,7 +124,7 @@ ax[0, 0].set_title(r"$d'^2$")
 df_dp.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
                   C='state_diff', 
-                  gridsize=nbins, ax=ax[0, 1], cmap='PRGn', vmin=-3, vmax=3) 
+                  gridsize=nbins, ax=ax[0, 1], cmap='PRGn', vmin=-1.5, vmax=1.5) 
 ax[0, 1].set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 ax[0, 1].set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 ax[0, 1].spines['bottom'].set_color(color.SIGNAL)
@@ -139,7 +139,7 @@ ax[0, 1].set_title(r"$\Delta d'^2$")
 
 df_dp.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
-                  C='cos_dU_b1', 
+                  C='cos_dU_beta1', 
                   gridsize=nbins, ax=ax[1, 0], cmap='Greens', vmin=0, vmax=0.1) 
 ax[1, 0].set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 ax[1, 0].set_ylabel(alab.COSTHETA, color=color.COSTHETA)
@@ -155,8 +155,8 @@ ax[1, 0].set_title(r"$cos(\theta_{\beta_{1}, \Delta \mu})$")
 
 df_dp.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
-                  C='cos_dU_b2', 
-                  gridsize=nbins, ax=ax[1, 1], cmap='Greens', vmin=0, vmax=.1) 
+                  C='beta2_snr', 
+                  gridsize=nbins, ax=ax[1, 1], cmap='Greens') #, vmin=0, vmax=.1) 
 ax[1, 1].set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 ax[1, 1].set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 ax[1, 1].spines['bottom'].set_color(color.SIGNAL)

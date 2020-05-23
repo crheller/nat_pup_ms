@@ -23,7 +23,7 @@ sites = ['TAR010c', 'TAR017b',
         'DRX007a.e1:64', 'DRX007a.e65:128', 
         'DRX008b.e1:64', 'DRX008b.e65:128',
         'BOL005c', 'BOL006b']
-zscore = True
+zscore = False
 
 lv_dict = {}
 for site in sites:
@@ -32,6 +32,8 @@ for site in sites:
         batch = 294
     else:
         batch = 289
+
+    lv_dict[site] = {}
 
     fs = 4
     ops = {'batch': batch, 'cellid': site}
@@ -46,6 +48,9 @@ for site in sites:
     rec = rec.apply_mask(reset_epochs=True)
     pupil = rec['pupil']._data.squeeze()
     epochs = [e for e in rec.epochs.name.unique() if 'STIM' in e]
+
+    rec['resp2'] = rec['resp']._modified_copy(rec['resp']._data)
+    rec['pupil2'] = rec['pupil']._modified_copy(rec['pupil']._data)
 
     # ===================================== perform analysis on raw data =======================================
     rec_bp = rec.copy()
@@ -91,9 +96,33 @@ for site in sites:
     evals = evals[idx]
     evecs = evecs[:, idx]
 
-    LV = evecs[:, [0]]
+    beta2 = evecs[:, [0]]
 
-    lv_dict[site] = LV
+    lv_dict[site]['beta2'] = beta2
+
+    residual = rec['resp2']._data - rec['psth_sp']._data  # get rid of stimulus information
+    # zscore residual
+    residual = residual - residual.mean(axis=-1, keepdims=True)
+    #residual = residual / residual.std(axis=-1, keepdims=True)
+    rec['residual'] = rec['resp']._modified_copy(residual)
+    rec['pupil'] = rec['pupil']._modified_copy(rec['pupil2']._data)
+
+    # get large and small pupil means
+    rec = rec.create_mask(True)
+    ops = {'state': 'big', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse': True}
+    rec = create_pupil_mask(rec, **ops)
+
+    large = rec.apply_mask()['residual']._data
+
+    rec = rec.create_mask(True)
+    ops = {'state': 'small', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse': True}
+    rec = create_pupil_mask(rec, **ops)
+    small = rec.apply_mask()['residual']._data
+
+    beta1 = large.mean(axis=-1) - small.mean(axis=-1)
+    beta1 = beta1 / np.linalg.norm(beta1)
+
+    lv_dict[site]['beta1'] = beta1[:, np.newaxis]
 
 # pickle the results
 fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'

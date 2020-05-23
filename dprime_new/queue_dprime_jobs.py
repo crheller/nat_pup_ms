@@ -1,9 +1,10 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 force_rerun = True
 subset_289 = True
+nc_lv = True
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
@@ -28,6 +29,10 @@ modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
             'dprime_sim1_pr_jk10_zscore', 'dprime_sim2_pr_jk10_zscore', 'dprime_sim12_pr_jk10_zscore',
             'dprime_pr_rm2_jk10_zscore', 
             'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore']
+
+if nc_lv:
+    modellist = [m.replace('zscore', 'zscore_nclv') for m in modellist]
+
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'

@@ -108,8 +108,8 @@ elif nc_lv:
     # load results from pickle file
     with open(fn, 'rb') as handle:
         lv_results = pickle.load(handle)
-    beta1 = None
-    beta2 = lv_results[site]
+    beta1 = lv_results[site]['beta1']
+    beta2 = lv_results[site]['beta2']
 else:
     beta1 = None
     beta2 = None
