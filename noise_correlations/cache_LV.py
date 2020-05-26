@@ -38,13 +38,15 @@ for site in sites:
     fs = 4
     ops = {'batch': batch, 'cellid': site}
     xmodel = 'ns.fs{}.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'.format(fs)
+    if batch == 294:
+        xmodel = xmodel.replace('ns.fs4.pup', 'ns.fs4.pup.voc')
     path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
     low = 0.5
     high = 2  # for filtering the projection
 
     cells, _ = parse_cellid(ops)
     rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,
-                                        cache_path=path, recache=False)
+                                        cache_path=path, gain_only=True, recache=True)
     rec = rec.apply_mask(reset_epochs=True)
     pupil = rec['pupil']._data.squeeze()
     epochs = [e for e in rec.epochs.name.unique() if 'STIM' in e]
@@ -100,6 +102,15 @@ for site in sites:
 
     lv_dict[site]['beta2'] = beta2
 
+
+    # use model pred to get beta1
+    residual = rec['psth']._data - rec['psth_sp']._data
+    # get first PC of residual
+    pca2 = PCA()
+    pca2.fit(residual.T)
+    beta1 = pca2.components_[0, :]
+
+    '''
     residual = rec['resp2']._data - rec['psth_sp']._data  # get rid of stimulus information
     # zscore residual
     residual = residual - residual.mean(axis=-1, keepdims=True)
@@ -121,6 +132,7 @@ for site in sites:
 
     beta1 = large.mean(axis=-1) - small.mean(axis=-1)
     beta1 = beta1 / np.linalg.norm(beta1)
+    '''
 
     lv_dict[site]['beta1'] = beta1[:, np.newaxis]
 

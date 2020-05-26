@@ -18,19 +18,21 @@ from nems_lbhb.preprocessing import create_pupil_mask
 
 np.random.seed(123)
 
-site = 'BOL006b' #'BOL006b' #'DRX006b.e65:128'
-batch = 294
+site = 'TAR010c' #'BOL006b' #'DRX006b.e65:128'
+batch = 289
 
 fs = 4
 ops = {'batch': batch, 'cellid': site}
 xmodel = 'ns.fs{}.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'.format(fs)
+if batch == 294:
+    xmodel = xmodel.replace('ns.fs4.pup', 'ns.fs4.pup.voc')
 path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
 low = 0.5
 high = 2  # for filtering the projection
 
 cells, _ = parse_cellid(ops)
 rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,
-                                    cache_path=path, recache=False)
+                                    cache_path=path, gain_only=True, recache=False)
 #fill = rec['resp']._data.copy()
 #idx = np.argwhere(np.isnan(fill[0,:]))
 #fill[:, idx] = 0
@@ -187,7 +189,18 @@ espec.legend(frameon=False)
 
 
 # =================================== Find first order dimension =================================
+
+# use residual from model prediction to find first order dimension
+residual = rec['psth']._data - rec['psth_sp']._data
+# get first PC of residual
+pca2 = PCA()
+pca2.fit(residual.T)
+beta1 = pca2.components_[1, :]
+
+'''
 # do this by getting mean zscore rate in large minus small, norm this difference vector. 
+# *** this dimension seems irrelevant, or even anti-correlated with decoding improvements.
+# Might be mostly a DC dimensions? ***
 residual = rec['resp2']._data - rec['psth_sp']._data  # get rid of stimulus information
 # zscore residual
 residual = residual - residual.mean(axis=-1, keepdims=True)
@@ -209,6 +222,7 @@ small = rec.apply_mask()['residual']._data
 
 beta1 = large.mean(axis=-1) - small.mean(axis=-1)
 beta1 = beta1 / np.linalg.norm(beta1)
+'''
 
 # project rank1 data onto beta1
 r1_resp = (resp_matrix.T.dot(beta1)[:, np.newaxis] @ beta1[:, np.newaxis].T).T
