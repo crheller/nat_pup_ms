@@ -25,7 +25,7 @@ sim2_mn = 'dprime_sim2_jk10_zscore_nclv'
 estval = '_train'
 nbins = 20
 
-high_var_only = True
+high_var_only = False
 recache = True
 
 # only crop the dprime value. Show count for everything
@@ -155,8 +155,55 @@ f.tight_layout()
 
 # predict delta dprime for 1st / 2nd order simulation as function of 
 # overlap between dU and beta
-df_dp['state_diff'] = ((df_dp['bp_dp'] - df_dp['sp_dp']) / df_dp['dp_opt_test']).values
-sim1_dp['state_diff'] = ((sim1_dp['bp_dp'] - sim1_dp['sp_dp']) / df_dp['dp_opt_test']).values
-sim2_dp['state_diff'] = ((sim2_dp['bp_dp'] - sim2_dp['sp_dp']) / df_dp['dp_opt_test']).values
+df_dp['state_diff'] = ((df_dp['bp_dp'] - df_dp['sp_dp'])) #/ df_dp['dp_opt_test']).values
+sim1_dp['state_diff'] = ((sim1_dp['bp_dp'] - sim1_dp['sp_dp'])) #/ df_dp['dp_opt_test']).values
+sim2_dp['state_diff'] = ((sim2_dp['bp_dp'] - sim2_dp['sp_dp'])) #/ df_dp['dp_opt_test']).values
+
+df_dp['state_diff_sim1'] = sim1_dp['state_diff']
+df_dp['state_diff_sim2'] = sim2_dp['state_diff']
+
+dft = df_dp[df_dp['beta2_lambda']<20]
+dft2 = df_dp[df_dp['beta1_lambda']<20]
+
+vmin = -15
+vmax = 15
+
+f, ax = plt.subplots(2, 2, figsize=(8, 8))
+
+dft.plot.hexbin(x='beta2_lambda', 
+               y='cos_dU_beta2', 
+               C='state_diff_sim2', 
+               gridsize=nbins, ax=ax[0, 0], cmap='PuOr', vmin=vmin, vmax=vmax) 
+ax[0, 0].set_title(r"$\Delta d'$")
+ax[0, 0].set_xlabel(r"$\lambda_{2}$")
+ax[0, 0].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{2}})$")
+
+
+dft2.plot.hexbin(x='beta1_lambda', 
+               y='cos_dU_beta1', 
+               C='state_diff_sim2', 
+               gridsize=nbins, ax=ax[0, 1], cmap='PuOr', vmin=vmin, vmax=vmax) 
+ax[0, 1].set_title(r"$\Delta d'$")
+ax[0, 1].set_xlabel(r"$\lambda_{1}$")
+ax[0, 1].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{1}})$")
+
+dft.plot.hexbin(x='beta2_lambda', 
+               y='cos_dU_beta2', 
+               C=None, 
+               gridsize=nbins, ax=ax[1, 0], cmap='Reds', vmin=0) 
+ax[1, 0].set_title(r"$\Delta d'$")
+ax[1, 0].set_xlabel(r"$\lambda_{2}$")
+ax[1, 0].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{2}})$")
+
+dft2.plot.hexbin(x='beta1_lambda', 
+               y='cos_dU_beta1', 
+               C=None, 
+               gridsize=nbins, ax=ax[1, 1], cmap='Reds', vmin=0) 
+ax[1, 1].set_title(r"$\Delta d'$")
+ax[1, 1].set_xlabel(r"$\lambda_{1}$")
+ax[1, 1].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{1}})$")
+
+
+f.tight_layout()
 
 plt.show()
