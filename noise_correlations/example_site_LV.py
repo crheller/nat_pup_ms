@@ -32,7 +32,7 @@ high = 2  # for filtering the projection
 
 cells, _ = parse_cellid(ops)
 rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,
-                                    cache_path=path, gain_only=True, recache=False)
+                                    cache_path=path, gain_only=False, recache=False)
 #fill = rec['resp']._data.copy()
 #idx = np.argwhere(np.isnan(fill[0,:]))
 #fill[:, idx] = 0

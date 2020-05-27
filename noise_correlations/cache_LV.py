@@ -46,7 +46,7 @@ for site in sites:
 
     cells, _ = parse_cellid(ops)
     rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,
-                                        cache_path=path, gain_only=True, recache=True)
+                                        cache_path=path, gain_only=False, recache=False)
     rec = rec.apply_mask(reset_epochs=True)
     pupil = rec['pupil']._data.squeeze()
     epochs = [e for e in rec.epochs.name.unique() if 'STIM' in e]

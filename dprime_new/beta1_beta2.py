@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+import scipy.stats as ss
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
@@ -25,7 +26,7 @@ sim2_mn = 'dprime_sim2_jk10_zscore_nclv'
 estval = '_train'
 nbins = 20
 
-high_var_only = False
+high_var_only = True
 recache = True
 
 # only crop the dprime value. Show count for everything
@@ -155,54 +156,111 @@ f.tight_layout()
 
 # predict delta dprime for 1st / 2nd order simulation as function of 
 # overlap between dU and beta
-df_dp['state_diff'] = ((df_dp['bp_dp'] - df_dp['sp_dp'])) #/ df_dp['dp_opt_test']).values
-sim1_dp['state_diff'] = ((sim1_dp['bp_dp'] - sim1_dp['sp_dp'])) #/ df_dp['dp_opt_test']).values
-sim2_dp['state_diff'] = ((sim2_dp['bp_dp'] - sim2_dp['sp_dp'])) #/ df_dp['dp_opt_test']).values
+df_dp['state_diff'] = ((df_dp['bp_dp'] - df_dp['sp_dp']) / df_dp['dp_opt_test']).values
+sim1_dp['state_diff'] = ((sim1_dp['bp_dp'] - sim1_dp['sp_dp']) / df_dp['dp_opt_test']).values
+sim2_dp['state_diff'] = ((sim2_dp['bp_dp'] - sim2_dp['sp_dp']) / df_dp['dp_opt_test']).values
 
 df_dp['state_diff_sim1'] = sim1_dp['state_diff']
 df_dp['state_diff_sim2'] = sim2_dp['state_diff']
 
-dft = df_dp[df_dp['beta2_lambda']<20]
-dft2 = df_dp[df_dp['beta1_lambda']<20]
+mask = (df_dp['beta1_mag']<0.5)
+mask = mask & (df_dp['cos_dU_beta1']>0.7)
+dft = df_dp[mask]
 
-vmin = -15
-vmax = 15
+vmin = -3
+vmax = 3
 
-f, ax = plt.subplots(2, 2, figsize=(8, 8))
+f, ax = plt.subplots(1, 2, figsize=(8, 4))
 
-dft.plot.hexbin(x='beta2_lambda', 
-               y='cos_dU_beta2', 
-               C='state_diff_sim2', 
-               gridsize=nbins, ax=ax[0, 0], cmap='PuOr', vmin=vmin, vmax=vmax) 
-ax[0, 0].set_title(r"$\Delta d'$")
-ax[0, 0].set_xlabel(r"$\lambda_{2}$")
-ax[0, 0].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{2}})$")
-
-
-dft2.plot.hexbin(x='beta1_lambda', 
+dft.plot.hexbin(x='beta1_mag', 
                y='cos_dU_beta1', 
-               C='state_diff_sim2', 
-               gridsize=nbins, ax=ax[0, 1], cmap='PuOr', vmin=vmin, vmax=vmax) 
-ax[0, 1].set_title(r"$\Delta d'$")
-ax[0, 1].set_xlabel(r"$\lambda_{1}$")
-ax[0, 1].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{1}})$")
+               C='state_diff_sim1', 
+               gridsize=nbins, ax=ax[0], cmap='PuOr', vmin=vmin, vmax=vmax) 
+ax[0].set_title(r"$\Delta d'$ first order")
+ax[0].set_xlabel(r"$||\beta_{1}||$")
+ax[0].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{1}})$")
 
-dft.plot.hexbin(x='beta2_lambda', 
-               y='cos_dU_beta2', 
-               C=None, 
-               gridsize=nbins, ax=ax[1, 0], cmap='Reds', vmin=0) 
-ax[1, 0].set_title(r"$\Delta d'$")
-ax[1, 0].set_xlabel(r"$\lambda_{2}$")
-ax[1, 0].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{2}})$")
-
-dft2.plot.hexbin(x='beta1_lambda', 
+dft.plot.hexbin(x='beta1_mag', 
                y='cos_dU_beta1', 
                C=None, 
-               gridsize=nbins, ax=ax[1, 1], cmap='Reds', vmin=0) 
-ax[1, 1].set_title(r"$\Delta d'$")
-ax[1, 1].set_xlabel(r"$\lambda_{1}$")
-ax[1, 1].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{1}})$")
+               gridsize=nbins, ax=ax[1], cmap='Reds', vmin=0) 
+ax[1].set_xlabel(r"$||\beta_{1}||$")
+ax[1].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{1}})$")
 
+f.tight_layout()
+
+mask = (df_dp['beta2_mag']<0.5)
+mask = mask & (df_dp['cos_dU_beta2']>0.2)
+dft2 = df_dp[mask]
+
+f, ax = plt.subplots(1, 2, figsize=(8, 4))
+
+dft2.plot.hexbin(x='beta2_mag', 
+               y='cos_dU_beta2', 
+               C='state_diff_sim2', 
+               gridsize=nbins, ax=ax[0], cmap='PuOr', vmin=vmin, vmax=vmax) 
+ax[0].set_title(r"$\Delta d'$ second order")
+ax[0].set_xlabel(r"$||\beta_{2}||$")
+ax[0].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{2}})$")
+
+dft2.plot.hexbin(x='beta2_mag', 
+               y='cos_dU_beta2', 
+               C=None, 
+               gridsize=nbins, ax=ax[1], cmap='Reds', vmin=0) 
+ax[1].set_xlabel(r"$||\beta_{2}||$")
+ax[1].set_ylabel(r"$cos(\theta_{\Delta \mu, \beta_{2}})$")
+
+f.tight_layout()
+
+# plot state_diff as function of beta1 mag and beta2 mag
+dft = df_dp[(df_dp['beta1_mag']<0.6) & (df_dp['beta2_mag']<0.6)]
+f, ax = plt.subplots(1, 2, figsize=(8, 4))
+
+dft.plot.hexbin(x='beta1_mag',
+                  y='beta2_mag',
+                  C='state_diff_sim1',
+                  gridsize=nbins, ax=ax[0], cmap='PuOr', vmin=vmin, vmax=vmax)
+ax[0].set_xlabel(r"$||\beta_{1}||$")
+ax[0].set_ylabel(r"$||\beta_{2}||$")
+ax[0].set_title(r"$\Delta d'$")
+
+dft.plot.hexbin(x='beta1_mag',
+                  y='beta2_mag',
+                  C=None,
+                  gridsize=nbins, ax=ax[1], cmap='Reds', vmin=0)
+ax[1].set_xlabel(r"$||\beta_{1}||$")
+ax[1].set_ylabel(r"$||\beta_{2}||$")
+
+f.tight_layout()
+
+# plot binned 1D values
+mask = (df_dp['beta1_mag']<0.6) & (df_dp['beta2_mag']<0.6)
+dft = df_dp[mask]
+
+nbins = 20
+
+out_1 = ss.binned_statistic(dft['beta1_mag'], dft['state_diff'], statistic='mean', bins=nbins)
+out_2 = ss.binned_statistic(dft['beta2_mag'], dft['state_diff'], statistic='mean', bins=nbins)
+
+out_sim1 = ss.binned_statistic(dft['beta1_mag'], dft['state_diff_sim1'], statistic='mean', bins=nbins)
+out_sim2 = ss.binned_statistic(dft['beta2_mag'], dft['state_diff_sim2'], statistic='mean', bins=nbins)
+
+sim1_count = ss.binned_statistic(dft['beta1_mag'], dft['state_diff'], statistic='count', bins=nbins).statistic
+sim2_count = ss.binned_statistic(dft['beta2_mag'], dft['state_diff'], statistic='count', bins=nbins).statistic
+
+sf = 10
+f, ax = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
+
+ax[0].scatter(out_1.bin_edges[1:], out_1.statistic, s=sim1_count / sf, label='raw')
+ax[0].scatter(out_sim1.bin_edges[1:], out_sim1.statistic, s=sim1_count / sf, label='1st order sim')
+ax[0].legend(fontsize=6, frameon=False)
+ax[0].set_ylabel(r"$\Delta d'$")
+ax[0].set_xlabel(r"$||\beta_{1}||$")
+
+ax[1].scatter(out_2.bin_edges[1:], out_2.statistic, s=sim2_count / sf, label='raw')
+ax[1].scatter(out_sim2.bin_edges[1:], out_sim2.statistic, s=sim2_count / sf, label='2nd order sim')
+ax[1].legend(fontsize=6, frameon=False)
+ax[1].set_xlabel(r"$||\beta_{2}||$")
 
 f.tight_layout()
 
