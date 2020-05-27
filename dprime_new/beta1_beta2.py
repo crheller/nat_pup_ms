@@ -164,7 +164,7 @@ df_dp['state_diff_sim1'] = sim1_dp['state_diff']
 df_dp['state_diff_sim2'] = sim2_dp['state_diff']
 
 mask = (df_dp['beta1_mag']<0.5)
-mask = mask & (df_dp['cos_dU_beta1']>0.7)
+mask = mask & (df_dp['cos_dU_beta1']>0.2)
 dft = df_dp[mask]
 
 vmin = -3
@@ -234,33 +234,59 @@ ax[1].set_ylabel(r"$||\beta_{2}||$")
 f.tight_layout()
 
 # plot binned 1D values
-mask = (df_dp['beta1_mag']<0.6) & (df_dp['beta2_mag']<0.6)
+mask = (df_dp['beta1_mag']<0.5) & (df_dp['beta2_mag']<0.5)
+mask = mask & (df_dp['beta1_mag']>0.2) & (df_dp['beta2_mag']>0.2)
 dft = df_dp[mask]
 
-nbins = 20
+nbins = 10
 
 out_1 = ss.binned_statistic(dft['beta1_mag'], dft['state_diff'], statistic='mean', bins=nbins)
 out_2 = ss.binned_statistic(dft['beta2_mag'], dft['state_diff'], statistic='mean', bins=nbins)
 
 out_sim1 = ss.binned_statistic(dft['beta1_mag'], dft['state_diff_sim1'], statistic='mean', bins=nbins)
+out_b1_sim2 = ss.binned_statistic(dft['beta1_mag'], dft['state_diff_sim2'], statistic='mean', bins=nbins)
 out_sim2 = ss.binned_statistic(dft['beta2_mag'], dft['state_diff_sim2'], statistic='mean', bins=nbins)
+out_b2_sim1 = ss.binned_statistic(dft['beta2_mag'], dft['state_diff_sim1'], statistic='mean', bins=nbins)
 
 sim1_count = ss.binned_statistic(dft['beta1_mag'], dft['state_diff'], statistic='count', bins=nbins).statistic
 sim2_count = ss.binned_statistic(dft['beta2_mag'], dft['state_diff'], statistic='count', bins=nbins).statistic
 
 sf = 10
-f, ax = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
+ylim = (0, 2)
+f, ax = plt.subplots(1, 3, figsize=(12, 4))
 
-ax[0].scatter(out_1.bin_edges[1:], out_1.statistic, s=sim1_count / sf, label='raw')
-ax[0].scatter(out_sim1.bin_edges[1:], out_sim1.statistic, s=sim1_count / sf, label='1st order sim')
+r = np.round(np.corrcoef(out_1.bin_edges[1:], out_1.statistic)[0,1], 2)
+ax[0].scatter(out_1.bin_edges[1:], out_1.statistic, s=sim1_count / sf, label='raw, r={}'.format(r))
+r = np.round(np.corrcoef(out_1.bin_edges[1:], out_sim1.statistic)[0,1], 2)
+ax[0].scatter(out_sim1.bin_edges[1:], out_sim1.statistic, s=sim1_count / sf, label='1st order sim, r={}'.format(r))
+r = np.round(np.corrcoef(out_1.bin_edges[1:], out_b1_sim2.statistic)[0,1], 2)
+ax[0].scatter(out_sim1.bin_edges[1:], out_b1_sim2.statistic, s=sim1_count / sf, label='2nd order sim, r={}'.format(r))
 ax[0].legend(fontsize=6, frameon=False)
 ax[0].set_ylabel(r"$\Delta d'$")
 ax[0].set_xlabel(r"$||\beta_{1}||$")
+ax[0].set_title('Decoding improvement vs. \n 1st-order overlap with decoding space', fontsize=8)
+ax[0].set_ylim(ylim)
 
-ax[1].scatter(out_2.bin_edges[1:], out_2.statistic, s=sim2_count / sf, label='raw')
-ax[1].scatter(out_sim2.bin_edges[1:], out_sim2.statistic, s=sim2_count / sf, label='2nd order sim')
+
+r = np.round(np.corrcoef(out_2.bin_edges[1:], out_2.statistic)[0,1], 2)
+ax[1].scatter(out_2.bin_edges[1:], out_2.statistic, s=sim1_count / sf, label='raw, r={}'.format(r))
+r = np.round(np.corrcoef(out_2.bin_edges[1:], out_b2_sim1.statistic)[0,1], 2)
+ax[1].scatter(out_sim2.bin_edges[1:], out_b2_sim1.statistic, s=sim1_count / sf, label='1st order sim, r={}'.format(r))
+r = np.round(np.corrcoef(out_2.bin_edges[1:], out_sim2.statistic)[0,1], 2)
+ax[1].scatter(out_sim2.bin_edges[1:], out_sim2.statistic, s=sim1_count / sf, label='2nd order sim, r={}'.format(r))
 ax[1].legend(fontsize=6, frameon=False)
 ax[1].set_xlabel(r"$||\beta_{2}||$")
+ax[1].set_ylim(ylim)
+ax[1].set_title('Decoding improvement vs. \n 2nd-order overlap with decoding space', fontsize=8)
+
+# plot beta1 vs beta2 correlation
+out_b1b2 = ss.binned_statistic(dft['beta1_mag'], dft['beta2_mag'], statistic='mean', bins=nbins)
+count_b1b2 = ss.binned_statistic(dft['beta1_mag'], dft['beta2_mag'], statistic='count', bins=nbins)
+r = np.round(np.corrcoef(out_b1b2.bin_edges[1:], out_b1b2.statistic)[0,1], 2)
+ax[2].scatter(out_b1b2.bin_edges[1:], out_b1b2.statistic, s=count_b1b2.statistic/sf, label="r={}".format(r))
+ax[2].set_ylabel(r"$||\beta_{2}||$")
+ax[2].set_xlabel(r"$||\beta_{1}||$")
+ax[2].legend(fontsize=6, frameon=False)
 
 f.tight_layout()
 
