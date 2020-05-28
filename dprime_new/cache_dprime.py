@@ -65,6 +65,7 @@ do_pls = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
 pca_lv = False
 nc_lv = False
+nc_lv_z = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -89,6 +90,8 @@ for op in options:
         pca_lv = True
     if op == 'nclv':
         nc_lv = True
+    if op == 'nclvz':
+        nc_lv_z = True
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
@@ -105,6 +108,13 @@ if pca_lv:
     beta2 = lv_results[site]['beta2']
 elif nc_lv:
     fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'
+    # load results from pickle file
+    with open(fn, 'rb') as handle:
+        lv_results = pickle.load(handle)
+    beta1 = lv_results[site]['beta1']
+    beta2 = lv_results[site]['beta2']
+elif nc_lv_zscore:
+    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs_zscore.pickle'
     # load results from pickle file
     with open(fn, 'rb') as handle:
         lv_results = pickle.load(handle)

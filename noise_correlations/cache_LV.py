@@ -23,7 +23,7 @@ sites = ['TAR010c', 'TAR017b',
         'DRX007a.e1:64', 'DRX007a.e65:128', 
         'DRX008b.e1:64', 'DRX008b.e65:128',
         'BOL005c', 'BOL006b']
-zscore = False
+zscore = True
 
 lv_dict = {}
 for site in sites:

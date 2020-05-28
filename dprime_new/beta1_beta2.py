@@ -234,22 +234,22 @@ ax[1].set_ylabel(r"$||\beta_{2}||$")
 f.tight_layout()
 
 # plot binned 1D values
-mask = (df_dp['beta1_dot_dU']<0.5) & (df_dp['beta2_dot_dU']<0.5)
-mask = mask & (df_dp['beta1_dot_dU']>0.2) & (df_dp['beta2_dot_dU']>0.2)
+mask = (df_dp['beta1_dot_wopt']<0.3) & (df_dp['beta2_dot_wopt']<0.3)
+mask = mask & (df_dp['beta1_dot_wopt']>0) & (df_dp['beta2_dot_wopt']>0)
 dft = df_dp[mask]
 
 nbins = 10
 
-out_1 = ss.binned_statistic(dft['beta1_dot_dU'], dft['state_diff'], statistic='mean', bins=nbins)
-out_2 = ss.binned_statistic(dft['beta2_dot_dU'], dft['state_diff'], statistic='mean', bins=nbins)
+out_1 = ss.binned_statistic(dft['beta1_dot_wopt'], dft['state_diff'], statistic='mean', bins=nbins)
+out_2 = ss.binned_statistic(dft['beta2_dot_wopt'], dft['state_diff'], statistic='mean', bins=nbins)
 
-out_sim1 = ss.binned_statistic(dft['beta1_dot_dU'], dft['state_diff_sim1'], statistic='mean', bins=nbins)
-out_b1_sim2 = ss.binned_statistic(dft['beta1_dot_dU'], dft['state_diff_sim2'], statistic='mean', bins=nbins)
-out_sim2 = ss.binned_statistic(dft['beta2_dot_dU'], dft['state_diff_sim2'], statistic='mean', bins=nbins)
-out_b2_sim1 = ss.binned_statistic(dft['beta2_dot_dU'], dft['state_diff_sim1'], statistic='mean', bins=nbins)
+out_sim1 = ss.binned_statistic(dft['beta1_dot_wopt'], dft['state_diff_sim1'], statistic='mean', bins=nbins)
+out_b1_sim2 = ss.binned_statistic(dft['beta1_dot_wopt'], dft['state_diff_sim2'], statistic='mean', bins=nbins)
+out_sim2 = ss.binned_statistic(dft['beta2_dot_wopt'], dft['state_diff_sim2'], statistic='mean', bins=nbins)
+out_b2_sim1 = ss.binned_statistic(dft['beta2_dot_wopt'], dft['state_diff_sim1'], statistic='mean', bins=nbins)
 
-sim1_count = ss.binned_statistic(dft['beta1_dot_dU'], dft['state_diff'], statistic='count', bins=nbins).statistic
-sim2_count = ss.binned_statistic(dft['beta2_dot_dU'], dft['state_diff'], statistic='count', bins=nbins).statistic
+sim1_count = ss.binned_statistic(dft['beta1_dot_wopt'], dft['state_diff'], statistic='count', bins=nbins).statistic
+sim2_count = ss.binned_statistic(dft['beta2_dot_wopt'], dft['state_diff'], statistic='count', bins=nbins).statistic
 
 sf = 10
 ylim = (0, 2)
@@ -263,10 +263,9 @@ r = np.round(np.corrcoef(out_1.bin_edges[1:], out_b1_sim2.statistic)[0,1], 2)
 ax[0].scatter(out_sim1.bin_edges[1:], out_b1_sim2.statistic, s=sim1_count / sf, label='2nd order sim, r={}'.format(r))
 ax[0].legend(fontsize=6, frameon=False)
 ax[0].set_ylabel(r"$\Delta d'$")
-ax[0].set_xlabel(r"$\beta_{1} \cdot \Delta \mu$")
+ax[0].set_xlabel(r"$\beta_{1} \cdot w_{opt}$")
 ax[0].set_title('Decoding improvement vs. \n 1st-order overlap with decoding space', fontsize=8)
 ax[0].set_ylim(ylim)
-
 
 r = np.round(np.corrcoef(out_2.bin_edges[1:], out_2.statistic)[0,1], 2)
 ax[1].scatter(out_2.bin_edges[1:], out_2.statistic, s=sim1_count / sf, label='raw, r={}'.format(r))
@@ -275,17 +274,17 @@ ax[1].scatter(out_sim2.bin_edges[1:], out_b2_sim1.statistic, s=sim1_count / sf, 
 r = np.round(np.corrcoef(out_2.bin_edges[1:], out_sim2.statistic)[0,1], 2)
 ax[1].scatter(out_sim2.bin_edges[1:], out_sim2.statistic, s=sim1_count / sf, label='2nd order sim, r={}'.format(r))
 ax[1].legend(fontsize=6, frameon=False)
-ax[1].set_xlabel(r"$\beta_{2} \cdot \Delta \mu$")
+ax[1].set_xlabel(r"$\beta_{2} \cdot w_{opt}$")
 ax[1].set_ylim(ylim)
 ax[1].set_title('Decoding improvement vs. \n 2nd-order overlap with decoding space', fontsize=8)
 
 # plot beta1 vs beta2 correlation
-out_b1b2 = ss.binned_statistic(dft['beta1_dot_dU'], dft['beta2_dot_dU'], statistic='mean', bins=nbins)
-count_b1b2 = ss.binned_statistic(dft['beta1_dot_dU'], dft['beta2_dot_dU'], statistic='count', bins=nbins)
+out_b1b2 = ss.binned_statistic(dft['beta1_dot_wopt'], dft['beta2_dot_wopt'], statistic='mean', bins=nbins)
+count_b1b2 = ss.binned_statistic(dft['beta1_dot_wopt'], dft['beta2_dot_wopt'], statistic='count', bins=nbins)
 r = np.round(np.corrcoef(out_b1b2.bin_edges[1:], out_b1b2.statistic)[0,1], 2)
 ax[2].scatter(out_b1b2.bin_edges[1:], out_b1b2.statistic, s=count_b1b2.statistic/sf, label="r={}".format(r))
-ax[2].set_ylabel(r"$\beta_{2} \cdot \Delta \mu$")
-ax[2].set_xlabel(r"$\beta_{1} \cdot \Delta \mu$")
+ax[2].set_ylabel(r"$\beta_{2} \cdot w_{opt}$")
+ax[2].set_xlabel(r"$\beta_{1} \cdot w_{opt}$")
 ax[2].legend(fontsize=6, frameon=False)
 
 f.tight_layout()

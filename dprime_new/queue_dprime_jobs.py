@@ -31,7 +31,7 @@ modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
             'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore']
 
 if nc_lv:
-    modellist = [m.replace('zscore', 'zscore_nclv') for m in modellist]
+    modellist = [m.replace('zscore', 'zscore_nclvz') for m in modellist]
 
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
