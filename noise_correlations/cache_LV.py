@@ -105,6 +105,9 @@ for site in sites:
 
     # use model pred to get beta1
     residual = rec['psth']._data - rec['psth_sp']._data
+    if zscore:
+        residual = residual - residual.mean(axis=-1, keepdims=True)
+        residual = residual / residual.std(axis=-1, keepdims=True)
     # get first PC of residual
     pca2 = PCA()
     pca2.fit(residual.T)
