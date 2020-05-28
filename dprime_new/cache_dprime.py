@@ -116,7 +116,7 @@ elif nc_lv:
     beta2 = lv_results[site]['beta2']
 elif nc_lv_z:
     log.info("loading LVs from NC method using z-scored responses")
-    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs_zscore.pickle'
+    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
     # load results from pickle file
     with open(fn, 'rb') as handle:
         lv_results = pickle.load(handle)
