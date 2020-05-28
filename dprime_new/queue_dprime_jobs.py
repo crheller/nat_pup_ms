@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
+batch = 294
 force_rerun = True
 subset_289 = True
 nc_lv = True
