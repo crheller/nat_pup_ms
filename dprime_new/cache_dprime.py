@@ -189,7 +189,7 @@ else:
 # than stimulus specific first noise PC (this method seems noisy)
 if fix_tdr2:
     log.info("Finding first noise dimension for each val set")
-    tdr2_axes = nat_preproc.get_first_pc_per_val(est)
+    tdr2_axes = nat_preproc.get_first_pc_per_est(est)
 else:
     tdr2_axes = [None] * len(val)
 # set up data frames to save results (wait to preallocate space on first
