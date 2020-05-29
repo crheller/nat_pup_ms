@@ -66,6 +66,7 @@ var_first_order = True # for simulations, define single neuron variance from fir
 pca_lv = False
 nc_lv = False
 nc_lv_z = False
+fix_tdr2 = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -92,6 +93,8 @@ for op in options:
         nc_lv = True
     if op == 'nclvz':
         nc_lv_z = True
+    if op == 'fixtdr2':
+        fix_tdr2 = True
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
@@ -181,6 +184,14 @@ else:
     log.info("center est / val sets")
     est, val = nat_preproc.scale_est_val(est, val, sd=False)
 
+# =========================== if fix tdr 2 =======================================
+# calculate first noise PC for each val set, use this to define TDR2, rather
+# than stimulus specific first noise PC (this method seems noisy)
+if fix_tdr2:
+    log.info("Finding first noise dimension for each val set")
+    tdr2_axes = nat_preproc.get_first_pc_per_val(val)
+else:
+    tdr2_axes = [None] * len(val)
 # set up data frames to save results (wait to preallocate space on first
 # iteration, because then we'll have the columns)
 temp_pca_results = pd.DataFrame()
@@ -210,6 +221,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
         X_test = val[ev_set][:, :, [combo[0], combo[1]]]
         ptrain_mask = p_est[ev_set][:, :, [combo[0], combo[1]]]
         ptest_mask = p_val[ev_set][:, :, [combo[0], combo[1]]]
+        tdr2_axis = tdr2_axes[ev_set]
 
         xtrain = nat_preproc.flatten_X(X_train[:, :, :, np.newaxis])
         xtest = nat_preproc.flatten_X(X_test[:, :, :, np.newaxis])
@@ -249,6 +261,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                                        nreps_test,
                                                        beta1=beta1,
                                                        beta2=beta2,
+                                                       tdr2_axis=tdr2_axis,
                                                        ptrain_mask=ptrain_mask,
                                                        ptest_mask=ptest_mask)
         

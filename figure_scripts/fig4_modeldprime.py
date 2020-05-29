@@ -26,7 +26,7 @@ fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig3_mo
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore'
 val = 'dp_opt_test'
-estval = '_train'
+estval = '_test'
 nbins = 20
 cmap = 'PRGn'
 high_var_only = True
@@ -36,8 +36,8 @@ if estval == '_train':
     x_cut = (3, 8.5)
     y_cut = (0.1, .45) 
 elif estval == '_test':
-    x_cut = (1, 9)
-    y_cut = (0.35, 1) 
+    x_cut = (1, 8)
+    y_cut = (0.4, 1) 
 
 # set up subplots
 f = plt.figure(figsize=(6, 6))
@@ -140,8 +140,10 @@ beta_overall = np.stack(beta_overall)
 beta_delta = np.stack(beta_delta)
 
 # plot beta weights
-scax.scatter(beta_overall[:, 1], beta_delta[:, 1], color=color.COSTHETA, s=50, edgecolor='white', label=alab.COSTHETA)
-scax.scatter(beta_overall[:, 2], beta_delta[:, 2], color=color.SIGNAL, s=50, edgecolor='white', label=alab.SIGNAL)
+for bo, bd in zip(beta_overall, beta_delta):
+    scax.plot([bo[1], bo[2]], [bd[1], bd[2]], color='grey', zorder=1)
+scax.scatter(beta_overall[:, 1], beta_delta[:, 1], color=color.COSTHETA, s=50, edgecolor='white', label=alab.COSTHETA, zorder=2)
+scax.scatter(beta_overall[:, 2], beta_delta[:, 2], color=color.SIGNAL, s=50, edgecolor='white', label=alab.SIGNAL, zorder=2)
 scax.axhline(0, linestyle='--', color='k')
 scax.axvline(0, linestyle='--', color='k')
 scax.set_xlabel(r"$\beta_{k}$"

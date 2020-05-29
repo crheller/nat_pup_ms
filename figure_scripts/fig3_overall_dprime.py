@@ -35,18 +35,19 @@ fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig2_ov
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore'
 val = 'dp_opt_test'
-estval = '_train'
+estval = '_test'
 nbins = 20
 cmap = 'Greens'
 high_var_only = False
+vmax = None
 
 # only crop the dprime value. Show count for everything
 if estval == '_train':
     x_cut = (3, 8.5)
     y_cut = (0.1, .45) 
 elif estval == '_test':
-    x_cut = (1, 9)
-    y_cut = (0.35, 1) 
+    x_cut = (1, 8)
+    y_cut = (0.4, 1) 
 
 f = plt.figure(figsize=(9, 6))
 
@@ -93,7 +94,7 @@ df_dp = df[mask1 & mask2]
 df_dp.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
                   C=val, 
-                  gridsize=nbins, ax=hax, cmap=cmap) 
+                  gridsize=nbins, ax=hax, cmap=cmap, vmax=vmax) 
 hax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 hax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 hax.spines['bottom'].set_color(color.SIGNAL)

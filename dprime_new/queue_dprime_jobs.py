@@ -1,9 +1,10 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 force_rerun = True
 subset_289 = True
+temp_subset = False # for exculding subset of models for faster run time on jobs
 nc_lv = True
 
 if batch == 289:
@@ -31,8 +32,10 @@ modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
             'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore']
 
 if nc_lv:
-    modellist = [m.replace('zscore', 'zscore_nclvz') for m in modellist]
+    modellist = [m.replace('zscore', 'zscore_nclv') for m in modellist]
 
+if temp_subset:
+    modellist = [m for m in modellist if ('sim12' not in m) & ('_pr' not in m)]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
