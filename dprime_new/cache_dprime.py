@@ -68,6 +68,7 @@ nc_lv = False
 nc_lv_z = False
 fix_tdr2 = False
 gain_only = False
+dc_only = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -78,6 +79,9 @@ for op in options:
     if op == 'prg':
         regress_pupil = True
         gain_only = True
+    if op == 'prd':
+        regress_pupil = True
+        dc_only = True
     if op == 'sim1':
         sim1 = True
     if op == 'sim2': 
@@ -141,6 +145,7 @@ X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch,
                                        var_first_order=var_first_order,
                                        regress_pupil=regress_pupil,
                                        gain_only=gain_only,
+                                       dc_only=dc_only,
                                        use_xforms=use_xforms)
 ncells = X.shape[0]
 nreps = X.shape[1]
