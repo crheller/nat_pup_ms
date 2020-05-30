@@ -102,6 +102,22 @@ for site in sites:
 
     lv_dict[site]['beta2'] = beta2
 
+    # project rank1 data onto first eval of diff
+    r1_resp = (resp_matrix.T.dot(evecs[:, 0])[:, np.newaxis] @ evecs[:, [0]].T).T
+
+    # compute PCs over all the data
+    pca = PCA()
+    pca.fit(resp_matrix.T)
+
+    # compute variance of rank1 matrix along each PC
+    var = np.zeros(resp_matrix.shape[0])
+    fo_var = np.zeros(pred_matrix.shape[0])
+    for pc in range(0, resp_matrix.shape[0]):
+        var[pc] = np.var(r1_resp.T.dot(pca.components_[pc])) / np.sum(pca.explained_variance_)
+        fo_var[pc] = np.var(pred_matrix.T.dot(pca.components_[pc])) / np.sum(pca.explained_variance_)
+
+    lv_dict[site]['max_var_pc'] = np.argmax(var)
+    lv_dict[site]['b2_dot_pc1'] = pca.components_[0].dot(evecs[:,0])
 
     # use model pred to get beta1
     residual = rec['psth']._data - rec['psth_sp']._data
@@ -138,6 +154,22 @@ for site in sites:
     '''
 
     lv_dict[site]['beta1'] = beta1[:, np.newaxis]
+
+    lv_dict[site]['b1_dot_b2'] = beta1.dot(beta2)
+
+    path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
+    df = pd.concat([pd.read_csv(os.path.join(path,'d_289_pup_sdexp.csv'), index_col=0),
+                    pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0)])
+    df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se']) 
+    gain = pd.DataFrame(df.loc[:, pd.IndexSlice['gain_mod', 'st.pup']])
+    gain.loc[:, 'site'] = [i.split('-')[0] for i in gain.index]
+    gain = gain.loc[[c for c in rec['resp'].chans]]
+    g = gain['gain_mod']['st.pup'].values
+    g = [g for g in g]
+
+    lv_dict[site]['b2_corr_gain'] = np.corrcoef(g, evecs[:, 0])[0, 1]
+
+    # get largest PC 
 
 # pickle the results
 fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'

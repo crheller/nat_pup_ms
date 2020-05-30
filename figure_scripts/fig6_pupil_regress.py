@@ -22,17 +22,17 @@ import scipy.stats as ss
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams.update({'svg.fonttype': 'none'})
+#mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig6_pupil_regression.svg'
 loader = decoding.DecodingResults()
-raw_mn = 'dprime_jk10_zscore'
-modelname = 'dprime_pr_rm2_jk10_zscore'
-sim1 = 'dprime_sim1_pr_rm2_jk10_zscore'
-sim2 = 'dprime_sim2_pr_rm2_jk10_zscore'
-estval = '_train'
+raw_mn = 'dprime_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+sim1 = 'dprime_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+sim2 = 'dprime_sim2_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+estval = '_test'
 nbins = 20
 cmap = 'PRGn'
 high_var_only = True
@@ -42,8 +42,8 @@ if estval == '_train':
     x_cut = (2, 9.5)
     y_cut = (0.05, .5) 
 elif estval == '_test':
-    x_cut = (1, 9)
-    y_cut = (0.35, 1) 
+    x_cut = (1, 8)
+    y_cut = (0.2, 1) 
 
 # set up subplots
 f = plt.figure(figsize=(6, 6))

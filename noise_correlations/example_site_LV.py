@@ -57,10 +57,10 @@ real_dict_big = rec_bp['resp'].extract_epochs(epochs, mask=rec_bp['mask'])
 real_dict_all = rec['resp'].extract_epochs(epochs)
 pred_dict_all = rec['psth'].extract_epochs(epochs)
 
-real_dict_small = cpreproc.zscore_per_stim(real_dict_small, d2=real_dict_small, with_std=False)
-real_dict_big = cpreproc.zscore_per_stim(real_dict_big, d2=real_dict_big, with_std=False)
-real_dict_all = cpreproc.zscore_per_stim(real_dict_all, d2=real_dict_all, with_std=False)
-pred_dict_all = cpreproc.zscore_per_stim(pred_dict_all, d2=pred_dict_all, with_std=False)
+real_dict_small = cpreproc.zscore_per_stim(real_dict_small, d2=real_dict_small, with_std=True)
+real_dict_big = cpreproc.zscore_per_stim(real_dict_big, d2=real_dict_big, with_std=True)
+real_dict_all = cpreproc.zscore_per_stim(real_dict_all, d2=real_dict_all, with_std=True)
+pred_dict_all = cpreproc.zscore_per_stim(pred_dict_all, d2=pred_dict_all, with_std=True)
 
 eps = list(real_dict_big.keys())
 nCells = real_dict_big[eps[0]].shape[1]
@@ -123,6 +123,7 @@ pcvar = plt.subplot2grid((2, 5), (0, 3), colspan=2)
 pax = plt.subplot2grid((2, 5), (1, 0), colspan=3)
 betaax = plt.subplot2grid((2, 5), (0, 1))
 pcvar1 = plt.subplot2grid((2, 5), (1, 3), colspan=2)
+gax = plt.subplot2grid((2, 5), (0, 2))
 
 x = np.arange(0, len(evals)) - int(len(evals)/2)
 espec.plot(x, evals, '.-', label='raw data')
@@ -192,10 +193,12 @@ espec.legend(frameon=False)
 
 # use residual from model prediction to find first order dimension
 residual = rec['psth']._data - rec['psth_sp']._data
+residual = residual - residual.mean(axis=-1, keepdims=True)
+residual = residual / residual.std(axis=-1, keepdims=True)
 # get first PC of residual
 pca2 = PCA()
 pca2.fit(residual.T)
-beta1 = pca2.components_[1, :]
+beta1 = pca2.components_[0, :]
 
 '''
 # do this by getting mean zscore rate in large minus small, norm this difference vector. 
@@ -248,6 +251,23 @@ betaax.set_xlabel(r"$\beta_{1}$")
 betaax.set_ylabel(r"$\beta_{2}$")
 betaax.set_title(r"$r=%s$" % (round(np.corrcoef(beta1, evecs[:, 0])[0, 1], 2)))
 
+
+path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
+df = pd.concat([pd.read_csv(os.path.join(path,'d_289_pup_sdexp.csv'), index_col=0),
+                pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0)])
+df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se']) 
+gain = pd.DataFrame(df.loc[:, pd.IndexSlice['gain_mod', 'st.pup']])
+gain.loc[:, 'site'] = [i.split('-')[0] for i in gain.index]
+gain = gain.loc[[c for c in rec['resp'].chans]]
+g = gain['gain_mod']['st.pup'].values
+g = [g for g in g]
+
+gax.scatter(g, evecs[:, 0], color='grey', s=25, edgecolor='white')
+gax.axhline(0, linestyle='--', color='k')
+gax.axvline(0, linestyle='--', color='k')
+gax.set_xlabel('Gain Modulation')
+gax.set_ylabel(r"$\beta_{2}$")
+gax.set_title(r"$r=%s$" % (round(np.corrcoef(evecs[:, 0], g)[0, 1], 2)))
 
 f.tight_layout()
 

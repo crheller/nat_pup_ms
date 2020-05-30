@@ -26,14 +26,14 @@ import numpy as np
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams.update({'svg.fonttype': 'none'})
+#mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig2_overall_dprime.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig3_overall_dprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
 estval = '_test'
 nbins = 20
@@ -47,7 +47,7 @@ if estval == '_train':
     y_cut = (0.1, .45) 
 elif estval == '_test':
     x_cut = (1, 8)
-    y_cut = (0.4, 1) 
+    y_cut = (0.2, 1) 
 
 f = plt.figure(figsize=(9, 6))
 
@@ -132,17 +132,18 @@ cax.yaxis.label.set_color(color.COSTHETA)
 cax.tick_params(axis='y', colors=color.COSTHETA)
 cax.set_title('Count')
 
-xlim = (-10, 10)
-ylim = (-10, 10)
+xlim = (-7, 7)
+ylim = (-7, 7)
 # plot quadrant 1 example
-mask1 = (df_dp['cos_dU_evec'+estval] > 0) & (df_dp['cos_dU_evec'+estval] < 0.2)
-mask2 = (df_dp['dU_mag'+estval] > 2) & (df_dp['dU_mag'+estval] < 4)
+mask1 = (df_dp['cos_dU_evec'+estval] > 0.7) & (df_dp['cos_dU_evec'+estval] < 1)
+mask2 = (df_dp['dU_mag'+estval] > 7) & (df_dp['dU_mag'+estval] < 8)
 mask3 = df_dp['site'] == 'TAR010c'
-df_dp[mask1 & mask2 & mask3][['dp_opt_test', 'dp_opt_train']]
+#mask3 = (abs(df_dp['dp_opt_test']-df_dp['dp_opt_train']) < 1) & (df_dp['dp_opt_test']<6)
+out = df_dp[mask1 & mask2 & mask3][['dp_opt_test', 'dp_opt_train', 'site']]
 
 # 51_54 TAR010c **
 # 10_33
-pair, site, batch = (32, 49), 'TAR010c', 289
+pair, site, batch = (9, 49), 'TAR010c', 289
 decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
@@ -159,7 +160,7 @@ decoding.plot_stimulus_pair(site,
 # 7_78 DRX006b.e1:64
 # 19_76 DRX007a.e1:64
 # 4_46 DRX007a.e1:64
-pair, site, batch = (30, 37), 'TAR010c', 289
+pair, site, batch = (9, 12), 'TAR010c', 289
 decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,

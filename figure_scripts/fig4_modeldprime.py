@@ -17,19 +17,20 @@ import scipy.stats as ss
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams.update({'svg.fonttype': 'none'})
+#mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig3_modeldprime.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
 estval = '_test'
 nbins = 20
 cmap = 'PRGn'
 high_var_only = True
+pred = False # plot prediction of delta dprime
 
 # where to crop the data
 if estval == '_train':
@@ -37,7 +38,7 @@ if estval == '_train':
     y_cut = (0.1, .45) 
 elif estval == '_test':
     x_cut = (1, 8)
-    y_cut = (0.4, 1) 
+    y_cut = (0.2, 1) 
 
 # set up subplots
 f = plt.figure(figsize=(6, 6))
@@ -90,11 +91,26 @@ dpax.set_xlabel('Small pupil')
 dpax.set_ylabel('Large pupil')
 dpax.set_title(r"$d'^{2}$")
 
-# plot delta dprime
+# plot delta dprime (or prediction)
+X = df[['dU_mag'+estval, 'cos_dU_evec'+estval]]
+#X['interaction'] = X['dU_mag'+estval] * X['cos_dU_evec'+estval]
+X = sm.add_constant(X)
+y = df['state_diff']
+ols = sm.OLS(y, X)
+results = ols.fit()
+df['pred'] = ols.predict(results.params)
+if pred:
+    val = 'pred'
+    vmin = -2
+    vmax = 2
+else:
+    val = 'state_diff'
+    vmin = -3
+    vmax = 3
 df.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
-                  C='state_diff', 
-                  gridsize=nbins, ax=hax, cmap=cmap, vmin=-3, vmax=3) 
+                  C=val, 
+                  gridsize=nbins, ax=hax, cmap=cmap, vmin=vmin, vmax=vmax) 
 hax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 hax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 hax.spines['bottom'].set_color(color.SIGNAL)
@@ -142,8 +158,8 @@ beta_delta = np.stack(beta_delta)
 # plot beta weights
 for bo, bd in zip(beta_overall, beta_delta):
     scax.plot([bo[1], bo[2]], [bd[1], bd[2]], color='grey', zorder=1)
-scax.scatter(beta_overall[:, 1], beta_delta[:, 1], color=color.COSTHETA, s=50, edgecolor='white', label=alab.COSTHETA, zorder=2)
-scax.scatter(beta_overall[:, 2], beta_delta[:, 2], color=color.SIGNAL, s=50, edgecolor='white', label=alab.SIGNAL, zorder=2)
+scax.scatter(beta_overall[:, 1], beta_delta[:, 1], color=color.COSTHETA, s=50, edgecolor='white', label=alab.COSTHETA_short, zorder=2)
+scax.scatter(beta_overall[:, 2], beta_delta[:, 2], color=color.SIGNAL, s=50, edgecolor='white', label=alab.SIGNAL_short, zorder=2)
 scax.axhline(0, linestyle='--', color='k')
 scax.axvline(0, linestyle='--', color='k')
 scax.set_xlabel(r"$\beta_{k}$"

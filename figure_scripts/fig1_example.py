@@ -5,6 +5,7 @@ experimental set up, example single trial population responses and pupil pupil t
 """
 
 import nems_lbhb.baphy as nb
+from nems_lbhb.plots import plot_weights_64D
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,18 +15,19 @@ import nems.analysis.gammatone.gtgram as gt
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams.update({'svg.fonttype': 'none'})
+#mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig1_example.svg'
 
-f = plt.figure(figsize=(6, 6))
+f = plt.figure(figsize=(8, 6))
 
-# leave first subplot blank (for experimental setup)
-pax = plt.subplot2grid((6, 3), (2, 0), rowspan=4)
-spax = plt.subplot2grid((6, 3), (0, 1), colspan=2, rowspan=2)
-p1ax = plt.subplot2grid((6, 3), (2, 1), colspan=2, rowspan=2)
-p2ax = plt.subplot2grid((6, 3), (4, 1), colspan=2, rowspan=2)
+# leave first subplot blk (for experimental setup)
+pax = plt.subplot2grid((10, 4), (1, 3), rowspan=8)
+spax = plt.subplot2grid((10, 4), (0, 1), colspan=2, rowspan=2)
+p1ax = plt.subplot2grid((10, 4), (2, 1), colspan=2, rowspan=4)
+p2ax = plt.subplot2grid((10, 4), (6, 1), colspan=2, rowspan=4)
+arr = plt.subplot2grid((10, 4), (4, 0), rowspan=6)
 
 site = 'TAR010c'
 batch = 289
@@ -44,6 +46,7 @@ r = rec['resp'].extract_epoch('STIM_00Oxford_male2b.wav')
 spec = rec['stim'].extract_epoch('STIM_00Oxford_male2b.wav')
 p = rec['pupil'].extract_epoch('STIM_00Oxford_male2b.wav')
 
+fs = rasterfs
 psth = sf.gaussian_filter1d(r.mean(axis=(0, 1)), sigma) * fs
 psth1 = sf.gaussian_filter1d(r[rep1, :, :].mean(axis=0), sigma) * fs
 psth2 = sf.gaussian_filter1d(r[rep2, :, :].mean(axis=0), sigma) * fs
@@ -65,10 +68,14 @@ p2ax.set_ylabel("Spk / s")
 p2ax.set_title(r"$\bar p_{k} = %s$" % np.round(mean_pupil2, 2))
 p2ax.set_xlabel('Time (s)')
 
+# plot units on array
+plot_weights_64D(np.ones(len(rec['resp'].chans)), rec['resp'].chans,
+                 overlap_method='mean', cbar=False, ax=arr, s=25)
+
 # rasters
 lim = 40
-p1ax.plot((spk_times1[1] / rasterfs) - 2, lim + (spk_times1[0] / 2), '.', color='k', markersize=1)
-p2ax.plot((spk_times2[1] / rasterfs) - 2, lim + (spk_times2[0] / 2), '.', color='k', markersize=1)
+p1ax.plot((spk_times1[1] / rasterfs) - 2, lim + (spk_times1[0] / 1), '|', color='k', markersize=0.75)
+p2ax.plot((spk_times2[1] / rasterfs) - 2, lim + (spk_times2[0] / 1), '|', color='k', markersize=0.75)
 
 # spectrogram
 fs, data = wavfile.read(soundfile)
@@ -78,7 +85,7 @@ spbins = int(2 * fs)
 postbins = int(0.5 * fs)
 data = np.concatenate((np.zeros(spbins), data, np.zeros(postbins)))
 spec = gt.gtgram(data, fs, 0.01, 0.002, 100, 0)
-spax.imshow(spec, cmap='Greys', origin='lower', aspect='auto')
+spax.imshow(np.sqrt(spec), cmap='Greys', origin='lower', aspect='auto')
 spax.spines['bottom'].set_visible(False)
 spax.spines['left'].set_visible(False)
 spax.set_xticks([])

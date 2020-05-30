@@ -20,9 +20,9 @@ mpl.rcParams.update({'svg.fonttype': 'none'})
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclv'
-sim1_mn = 'dprime_sim1_jk10_zscore_nclv'
-sim2_mn = 'dprime_sim2_jk10_zscore_nclv'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+sim1_mn = 'dprime_sim1_jk10_zscore_nclvz_fixtdr2'
+sim2_mn = 'dprime_sim2_jk10_zscore_nclvz_fixtdr2'
 estval = '_train'
 nbins = 20
 
@@ -35,7 +35,7 @@ if estval == '_train':
     y_cut = (0.1, .45) 
 elif estval == '_test':
     x_cut = (1, 8)
-    y_cut = (0.4, 1) 
+    y_cut = (0.2, 1) 
 
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
          'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
@@ -176,18 +176,20 @@ sim1_dp = sim1_dp[mask1 & mask2]
 sim2_dp = sim2_dp[mask1 & mask2]
 
 test_train = '_test'
-X = df_dp[['beta1_dot_dU', 'cos_dU_evec'+test_train]]
-X['interaction'] = df_dp['beta1_dot_dU'] * df_dp['cos_dU_evec'+test_train]
+X = df_dp[['beta1_dot_dU', 'beta1_lambda', 'evec_sim_test']] #, 'dU_mag_test', 'cos_dU_evec_test']]
+X['interaction2'] = df_dp['beta1_dot_dU'] * df_dp['beta1_lambda']
+X['interaction3'] = df_dp['beta1_dot_dU'] * df_dp['evec_sim_test']
 X = sm.add_constant(X)
 y = df_dp['state_diff_sim1']
 ols = sm.OLS(y, X)
 results1 = ols.fit()
 X['pred'] = ols.predict(results1.params)
 
-X2 = df_dp[['beta2_dot_dU', 'cos_dU_evec'+test_train]]
-X2['interaction'] = df_dp['beta2_dot_dU'] * df_dp['cos_dU_evec'+test_train]
+X2 = df_dp[['beta2_dot_dU', 'beta2_dot_wopt', 'beta2_lambda']] #'dU_mag_test', 'cos_dU_evec_test']]
+X2['interaction'] = df_dp['beta2_dot_dU'] * df_dp['beta2_dot_wopt']
+X2['interaction2'] = df_dp['beta2_dot_dU'] * df_dp['beta2_lambda']
 X2 = sm.add_constant(X2)
-y = df_dp['state_diff_sim2']
+y = df_dp['state_diff_sim1']
 ols = sm.OLS(y, X2)
 results2 = ols.fit()
 X2['pred'] = ols.predict(results2.params)
@@ -195,7 +197,7 @@ X2['pred'] = ols.predict(results2.params)
 f, ax = plt.subplots(2, 2, figsize=(8.5, 8))
 
 X.plot.hexbin(x='beta1_dot_dU',
-              y='cos_dU_evec'+test_train,
+              y='beta1_lambda',
               C='pred',
               cmap='PRGn',
               vmin=-1,
@@ -203,11 +205,11 @@ X.plot.hexbin(x='beta1_dot_dU',
               gridsize=nbins,
               ax=ax[0, 0])
 ax[0, 0].set_xlabel(r'$\beta_{1} \cdot \Delta \mu$')
-ax[0, 0].set_ylabel(r'$e_{1} \cdot \Delta \mu$')
+ax[0, 0].set_ylabel(r'$\beta_{1} \cdot w_{opt}$')
 ax[0, 0].set_title(r"$\Delta \hat{d'}$ 1st-order sim")
 
 X2.plot.hexbin(x='beta2_dot_dU',
-              y='cos_dU_evec'+test_train,
+              y='beta2_lambda',
               C='pred',
               cmap='PRGn',
               vmin=-1,
@@ -215,11 +217,11 @@ X2.plot.hexbin(x='beta2_dot_dU',
               gridsize=nbins,
               ax=ax[0, 1])
 ax[0, 1].set_xlabel(r'$\beta_{2} \cdot \Delta \mu$')
-ax[0, 1].set_ylabel(r'$e_{1} \cdot \Delta \mu$')
+ax[0, 0].set_ylabel(r'$\beta_{2} \cdot w_{opt}$')
 ax[0, 1].set_title(r"$\Delta \hat{d'}$ 2nd-order sim")
 
 df_dp.plot.hexbin(x='beta1_dot_dU',
-              y='cos_dU_evec'+test_train,
+              y='beta1_lambda',
               C='state_diff_sim1',
               cmap='PRGn',
               vmin=-3,
@@ -227,11 +229,11 @@ df_dp.plot.hexbin(x='beta1_dot_dU',
               gridsize=nbins,
               ax=ax[1, 0])
 ax[1, 0].set_xlabel(r'$\beta_{1} \cdot \Delta \mu$')
-ax[1, 0].set_ylabel(r'$e_{1} \cdot \Delta \mu$')
+ax[1, 0].set_ylabel(r'$\beta_{1} \cdot w_{opt}$')
 ax[1, 0].set_title(r"$\Delta d'$ 1st-order sim")
 
 df_dp.plot.hexbin(x='beta2_dot_dU',
-              y='cos_dU_evec'+test_train,
+              y='beta2_lambda',
               C='state_diff_sim2',
               cmap='PRGn',
               vmin=-2,
@@ -239,7 +241,7 @@ df_dp.plot.hexbin(x='beta2_dot_dU',
               gridsize=nbins,
               ax=ax[1, 1])
 ax[1, 1].set_xlabel(r'$\beta_{2} \cdot \Delta \mu$')
-ax[1, 1].set_ylabel(r'$e_{1} \cdot \Delta \mu$')
+ax[0, 0].set_ylabel(r'$\beta_{2} \cdot w_{opt}$')
 ax[1, 1].set_title(r"$\Delta d'$ 2nd-order sim")
 
 f.tight_layout()

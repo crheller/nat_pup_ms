@@ -18,18 +18,18 @@ import scipy.stats as ss
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams.update({'svg.fonttype': 'none'})
+#mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig5_decoding_simulation.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore'
-sim1 = 'dprime_sim1_jk10_zscore'
-sim2 = 'dprime_sim2_jk10_zscore'
-sim12 = 'dprime_sim12_jk10_zscore'
-estval = '_train'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+sim1 = 'dprime_sim1_jk10_zscore_nclvz_fixtdr2'
+sim2 = 'dprime_sim2_jk10_zscore_nclvz_fixtdr2'
+sim12 = 'dprime_sim12_jk10_zscore_nclvz_fixtdr2'
+estval = '_test'
 nbins = 20
 cmap = 'PRGn'
 high_var_only = True
@@ -39,8 +39,8 @@ if estval == '_train':
     x_cut = (2.5, 9.5)
     y_cut = (0.05, .5) 
 elif estval == '_test':
-    x_cut = (1, 9)
-    y_cut = (0.35, 1) 
+    x_cut = (1, 8)
+    y_cut = (0.2, 1) 
 
 # set up subplots
 f = plt.figure(figsize=(9, 3))
@@ -127,10 +127,10 @@ bax.bar([0, 1, 2, 3],
         [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean(), df['sim12'].mean()],
         yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem(), df['sim12'].sem()],
         edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
-bax.set_xticks([0, 1, 2])
-bax.set_xticklabels(['Raw', '1st order', '2nd order', 'Full simulation'])
+bax.set_xticks([0, 1, 2, 3])
+bax.set_xticklabels(['Raw', '1st order', '2nd order', '1st + 2nd'], rotation=45)
 bax.set_ylabel(r"$\Delta d'^{2}$")
-bax.set_ylim((-0.1, 1.25))
+bax.set_ylim((-0.1, 1.5))
 
 # plot delta dprime heatmaps for 1st and 2nd order
 df.plot.hexbin(x='dU_mag'+estval, 
