@@ -4,7 +4,7 @@ import numpy as np
 batch = 289
 force_rerun = False
 subset_289 = True
-temp_subset = False # for exculding subset of models for faster run time on jobs
+temp_subset = True # for exculding subset of models for faster run time on jobs
 nc_lv = True
 fix_tdr2 = True
 
@@ -30,7 +30,11 @@ modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
             'dprime_sim1_jk10_zscore', 'dprime_sim2_jk10_zscore', 'dprime_sim12_jk10_zscore',
             'dprime_sim1_pr_jk10_zscore', 'dprime_sim2_pr_jk10_zscore', 'dprime_sim12_pr_jk10_zscore',
             'dprime_pr_rm2_jk10_zscore', 
-            'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore']
+            'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore',
+            'dprime_prg_rm2_jk10_zscore', 
+            'dprime_sim1_prg_rm2_jk10_zscore', 'dprime_sim2_prg_rm2_jk10_zscore',  'dprime_sim12_prg_rm2_jk10_zscore',
+            'dprime_prd_rm2_jk10_zscore', 
+            'dprime_sim1_prd_rm2_jk10_zscore', 'dprime_sim2_prd_rm2_jk10_zscore',  'dprime_sim12_prd_rm2_jk10_zscore']
 
 if nc_lv:
     modellist = [m.replace('zscore', 'zscore_nclvz') for m in modellist]
@@ -39,7 +43,7 @@ if fix_tdr2:
     modellist = [m+'_fixtdr2' for m in modellist]
 
 if temp_subset:
-    modellist = [m for m in modellist if ('sim12' not in m) & ('_pr' not in m)]
+    modellist = [m for m in modellist if ('prd' in m)]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'

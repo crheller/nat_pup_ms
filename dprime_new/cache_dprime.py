@@ -62,6 +62,7 @@ sim1 = False
 sim2 = False
 sim12 = False
 do_pls = False
+do_PCA = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
 pca_lv = False
 nc_lv = False
@@ -90,6 +91,8 @@ for op in options:
         sim12 = True
     if op == 'PLS':
         do_pls = True
+    if op == 'PCA':
+        do_pca = True
     if op == 'rm2':
         use_xforms = True
     if op == 'vso':
@@ -106,8 +109,12 @@ for op in options:
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
+    raise DeprecationWarning("Updates have been made since this was last used. Make sure behavior is as expected")
+elif do_PCA:
+    log.info("Also running trial averaged PCA dimensionality reduction for N components.")
+    raise DeprecationWarning("Updates have been made since this was last used. Make sure behavior is as expected")
 else:
-    log.info("Only performing trial averaged PCA and TDR dimensionality reduction. No PLS")
+    log.info("Only performing TDR dimensionality reduction. No PLS or PCA")
 
 # ================ load LV information for this site =======================
 if pca_lv:
@@ -139,19 +146,14 @@ else:
 
 # ================================= load recording ==================================
 X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
-                                       sim_first_order=sim1, 
-                                       sim_second_order=sim2,
-                                       sim_all=sim12,
-                                       var_first_order=var_first_order,
                                        regress_pupil=regress_pupil,
                                        gain_only=gain_only,
                                        dc_only=dc_only,
                                        use_xforms=use_xforms)
 ncells = X.shape[0]
-nreps = X.shape[1]
+nreps_raw = X.shape[1]
 nstim = X.shape[2]
 nbins = X.shape[3]
-X = X.reshape(ncells, nreps, nstim * nbins)
 sp_bins = sp_bins.reshape(1, sp_bins.shape[1], nstim * nbins)
 nstim = nstim * nbins
 
@@ -162,22 +164,57 @@ spont_combos = [c for c in all_combos if (c[0] in spont_bins) & (c[1] in spont_b
 ev_ev_combos = [c for c in all_combos if (c[0] not in spont_bins) & (c[1] not in spont_bins)]
 spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in spont_combos)]
 
-# =============================== make pupil mask ===================================
-# mask pupil per stimulus, rather than overall (need a temp pupil mask, not just use one
-# returned above, because if sim data, mask much bigger than X_pup)
-X_pup = X_pup.reshape(1, X_pup.shape[1], nstim)
-pup_mask_temp = X_pup >= np.tile(np.median(X_pup, axis=1), [1, X_pup.shape[1], 1])
+# =================================== simulate =======================================
+# update X to simulated data if specified. Else X = X_raw.
+# point of this is so that decoding axes / TDR space doesn't change for simulation.
+# should make results easier to interpret. CRH 06.04.2020
+X_raw = X.copy()
+pup_mask_raw = pup_mask.copy()
+if sim1 | sim2 | sim12:
+    X, pup_mask = decoding.simulate_response(X, pup_mask, sim_first_order=sim1,
+                                                          sim_second_order=sim2,
+                                                          sim_all=sim12)
+nreps = X.shape[1]
 
-# reshape true mask
+
+# =============================== reshape data ===================================
+# reshape mask to match data
 pup_mask = pup_mask.reshape(1, nreps, nstim)
+pup_mask_raw = pup_mask_raw.reshape(1, nreps_raw, nstim)
+# reshape X (and X_raw)
+X = X.reshape(ncells, nreps, nstim)
+X_raw = X_raw.reshape(ncells, nreps_raw, nstim)
+# reshape X_pup
+X_pup = X_pup.reshape(1, nreps_raw, nstim)
 
 # ============================== get pupil variance ==================================
-# figure out pupil variance per stimulus
-pupil_range = nat_preproc.get_pupil_range(X_pup, pup_mask_temp)
+# figure out pupil variance per stimulus (this always happens on raw data... X_pup and pup_mask_raw)
+pupil_range = nat_preproc.get_pupil_range(X_pup, pup_mask_raw)
 
 # =========================== generate list of est/val sets ==========================
+# also generate list of est / val for the raw data. Because of random number seed, it's 
+# critical that this happens first, and doesn't happend twice (if simulation is False)
 log.info("Generate list of {0} est / val sets".format(njacks))
-est, val, p_est, p_val = nat_preproc.get_est_val_sets(X, pup_mask=pup_mask, njacks=njacks)
+
+# generate raw raw/val sets
+est_raw, val_raw, p_est_raw, p_val_raw = nat_preproc.get_est_val_sets(X_raw, pup_mask=pup_mask_raw, njacks=njacks)
+nreps_train_raw = est_raw[0].shape[1]
+nreps_test_raw = val_raw[0].shape[1]
+
+# check if data was simulated. If so, then generate the simulated est / val sets
+xraw_equals_x = False
+if (X.shape == X_raw.shape):
+    if np.all(X_raw == X):
+        xraw_equals_x = True
+        est = est_raw.copy()
+        val = val_raw.copy()
+        p_est = p_est_raw.copy()
+        p_val = p_val_raw.copy()
+    else:
+        est, val, p_est, p_val = nat_preproc.get_est_val_sets(X, pup_mask=pup_mask, njacks=njacks)
+else:
+    est, val, p_est, p_val = nat_preproc.get_est_val_sets(X, pup_mask=pup_mask, njacks=njacks)
+
 nreps_train = est[0].shape[1]
 nreps_test = val[0].shape[1]
 
@@ -189,17 +226,20 @@ components = np.min([ncells, nreps_train, 10])
 if zscore:
     log.info("z-score est / val sets")
     est, val = nat_preproc.scale_est_val(est, val)
+    est_raw, val_raw = nat_preproc.scale_est_val(est_raw, val_raw)
 else:
     # just center data
     log.info("center est / val sets")
     est, val = nat_preproc.scale_est_val(est, val, sd=False)
+    est_raw, val_raw = nat_preproc.scale_est_val(est_raw, val_raw, sd=False)
 
 # =========================== if fix tdr 2 =======================================
 # calculate first noise PC for each val set, use this to define TDR2, rather
-# than stimulus specific first noise PC (this method seems noisy)
+# than stimulus specific first noise PC (this method seems too noisy). Always
+# use raw data for this.
 if fix_tdr2:
-    log.info("Finding first noise dimension for each val set")
-    tdr2_axes = nat_preproc.get_first_pc_per_est(est)
+    log.info("Finding first noise dimension for each val set using raw data")
+    tdr2_axes = nat_preproc.get_first_pc_per_est(est_raw)
 else:
     tdr2_axes = [None] * len(val)
 # set up data frames to save results (wait to preallocate space on first
@@ -213,7 +253,6 @@ tdr_index = range(len(all_combos) * njacks)
 pca_idx = 0
 pls_idx = 0
 tdr_idx = 0
-
 # ============================== Loop over stim pairs ================================
 for stim_pair_idx, combo in enumerate(all_combos):
     # print every 500th pair. Don't want to overwhelm log
@@ -236,32 +275,14 @@ for stim_pair_idx, combo in enumerate(all_combos):
         xtrain = nat_preproc.flatten_X(X_train[:, :, :, np.newaxis])
         xtest = nat_preproc.flatten_X(X_test[:, :, :, np.newaxis])
 
-        # ============================== PCA ANALYSIS ===============================
-        _pca_results = decoding.do_pca_dprime_analysis(xtrain, 
-                                                       xtest, 
-                                                       nreps_train,
-                                                       nreps_test,
-                                                       ptrain_mask=ptrain_mask,
-                                                       ptest_mask=ptest_mask)
-        _pca_results.update({
-            'n_components': 2,
-            'jack_idx': ev_set,
-            'combo': combo,
-            'category': category,
-            'site': site
-        })
-        # preallocate space for subsequent iterations
-        if pca_idx == 0:
-            temp_pca_results = temp_pca_results.append([_pca_results])
-            pca_results = pd.DataFrame(index=pca_index, columns=temp_pca_results.columns)
-            pca_results.loc[pca_idx] = temp_pca_results.iloc[0].values
-            temp_pca_results = pd.DataFrame()
-
+        # define raw data
+        if xraw_equals_x:
+            raw_data = None
         else:
-            temp_pca_results = temp_pca_results.append([_pca_results])
-            pca_results.loc[pca_idx] = temp_pca_results.iloc[0].values
-            temp_pca_results = pd.DataFrame()
-        pca_idx += 1
+            # define data to be used for tdr decomposition
+            X_train_raw = est_raw[ev_set][:, :, [combo[0], combo[1]]] 
+            xtrain_raw = nat_preproc.flatten_X(X_train_raw[:, :, :, np.newaxis])
+            raw_data = (xtrain_raw, nreps_train_raw)
 
         # ============================== TDR ANALYSIS ==============================
         # custom dim reduction onto plane defined by dU and first PC of noise covariance
@@ -269,6 +290,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                                        xtest,
                                                        nreps_train,
                                                        nreps_test,
+                                                       tdr_data=raw_data,
                                                        beta1=beta1,
                                                        beta2=beta2,
                                                        tdr2_axis=tdr2_axis,
@@ -294,6 +316,34 @@ for stim_pair_idx, combo in enumerate(all_combos):
             tdr_results.loc[tdr_idx] = temp_tdr_results.iloc[0].values
             temp_tdr_results = pd.DataFrame()
         tdr_idx += 1
+
+        # ============================== PCA ANALYSIS ===============================
+        if do_PCA:
+            _pca_results = decoding.do_pca_dprime_analysis(xtrain, 
+                                                        xtest, 
+                                                        nreps_train,
+                                                        nreps_test,
+                                                        ptrain_mask=ptrain_mask,
+                                                        ptest_mask=ptest_mask)
+            _pca_results.update({
+                'n_components': 2,
+                'jack_idx': ev_set,
+                'combo': combo,
+                'category': category,
+                'site': site
+            })
+            # preallocate space for subsequent iterations
+            if pca_idx == 0:
+                temp_pca_results = temp_pca_results.append([_pca_results])
+                pca_results = pd.DataFrame(index=pca_index, columns=temp_pca_results.columns)
+                pca_results.loc[pca_idx] = temp_pca_results.iloc[0].values
+                temp_pca_results = pd.DataFrame()
+
+            else:
+                temp_pca_results = temp_pca_results.append([_pca_results])
+                pca_results.loc[pca_idx] = temp_pca_results.iloc[0].values
+                temp_pca_results = pd.DataFrame()
+            pca_idx += 1
 
         if do_pls:
             # ============================== PLS ANALYSIS ===============================
@@ -330,21 +380,24 @@ for stim_pair_idx, combo in enumerate(all_combos):
 
  
 # convert columns to str
-pca_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
 tdr_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in tdr_results.combo.values]
+if do_PCA:
+    pca_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pca_results.combo.values]
 if do_pls:
     pls_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
 
 # convert to correct dtypes
-pca_results = decoding.cast_dtypes(pca_results)
 tdr_results = decoding.cast_dtypes(tdr_results)
+if do_PCA:
+    pca_results = decoding.cast_dtypes(pca_results)
 if do_pls:
     pls_results = decoding.cast_dtypes(pls_results)
 
 # collapse over results to save disk space by packing into "DecodingResults object"
 log.info("Compressing results into DecodingResults object... ")
-pca_results = decoding.DecodingResults(pca_results, pupil_range=pupil_range)
 tdr_results = decoding.DecodingResults(tdr_results, pupil_range=pupil_range)
+if do_PCA:
+    pca_results = decoding.DecodingResults(pca_results, pupil_range=pupil_range)
 if do_pls:
     pls_results = decoding.DecodingResults(pls_results, pupil_range=pupil_range)
 
@@ -354,7 +407,9 @@ if not os.path.isdir(os.path.join(path, site)):
     os.mkdir(os.path.join(path, site))
 
 tdr_results.save_pickle(os.path.join(path, site, modelname+'_TDR.pickle'))
-pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
+
+if do_PCA:
+    pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
 
 if do_pls:
     pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
