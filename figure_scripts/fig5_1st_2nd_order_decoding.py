@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import scipy.stats as ss
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
@@ -30,9 +31,10 @@ sim1 = 'dprime_sim1_jk10_zscore_nclvz_fixtdr2'
 sim2 = 'dprime_sim2_jk10_zscore_nclvz_fixtdr2'
 sim12 = 'dprime_sim12_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
-nbins = 20
-cmap = 'PRGn'
+nbins = 8
 high_var_only = True
+persite = True
+cmap = 'summer'
 
 # where to crop the data
 if estval == '_train':
@@ -123,44 +125,91 @@ df['sim2'] = df_sim2['state_diff']
 df['sim12'] = df_sim12['state_diff']
 
 # bar plot of delta dprime for raw data, 1st order, and 2nd order simulation
-bax.bar([0, 1, 2, 3], 
-        [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean(), df['sim12'].mean()],
-        yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem(), df['sim12'].sem()],
-        edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
+if not persite:
+    bax.bar([0, 1, 2, 3], 
+            [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean(), df['sim12'].mean()],
+            yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem(), df['sim12'].sem()],
+            edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
+
+else:
+    #df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].T.plot(color='lightgrey', legend=False, ax=bax)
+    bax.bar([0, 1, 2, 3], df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].mean(), 
+                        yerr=df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].sem(),
+                        color='lightgrey', edgecolor='k', lw=2)
+    bax.axhline(0, linestyle='--', color='k')     
+
 bax.set_xticks([0, 1, 2, 3])
 bax.set_xticklabels(['Raw', '1st order', '2nd order', '1st + 2nd'], rotation=45)
 bax.set_ylabel(r"$\Delta d'^{2}$")
 bax.set_ylim((-0.1, 1.5))
 
 # plot delta dprime heatmaps for 1st and 2nd order
-df.plot.hexbin(x='dU_mag'+estval, 
-                  y='cos_dU_evec'+estval, 
-                  C='sim1', 
-                  gridsize=nbins, ax=s1ax, cmap=cmap, vmin=-3, vmax=3) 
+hm = []
+xbins = np.linspace(1, 8, nbins)
+ybins = np.linspace(0.2, 1, nbins)
+for s in df.site.unique():
+        vals = df[df.site==s]['sim1']
+        vals -= vals.mean()
+        vals /= vals.std()
+        heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
+                                    y=df[df.site==s]['cos_dU_evec'+estval],
+                                    values=vals,
+                                    statistic='mean',
+                                    bins=[xbins, ybins])
+        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+t = np.nanmean(np.stack(hm), 0)
+
+im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+divider = make_axes_locatable(s1ax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+
+#df.plot.hexbin(x='dU_mag'+estval, 
+#                  y='cos_dU_evec'+estval, 
+#                  C='sim1', 
+#                  gridsize=nbins, ax=s1ax, cmap=cmap, vmin=-3, vmax=3) 
 s1ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 s1ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 s1ax.spines['bottom'].set_color(color.SIGNAL)
-s1ax.spines['bottom'].set_lw(2)
 s1ax.xaxis.label.set_color(color.SIGNAL)
 s1ax.tick_params(axis='x', colors=color.SIGNAL)
 s1ax.spines['left'].set_color(color.COSTHETA)
-s1ax.spines['left'].set_lw(2)
 s1ax.yaxis.label.set_color(color.COSTHETA)
 s1ax.tick_params(axis='y', colors=color.COSTHETA)
 s1ax.set_title(r"$\Delta d'^2$, 1st order")
 
-df.plot.hexbin(x='dU_mag'+estval, 
-                  y='cos_dU_evec'+estval, 
-                  C='sim2', 
-                  gridsize=nbins, ax=s2ax, cmap=cmap, vmin=-3, vmax=3) 
+
+hm = []
+xbins = np.linspace(1, 8, nbins)
+ybins = np.linspace(0.2, 1, nbins)
+for s in df.site.unique():
+        vals = df[df.site==s]['sim2']
+        vals -= vals.mean()
+        vals /= vals.std()
+        heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
+                                    y=df[df.site==s]['cos_dU_evec'+estval],
+                                    values=vals,
+                                    statistic='mean',
+                                    bins=[xbins, ybins])
+        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+t = np.nanmean(np.stack(hm), 0)
+
+im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+divider = make_axes_locatable(s2ax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+#df.plot.hexbin(x='dU_mag'+estval, 
+#                  y='cos_dU_evec'+estval, 
+#                  C='sim2', 
+#                  gridsize=nbins, ax=s2ax, cmap=cmap, vmin=-3, vmax=3) 
 s2ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 s2ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 s2ax.spines['bottom'].set_color(color.SIGNAL)
-s2ax.spines['bottom'].set_lw(2)
 s2ax.xaxis.label.set_color(color.SIGNAL)
 s2ax.tick_params(axis='x', colors=color.SIGNAL)
 s2ax.spines['left'].set_color(color.COSTHETA)
-s2ax.spines['left'].set_lw(2)
 s2ax.yaxis.label.set_color(color.COSTHETA)
 s2ax.tick_params(axis='y', colors=color.COSTHETA)
 s2ax.set_title(r"$\Delta d'^2$, 2nd order")

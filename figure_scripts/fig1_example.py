@@ -17,17 +17,27 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+pupil_heatmap = False
+
+savefig = False
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig1_example.svg'
 
-f = plt.figure(figsize=(8, 6))
-
-# leave first subplot blk (for experimental setup)
-pax = plt.subplot2grid((10, 4), (1, 3), rowspan=8)
-spax = plt.subplot2grid((10, 4), (0, 1), colspan=2, rowspan=2)
-p1ax = plt.subplot2grid((10, 4), (2, 1), colspan=2, rowspan=4)
-p2ax = plt.subplot2grid((10, 4), (6, 1), colspan=2, rowspan=4)
-arr = plt.subplot2grid((10, 4), (4, 0), rowspan=6)
+if pupil_heatmap:
+    f = plt.figure(figsize=(8, 6))
+    # leave first subplot blk (for experimental setup)
+    pax = plt.subplot2grid((10, 4), (1, 3), rowspan=8)
+    spax = plt.subplot2grid((10, 4), (0, 1), colspan=2, rowspan=2)
+    p1ax = plt.subplot2grid((10, 4), (2, 1), colspan=2, rowspan=4)
+    p2ax = plt.subplot2grid((10, 4), (6, 1), colspan=2, rowspan=4)
+    arr = plt.subplot2grid((10, 4), (4, 0), rowspan=6)
+else:
+    f = plt.figure(figsize=(10, 6))
+    pax = plt.subplot2grid((4, 10), (0, 2), colspan=8, rowspan=1)
+    spax = plt.subplot2grid((4, 10), (1, 2), colspan=4)
+    spax2 = plt.subplot2grid((4, 10), (1, 6), colspan=4)
+    p1ax = plt.subplot2grid((4, 10), (2, 2), colspan=4, rowspan=2)
+    p2ax = plt.subplot2grid((4, 10), (2, 6), colspan=4, rowspan=2)
+    arr = plt.subplot2grid((4, 10), (1, 0), colspan=2, rowspan=3)
 
 site = 'TAR010c'
 batch = 289
@@ -59,18 +69,25 @@ mean_pupil2 = p[rep2].mean(axis=-1).squeeze()
 time = np.linspace(-2, (psth.shape[0] / rasterfs) - 2, psth.shape[0])
 p1ax.plot(time, psth, color='grey', lw=2)
 p1ax.plot(time, psth1, color='firebrick', lw=2)
+p1ax.axvline(0, linestyle='--', lw=2, color='lime')
+p1ax.axvline(3, linestyle='--', lw=2, color='lime')
 p1ax.set_ylabel("Spk / s")
 p1ax.set_title(r"$\bar p_{k} = %s$" % np.round(mean_pupil1, 2))
+p1ax.set_xlabel('Time (s)')
+p1ax.set_xlim((-2, 3.5))
 
 p2ax.plot(time, psth, color='grey', lw=2)
 p2ax.plot(time, psth2, color='navy', lw=2)
+p2ax.axvline(0, linestyle='--', lw=2, color='lime')
+p2ax.axvline(3, linestyle='--', lw=2, color='lime')
 p2ax.set_ylabel("Spk / s")
 p2ax.set_title(r"$\bar p_{k} = %s$" % np.round(mean_pupil2, 2))
 p2ax.set_xlabel('Time (s)')
+p2ax.set_xlim((-2, 3.5))
 
 # plot units on array
 plot_weights_64D(np.ones(len(rec['resp'].chans)), rec['resp'].chans,
-                 overlap_method='mean', cbar=False, ax=arr, s=25)
+                 overlap_method='mean', cbar=False, ax=arr, s=50)
 
 # rasters
 lim = 40
@@ -91,19 +108,33 @@ spax.spines['left'].set_visible(False)
 spax.set_xticks([])
 spax.set_yticks([])
 
-# plot pupil as heatmap
-p = rec['pupil'].extract_epoch('REFERENCE').squeeze()
-p1_idx = np.argwhere(p.mean(axis=-1).squeeze()==mean_pupil1)[0][0]
-p2_idx = np.argwhere(p.mean(axis=-1).squeeze()==mean_pupil2)[0][0]
-im = pax.imshow(p, aspect='auto', cmap='Purples', origin='lower')
-pax.axhline(p1_idx, lw=2, color='firebrick')
-pax.axhline(p2_idx, lw=2, color='navy')
-pax.set_xticks([0*rasterfs, 2*rasterfs, 5*rasterfs])
-pax.set_xticklabels([-2, 0, 3])
-pax.set_ylabel(r'Trial $k$')
-pax.set_xlabel('Time (s)')
-pax.set_title("Pupil Size")
-f.colorbar(im, ax=pax)
+if not pupil_heatmap:
+    spax2.imshow(np.sqrt(spec), cmap='Greys', origin='lower', aspect='auto')
+    spax2.spines['bottom'].set_visible(False)
+    spax2.spines['left'].set_visible(False)
+    spax2.set_xticks([])
+    spax2.set_yticks([])
+
+if pupil_heatmap:
+    # plot pupil as heatmap
+    p = rec['pupil'].extract_epoch('REFERENCE').squeeze()
+    p1_idx = np.argwhere(p.mean(axis=-1).squeeze()==mean_pupil1)[0][0]
+    p2_idx = np.argwhere(p.mean(axis=-1).squeeze()==mean_pupil2)[0][0]
+    im = pax.imshow(p, aspect='auto', cmap='Purples', origin='lower')
+    pax.axhline(p1_idx, lw=2, color='firebrick')
+    pax.axhline(p2_idx, lw=2, color='navy')
+    pax.set_xticks([0*rasterfs, 2*rasterfs, 5*rasterfs])
+    pax.set_xticklabels([-2, 0, 3])
+    pax.set_ylabel(r'Trial $k$')
+    pax.set_xlabel('Time (s)')
+    pax.set_title("Pupil Size")
+    f.colorbar(im, ax=pax)
+
+else:
+    time = np.linspace(0, rec['pupil'].shape[-1] / rasterfs, rec['pupil'].shape[-1])
+    pax.plot(time, rec['pupil']._data.T, color='k')
+    pax.set_ylabel('Pupil Size')
+    pax.set_xlabel('Time (s)')
 
 f.tight_layout()
 

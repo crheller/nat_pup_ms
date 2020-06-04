@@ -33,9 +33,8 @@ modelname = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
 sim1 = 'dprime_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2'
 sim2 = 'dprime_sim2_pr_rm2_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
-nbins = 20
-cmap = 'PRGn'
 high_var_only = True
+persite = True
 
 # where to crop the data
 if estval == '_train':
@@ -133,14 +132,22 @@ df['sim1'] = df_sim1['state_diff']
 df['sim2'] = df_sim2['state_diff']
 
 # bar plot of delta dprime for raw data, 1st order, and 2nd order simulation
-dbax.bar([0, 1, 2], 
-        [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean()],
-        yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem()],
-        edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
+if not persite:
+    dbax.bar([0, 1, 2], 
+            [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean()],
+            yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem()],
+            edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
+
+else:
+    dbax.bar([0, 1, 2], df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2']].mean(), 
+                        yerr=df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2']].sem(),
+                        color='lightgrey', edgecolor='k', lw=2)
+    dbax.axhline(0, linestyle='--', color='k')   
+
 dbax.set_xticks([0, 1, 2])
 dbax.set_xticklabels(['Raw', '1st order', '2nd order'])
 dbax.set_ylabel(r"$\Delta d'^{2}$")
-dbax.set_ylim((-.15, 1.25))
+dbax.set_ylim((-.1, 1.5))
 dbax.set_title('Pupil-Corrected \n Decoding Improvement')
 
 # ============================= load and plot delta noise correlations across freq. bands =======================================

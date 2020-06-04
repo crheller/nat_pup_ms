@@ -24,7 +24,7 @@ loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 cache_file = path + 'high_pvar_stim_combos.csv'
 figsave = 'inkscape_figures/supp_fig1_split_data.svg'
-modelname = 'dprime_jk10_zscore'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 savefig = True
 

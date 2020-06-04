@@ -21,7 +21,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig2_1st_2nd_order_stats.svg'
 
 recache = False
@@ -51,7 +51,7 @@ try:
 except:
     pass
 
-df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se'])
+df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se', 'isolation'])
 dc = df.loc[:, pd.IndexSlice['dc_mod', 'st.pup']]
 gain = df.loc[:, pd.IndexSlice['gain_mod', 'st.pup']]
 sig = (df.loc[:, pd.IndexSlice['r', 'st.pup']] - df.loc[:, pd.IndexSlice['r', 'st.pup0']]) > \
@@ -64,7 +64,7 @@ rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
 rsc_df = ld.load_noise_correlation('rsc_bal', path=rsc_path)
 
 # set up figures
-f = plt.figure(figsize=(9, 3))
+f = plt.figure(figsize=(6, 2))
 mp = plt.subplot2grid((1, 3), (0, 0))
 gdc = plt.subplot2grid((1, 3), (0, 1))
 nc = plt.subplot2grid((1, 3), (0, 2))

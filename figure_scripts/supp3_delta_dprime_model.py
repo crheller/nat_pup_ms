@@ -1,7 +1,5 @@
 """
-Heatmap of delta dprime (in same cropped space as fig 2)
-Model overall dprime (and delta dprime) in cropped space from fig 2. 
-Compare model weights for predicting delta vs. predicting overall.
+Model the change in dprime for each site. Show consitency across sites.
 """
 
 import colors as color
@@ -14,6 +12,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import scipy.stats as ss
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
@@ -22,7 +21,7 @@ mpl.rcParams['axes.spines.top'] = False
 savefig = True
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig4_modeldprime.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp4_modeldprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
@@ -30,7 +29,6 @@ estval = '_test'
 nbins = 20
 cmap = 'PRGn'
 high_var_only = True
-pred = False # plot prediction of delta dprime
 
 # where to crop the data
 if estval == '_train':
@@ -41,12 +39,10 @@ elif estval == '_test':
     y_cut = (0.2, 1) 
 
 # set up subplots
-f = plt.figure(figsize=(6, 6))
+f = plt.figure(figsize=(6, 3))
 
-dpax = plt.subplot2grid((2, 2), (0, 0))
-hax = plt.subplot2grid((2, 2), (0, 1))
-scax = plt.subplot2grid((2, 2), (1, 0))
-cax = plt.subplot2grid((2, 2), (1, 1))
+scax = plt.subplot2grid((1, 2), (0, 0))
+cax = plt.subplot2grid((1, 2), (0, 1))
 
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
          'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
@@ -81,48 +77,6 @@ mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
 mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cut[0])
 df = df[mask1 & mask2]
 
-# plot large vs. small dprime per site
-dfg = df.groupby(by='site').mean()
-mi = np.min([dfg['sp_dp'].min(), dfg['bp_dp'].min()])
-ma = np.max([dfg['sp_dp'].max(), dfg['bp_dp'].max()])
-dpax.scatter(dfg['sp_dp'], dfg['bp_dp'], color='k', s=50, edgecolor='white')
-dpax.plot([mi, ma], [mi, ma], color='grey', linestyle='--')
-dpax.set_xlabel('Small pupil')
-dpax.set_ylabel('Large pupil')
-dpax.set_title(r"$d'^{2}$")
-
-# plot delta dprime (or prediction)
-X = df[['dU_mag'+estval, 'cos_dU_evec'+estval]]
-#X['interaction'] = X['dU_mag'+estval] * X['cos_dU_evec'+estval]
-X = sm.add_constant(X)
-y = df['state_diff']
-ols = sm.OLS(y, X)
-results = ols.fit()
-df['pred'] = ols.predict(results.params)
-if pred:
-    val = 'pred'
-    vmin = -2
-    vmax = 2
-else:
-    val = 'state_diff'
-    vmin = -3
-    vmax = 3
-df.plot.hexbin(x='dU_mag'+estval, 
-                  y='cos_dU_evec'+estval, 
-                  C=val, 
-                  gridsize=nbins, ax=hax, cmap=cmap, vmin=vmin, vmax=vmax) 
-hax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
-hax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
-hax.spines['bottom'].set_color(color.SIGNAL)
-hax.spines['bottom'].set_lw(2)
-hax.xaxis.label.set_color(color.SIGNAL)
-hax.tick_params(axis='x', colors=color.SIGNAL)
-hax.spines['left'].set_color(color.COSTHETA)
-hax.spines['left'].set_lw(2)
-hax.yaxis.label.set_color(color.COSTHETA)
-hax.tick_params(axis='y', colors=color.COSTHETA)
-hax.set_title(r"$\Delta d'^2$")
-
 # linear model to predict delta dprime and overall dprime
 # for each site (with data in this cropped window), fit the model(s)
 beta_overall = []
@@ -137,7 +91,10 @@ for s in df.site.unique():
     X['cos_dU_evec'+estval] /= X['cos_dU_evec'+estval].std()
     
     X = sm.add_constant(X)
+    X['interaction'] = X['cos_dU_evec'+estval] * X['dU_mag'+estval]
     y = df[df.site==s]['state_diff']
+    y -= y.mean()
+    y /= y.std()
     model = sm.OLS(y, X).fit()
     low_ci = model.conf_int().values[:,0]
     high_ci = model.conf_int().values[:,1]
@@ -146,6 +103,8 @@ for s in df.site.unique():
 
 
     y = df[df.site==s]['dp_opt_test']
+    y -= y.mean()
+    y /= y.std()
     model = sm.OLS(y, X).fit()
     low_ci = model.conf_int().values[:,0]
     high_ci = model.conf_int().values[:,1]
@@ -162,10 +121,10 @@ scax.scatter(beta_overall[:, 1], beta_delta[:, 1], color=color.COSTHETA, s=50, e
 scax.scatter(beta_overall[:, 2], beta_delta[:, 2], color=color.SIGNAL, s=50, edgecolor='white', label=alab.SIGNAL_short, zorder=2)
 scax.axhline(0, linestyle='--', color='k')
 scax.axvline(0, linestyle='--', color='k')
-scax.set_xlabel(r"$\beta_{k}$"
+scax.set_xlabel(r"$\beta$"
                 " for "
                 r"$d'^{2}$")
-scax.set_ylabel(r"$\beta_{k}$"
+scax.set_ylabel(r"$\beta$"
                 " for "
                 r"$\Delta d'^{2}$")
 scax.legend(frameon=False)
@@ -191,15 +150,12 @@ for i, site in enumerate(df.site.unique()):
 cax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 cax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 cax.spines['bottom'].set_color(color.SIGNAL)
-cax.spines['bottom'].set_lw(2)
 cax.xaxis.label.set_color(color.SIGNAL)
 cax.tick_params(axis='x', colors=color.SIGNAL)
 cax.spines['left'].set_color(color.COSTHETA)
-cax.spines['left'].set_lw(2)
 cax.yaxis.label.set_color(color.COSTHETA)
 cax.tick_params(axis='y', colors=color.COSTHETA)
 cax.set_title("Equi-density contours")
-#cax.legend()
 
 plt.close(fd)
 
@@ -209,4 +165,3 @@ if savefig:
     f.savefig(fig_fn)
 
 plt.show()
-
