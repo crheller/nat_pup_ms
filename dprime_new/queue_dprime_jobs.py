@@ -1,12 +1,12 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
-force_rerun = False
-subset_289 = True
+batch = 294
+force_rerun = True
+subset_289 = True  # only high rep sites (so that we can do cross validation)
 temp_subset = True # for exculding subset of models for faster run time on jobs
-nc_lv = True
-fix_tdr2 = True
+nc_lv = True       # beta defined using nc LV method
+fix_tdr2 = True    # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
@@ -30,11 +30,10 @@ modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
             'dprime_sim1_jk10_zscore', 'dprime_sim2_jk10_zscore', 'dprime_sim12_jk10_zscore',
             'dprime_sim1_pr_jk10_zscore', 'dprime_sim2_pr_jk10_zscore', 'dprime_sim12_pr_jk10_zscore',
             'dprime_pr_rm2_jk10_zscore', 
-            'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore',
-            'dprime_prg_rm2_jk10_zscore', 
-            'dprime_sim1_prg_rm2_jk10_zscore', 'dprime_sim2_prg_rm2_jk10_zscore',  'dprime_sim12_prg_rm2_jk10_zscore',
-            'dprime_prd_rm2_jk10_zscore', 
-            'dprime_sim1_prd_rm2_jk10_zscore', 'dprime_sim2_prd_rm2_jk10_zscore',  'dprime_sim12_prd_rm2_jk10_zscore']
+            'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim2_pr_rm2_jk10_zscore',  'dprime_sim12_pr_rm2_jk10_zscore']
+
+# NOTE: as of 06.04.2020: tried regressing out only baseline or only gain (prd / prg models). Didn't see much of 
+# a difference. Still an option though. May want to look into a bug at some point.
 
 if nc_lv:
     modellist = [m.replace('zscore', 'zscore_nclvz') for m in modellist]
@@ -43,7 +42,7 @@ if fix_tdr2:
     modellist = [m+'_fixtdr2' for m in modellist]
 
 if temp_subset:
-    modellist = [m for m in modellist if ('prd' in m)]
+    modellist = [m for m in modellist if ('_sim' in m)]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'

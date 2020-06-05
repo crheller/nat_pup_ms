@@ -61,6 +61,8 @@ use_xforms = False
 sim1 = False
 sim2 = False
 sim12 = False
+sim_tdr_space = False  # perform the simulation in the TDR space. piggy-back on jackknifes for this. e.g. for each jackknife, do a new simulation
+                       # this is kludgy. may want to do more iterations. If so, gonna need to rethink the modelname / est val creation etc.
 do_pls = False
 do_PCA = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
@@ -89,6 +91,8 @@ for op in options:
         sim2 = True
     if op == 'sim12':
         sim12 = True
+    if op == 'simInTDR':
+        sim_tdr_space = True
     if op == 'PLS':
         do_pls = True
     if op == 'PCA':
@@ -170,12 +174,18 @@ spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in 
 # should make results easier to interpret. CRH 06.04.2020
 X_raw = X.copy()
 pup_mask_raw = pup_mask.copy()
-if sim1 | sim2 | sim12:
+if (sim1 | sim2 | sim12) & (not sim_tdr_space):
     X, pup_mask = decoding.simulate_response(X, pup_mask, sim_first_order=sim1,
                                                           sim_second_order=sim2,
-                                                          sim_all=sim12)
-nreps = X.shape[1]
+                                                          sim_all=sim12,
+                                                          ntrials=5000)
+elif sim_tdr_space:
+    log.info("Performing simulations within TDR space. Unique simulation per each jackknife")
 
+else:
+    pass
+
+nreps = X.shape[1]
 
 # =============================== reshape data ===================================
 # reshape mask to match data
@@ -286,16 +296,33 @@ for stim_pair_idx, combo in enumerate(all_combos):
 
         # ============================== TDR ANALYSIS ==============================
         # custom dim reduction onto plane defined by dU and first PC of noise covariance
-        _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
-                                                       xtest,
-                                                       nreps_train,
-                                                       nreps_test,
-                                                       tdr_data=raw_data,
-                                                       beta1=beta1,
-                                                       beta2=beta2,
-                                                       tdr2_axis=tdr2_axis,
-                                                       ptrain_mask=ptrain_mask,
-                                                       ptest_mask=ptest_mask)
+        if sim_tdr_space:
+            # simulate data *after* after projecting into TDR space.
+            _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
+                                            xtest,
+                                            nreps_train,
+                                            nreps_test,
+                                            tdr_data=raw_data,
+                                            sim1=sim1,
+                                            sim2=sim2,
+                                            sim12=sim12,
+                                            beta1=beta1,
+                                            beta2=beta2,
+                                            tdr2_axis=tdr2_axis,
+                                            ptrain_mask=ptrain_mask,
+                                            ptest_mask=ptest_mask)
+
+        else:
+            _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
+                                                        xtest,
+                                                        nreps_train,
+                                                        nreps_test,
+                                                        tdr_data=raw_data,
+                                                        beta1=beta1,
+                                                        beta2=beta2,
+                                                        tdr2_axis=tdr2_axis,
+                                                        ptrain_mask=ptrain_mask,
+                                                        ptest_mask=ptest_mask)
         
         _tdr_results.update({
             'n_components': 2,
