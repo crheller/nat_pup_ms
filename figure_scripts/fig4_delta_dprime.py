@@ -20,7 +20,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig4_modeldprime.svg'
@@ -31,6 +31,7 @@ estval = '_test'
 nbins = 8
 cmap = 'summer'
 high_var_only = True
+smooth = False
 pred = False # plot prediction of delta dprime
 
 # where to crop the data
@@ -131,7 +132,11 @@ for s in df.site.unique():
         hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 
-im = hax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+if smooth:
+    im = hax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+else:
+    im = hax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
                                 extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
 divider = make_axes_locatable(hax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)

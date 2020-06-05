@@ -33,7 +33,8 @@ sim12 = 'dprime_sim12_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
 nbins = 8
 high_var_only = True
-persite = True
+persite = False
+smooth = False
 cmap = 'summer'
 
 # where to crop the data
@@ -159,7 +160,11 @@ for s in df.site.unique():
         hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 
-im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+if smooth:
+    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+else:
+    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
                                 extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
 divider = make_axes_locatable(s1ax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
@@ -195,7 +200,11 @@ for s in df.site.unique():
         hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 
-im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+if smooth:
+    im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+else:
+    im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
                                 extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
 divider = make_axes_locatable(s2ax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
