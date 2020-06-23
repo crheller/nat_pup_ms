@@ -4,10 +4,11 @@ import numpy as np
 batch = 294
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
-temp_subset = True # for exculding subset of models for faster run time on jobs
+temp_subset = False # for exculding subset of models for faster run time on jobs
 nc_lv = True       # beta defined using nc LV method
 fix_tdr2 = True    # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
 sim_in_tdr = True  # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
+no_crossval = True # for no cross validation
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
@@ -35,6 +36,9 @@ modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
 
 # NOTE: as of 06.04.2020: tried regressing out only baseline or only gain (prd / prg models). Didn't see much of 
 # a difference. Still an option though. May want to look into a bug at some point.
+
+if no_crossval:
+    modellist = [m.replace('_jk10', '_jk1_eev') for m in modellist]
 
 if sim_in_tdr:
     modellist = [m.replace('_sim', '_simInTDR_sim') for m in modellist]

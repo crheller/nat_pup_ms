@@ -12,7 +12,6 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams.update({'svg.fonttype': 'none'})
 
-
 np.random.seed(123)
 
 Ndim = 25

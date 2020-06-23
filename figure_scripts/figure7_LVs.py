@@ -32,13 +32,14 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig7_LV.svg'
 
-site = 'TAR010c' #'BOL006b' #'DRX006b.e65:128'
+site = 'DRX006b.e65:128' #'BOL006b' #'DRX006b.e65:128'
 batch = 289
 
 fs = 4
+ex_site = site
 ops = {'batch': batch, 'cellid': site}
 xmodel = 'ns.fs{}.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'.format(fs)
 if batch == 294:
@@ -163,22 +164,11 @@ g = gain['gain_mod']['st.pup'].values
 g = [g for g in g]
 
 
-# load overall LV results
-fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
-with open(fn, 'rb') as handle:
-    lv_dict = pickle.load(handle)
-
-gb2 = np.abs([lv_dict[s]['b2_corr_gain'] for s in lv_dict.keys()])
-pcb2 = np.abs([lv_dict[s]['b2_dot_pc1'] for s in lv_dict.keys()])
-
-ex_gb2 = abs(lv_dict[site]['b2_corr_gain'])
-ex_pcb2 = abs(lv_dict[site]['b2_dot_pc1'])
-
 # ======================================== Load dprime results ================================================
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
-sim1 = 'dprime_sim1_jk10_zscore_nclvz_fixtdr2'
-sim2 = 'dprime_sim2_jk10_zscore_nclvz_fixtdr2'
+sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
+sim2 = 'dprime_simInTDR_sim2_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
 nbins = 20
 cmap = 'PRGn'
@@ -192,8 +182,9 @@ elif estval == '_test':
     x_cut = (1, 8)
     y_cut = (0.2, 1) 
 
+#'bbl086b'
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
-        'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
+        'DRX006b.e1:64', 'DRX006b.e65:128', 
         'DRX007a.e1:64', 'DRX007a.e65:128', 
         'DRX008b.e1:64', 'DRX008b.e65:128']
 
@@ -255,33 +246,62 @@ df['sim1'] = df_sim1['state_diff']
 df['sim2'] = df_sim2['state_diff']
 df['dU_diff'] = (df['bp_dU_mag'] - df['sp_dU_mag']) / df['dU_mag_test']
 
+# load LV results for all sites
+fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
+with open(fn, 'rb') as handle:
+    lv_dict = pickle.load(handle)
+
+gb2 = np.abs([lv_dict[s]['b2_corr_gain'] for s in df.site.unique()])
+pcb2 = np.abs([lv_dict[s]['b2_dot_pc1'] for s in df.site.unique()])
+b2_tot_var = [lv_dict[s]['b2_tot_var_ratio'] for s in df.site.unique()]
+b2_var_pc1_ratio = [lv_dict[s]['b2_var_pc1_ratio'] for s in df.site.unique()]
+
+ex_gb2 = abs(lv_dict[site]['b2_corr_gain'])
+ex_pcb2 = abs(lv_dict[site]['b2_dot_pc1'])
+
+ex_var_pc1_ratio = lv_dict[ex_site]['b2_var_pc1_ratio']
+ex_b2_tot_var = lv_dict[ex_site]['b2_tot_var_ratio']
+
 # ==============================================================================================
 # layout figure panels and plot
 
-f = plt.figure(figsize=(15, 6))
+f = plt.figure(figsize=(12, 6))
 
-lrgax = plt.subplot2grid((2, 5), (0, 1))
-smax = plt.subplot2grid((2, 5), (0, 0))
-difax = plt.subplot2grid((2, 5), (0, 2))
-espec = plt.subplot2grid((2, 5), (0, 3))
+lrgax = plt.subplot2grid((2, 4), (0, 1))
+smax = plt.subplot2grid((2, 4), (0, 0))
+difax = plt.subplot2grid((2, 4), (0, 2))
+espec = plt.subplot2grid((2, 4), (1, 0))
 
-b1b2 = plt.subplot2grid((2, 5), (1, 0))
-pcvar = plt.subplot2grid((2, 5), (1, 1), colspan=2)
+#b1b2 = plt.subplot2grid((2, 5), (1, 0))
+pcvar = plt.subplot2grid((2, 4), (1, 1), colspan=2)
 
-gvspc = plt.subplot2grid((2, 5), (0, 4))
-b2dU = plt.subplot2grid((2, 5), (1, 3))
-dpax = plt.subplot2grid((2, 5), (1, 4))
+varpc = plt.subplot2grid((2, 4), (0, 3)) 
+#gvspc = plt.subplot2grid((2, 4), (0, 3))
+#b2dU = plt.subplot2grid((2, 5), (1, 3))
+dpax = plt.subplot2grid((2, 4), (1, 3))
 
-vmin = -0.75
-vmax = 0.75
+vmin = -0.5
+vmax = 0.5
 lrgax.imshow(big, aspect='auto', cmap='bwr', vmin=vmin, vmax=vmax)
 lrgax.set_title(r"$\Sigma_{large}$")
+lrgax.set_xticks([], [])
+lrgax.set_yticks([], [])
+lrgax.set_xlabel('Units (sorted by depth)')
+lrgax.set_ylabel('Units (sorted by depth)')
 
 smax.imshow(small, aspect='auto', cmap='bwr', vmin=vmin, vmax=vmax)
 smax.set_title(r"$\Sigma_{small}$")
+smax.set_xticks([], [])
+smax.set_yticks([], [])
+smax.set_xlabel('Units (sorted by depth)')
+smax.set_ylabel('Units (sorted by depth)')
 
 difax.imshow(diff, aspect='auto', cmap='bwr', vmin=vmin, vmax=vmax)
 difax.set_title(r"$\Sigma_{small} - \Sigma_{large}$")
+difax.set_xticks([], [])
+difax.set_yticks([], [])
+difax.set_xlabel('Units (sorted by depth)')
+difax.set_ylabel('Units (sorted by depth)')
 
 x = np.arange(0, len(evals)) - int(len(evals)/2)
 espec.plot(x, shuf_evals, '.-', label='pupil shuffle')
@@ -294,7 +314,10 @@ espec.set_title("Eigenspectrum of "
 espec.set_ylabel(r"$\lambda$")
 espec.set_xlabel(r"$\alpha$")
 espec.legend(frameon=False)
+espec.set_xticks(np.arange(x[0], x[-1], 10))
+espec.set_xticklabels(np.arange(0, len(x), 10))
 
+'''
 b1b2.scatter(evecs[:, 0], g, color='grey', edgecolor='white', s=25)
 b1b2.legend([r"$\rho = %s$" % np.round(np.corrcoef(g, evecs[:, 0])[0, 1], 2)], frameon=False)
 b1b2.axhline(0, linestyle='--', color='k')
@@ -302,15 +325,28 @@ b1b2.axvline(0, linestyle='--', color='k')
 b1b2.set_xlabel(r"$\beta_{2}$")
 b1b2.set_ylabel("Gain Modulation")
 b1b2.set_title('Per-neuron coefficients')
+'''
 
 ncells = resp_matrix.shape[0]
-pcvar.bar(range(0, ncells), pca.explained_variance_ratio_, edgecolor='k', width=0.7, color='lightgrey', label='Raw data')
+pcvar.bar(range(0, ncells), pca.explained_variance_ratio_, edgecolor='k', width=0.7, color='lightgrey', label='Total variance')
 pcvar.bar(range(0, ncells), var, edgecolor='k', width=0.7, color='tab:orange', label="2nd-order variance")
-pcvar.set_ylabel('Explained \n variance')
+pcvar.set_ylabel('Explained variance \n ratio')
 pcvar.set_xlabel('PC')
 pcvar.legend(frameon=False)
-pcvar.set_title("Variance explained by second order dimension " + r"($\mathbf{e}_1 \cdot \beta_{2}$)")
+pcvar.set_title("Variance explained by second-order dimension \n along each principal component")
 
+
+# plot ratio of beta2 variance : pc1 variance vs. alignment with PC1
+varpc.scatter(b2_tot_var, b2_var_pc1_ratio, color='grey', edgecolor='white', s=50)
+varpc.scatter(ex_b2_tot_var, ex_var_pc1_ratio, color='tab:orange', edgecolor='white', s=50)
+varpc.axhline(0, linestyle='--', color='k')
+varpc.axvline(0, linestyle='--', color='k')
+varpc.set_xlabel(r"$\frac{var(\beta_2)}{var_{total}}$")
+varpc.set_ylabel(r"$\frac{var(\beta_2)}{var(PC_1)}$")
+varpc.set_xlim((-0.01, None))
+varpc.set_ylim((-0.1, 1))
+
+'''
 gvspc.scatter(gb2, pcb2, color='grey', edgecolor='white', s=35)
 gvspc.scatter(ex_gb2, ex_pcb2, color='tab:orange', edgecolor='white', s=50)
 gvspc.axhline(0, linestyle='--', color='k')
@@ -325,6 +361,7 @@ b2dU.hist(df['beta2_dot_dU'], edgecolor='k',
 b2dU.set_title("Second-order \n overlap with signal")
 b2dU.set_xlabel(r"$\beta_2 \cdot \Delta \mu$")
 b2dU.set_ylabel('per Recording Site, \n Stimulus Pair')
+'''
 
 m1 = df['beta2_dot_dU']>0.3
 m2 = df['beta2_dot_dU']<0.2
@@ -334,18 +371,18 @@ high = df[m1].groupby(by='site').mean()['sim2']
 dpax.plot([np.zeros(low.shape[0]), 
             np.ones(low.shape[0])],
           [low, high], 'o', color='grey', zorder=2)
-dpax.plot([0, 1], [low.loc['TAR010c'], high.loc['TAR010c']], 'o', color='tab:orange', zorder=3)
+dpax.plot([0, 1], [low.loc[ex_site], high.loc[ex_site]], 'o', color='tab:orange', zorder=3)
 
 for l, h, s in zip(low.values, high.values, high.index):
-    if s == 'TAR010c':
+    if s == ex_site:
         dpax.plot([0, 1], [l, h], 'tab:orange', zorder=2, lw=2)
     else:
         dpax.plot([0, 1], [l, h], 'k-', zorder=1)
     
-
+dpax.axhline(0, linestyle='--', color='k')
 dpax.set_xticks([0, 1])
 dpax.set_xticklabels(['Low', 'High'])
-dpax.set_xlabel('Second-order overlap with signal')
+dpax.set_xlabel(r"$\beta_2$ vs. $\Delta \mu$ similarity")
 dpax.set_ylabel(r"$\Delta d'$ (2nd-order)")
 dpax.set_xlim((-1, 2))
 

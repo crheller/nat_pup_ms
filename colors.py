@@ -15,5 +15,5 @@ COSTHETA = 'purple'
 SIGNAL = 'orange'
 
 # stim A vs. stim B in example plots
-STIMA = 'dodgerblue'
-STIMB = 'magenta'
+STIMA = 'tab:blue'
+STIMB = 'tab:orange'

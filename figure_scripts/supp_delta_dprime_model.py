@@ -21,14 +21,12 @@ mpl.rcParams['axes.spines.top'] = False
 savefig = True
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp4_modeldprime.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp_modeldprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
 estval = '_test'
-nbins = 20
-cmap = 'PRGn'
-high_var_only = True
+high_var_only = False
 
 # where to crop the data
 if estval == '_train':
@@ -44,8 +42,9 @@ f = plt.figure(figsize=(6, 3))
 scax = plt.subplot2grid((1, 2), (0, 0))
 cax = plt.subplot2grid((1, 2), (0, 1))
 
+#'bbl086b'
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
-         'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
+         'DRX006b.e1:64', 'DRX006b.e65:128', 
          'DRX007a.e1:64', 'DRX007a.e65:128', 
          'DRX008b.e1:64', 'DRX008b.e65:128']
 df = []

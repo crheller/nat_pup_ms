@@ -24,17 +24,19 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig6_pupil_regression.svg'
 loader = decoding.DecodingResults()
 raw_mn = 'dprime_jk10_zscore_nclvz_fixtdr2'
 modelname = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
-sim1 = 'dprime_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2'
-sim2 = 'dprime_sim2_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+sim1 = 'dprime_simInTDR_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+sim2 = 'dprime_simInTDR_sim2_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+sim1_raw = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
+sim2_raw = 'dprime_simInTDR_sim2_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
 high_var_only = True
-persite = True
+persite = False
 
 # where to crop the data
 if estval == '_train':
@@ -52,17 +54,19 @@ dbax = plt.subplot2grid((2, 2), (0, 1))
 ncax = plt.subplot2grid((2, 2), (1, 0))
 bsax = plt.subplot2grid((2, 2), (1, 1))
 
+#'bbl086b'
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
-        'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
+        'DRX006b.e1:64', 'DRX006b.e65:128', 
         'DRX007a.e1:64', 'DRX007a.e65:128', 
         'DRX008b.e1:64', 'DRX008b.e65:128']
-
 
 # ======================================== Dprime results ================================================
 df_raw = []
 df = []
 df_sim1 = []
 df_sim2 = []
+df_sim1_raw = []
+df_sim2_raw = []
 for site in sites:
 
     fn = os.path.join(path, site, raw_mn+'_TDR.pickle')
@@ -80,6 +84,14 @@ for site in sites:
     fn = os.path.join(path, site, sim2+'_TDR.pickle')
     results_sim2 = loader.load_results(fn)
     _df_sim2 = results_sim2.numeric_results
+
+    fn = os.path.join(path, site, sim1_raw+'_TDR.pickle')
+    results_sim1_raw = loader.load_results(fn)
+    _df_sim1_raw = results_sim1_raw.numeric_results
+
+    fn = os.path.join(path, site, sim2_raw+'_TDR.pickle')
+    results_sim2_raw = loader.load_results(fn)
+    _df_sim2_raw = results_sim2_raw.numeric_results
 
     stim = results.evoked_stimulus_pairs
     high_var_pairs = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/dprime_new/high_pvar_stim_combos.csv', index_col=0)
@@ -113,10 +125,22 @@ for site in sites:
         _df_sim2['site'] = site
         df_sim2.append(_df_sim2)
 
+        _df_sim1_raw = _df_sim1_raw.loc[pd.IndexSlice[stim, 2], :]
+        _df_sim1_raw['state_diff'] = (_df_sim1_raw['bp_dp'] - _df_sim1_raw['sp_dp']) / _df_raw['dp_opt_test']
+        _df_sim1_raw['site'] = site
+        df_sim1_raw.append(_df_sim1_raw)
+
+        _df_sim2_raw = _df_sim2_raw.loc[pd.IndexSlice[stim, 2], :]
+        _df_sim2_raw['state_diff'] = (_df_sim2_raw['bp_dp'] - _df_sim2_raw['sp_dp']) / _df_raw['dp_opt_test']
+        _df_sim2_raw['site'] = site
+        df_sim2_raw.append(_df_sim2_raw)
+
 df = pd.concat(df)
 df_raw = pd.concat(df_raw)
 df_sim1 = pd.concat(df_sim1)
 df_sim2 = pd.concat(df_sim2)
+df_sim1_raw = pd.concat(df_sim1_raw)
+df_sim2_raw = pd.concat(df_sim2_raw)
 
 # filter based on x_cut / y_cut
 #mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
@@ -124,31 +148,43 @@ df_sim2 = pd.concat(df_sim2)
 mask1 = (df_raw['dU_mag'+estval] < x_cut[1]) & (df_raw['dU_mag'+estval] > x_cut[0])
 mask2 = (df_raw['cos_dU_evec'+estval] < y_cut[1]) & (df_raw['cos_dU_evec'+estval] > y_cut[0])
 df = df[mask1 & mask2]
+df_raw = df_raw[mask1 & mask2]
 df_sim1 = df_sim1[mask1 & mask2]
 df_sim2 = df_sim2[mask1 & mask2]
+df_sim1_raw = df_sim1_raw[mask1 & mask2]
+df_sim2_raw = df_sim2_raw[mask1 & mask2]
 
 # append the simulation results as columns in the raw dataframe
 df['sim1'] = df_sim1['state_diff']
 df['sim2'] = df_sim2['state_diff']
+df['raw'] = df_raw['state_diff']
+df['sim1_raw'] = df_sim1_raw['state_diff']
+df['sim2_raw'] = df_sim2_raw['state_diff']
+
 
 # bar plot of delta dprime for raw data, 1st order, and 2nd order simulation
 if not persite:
-    dbax.bar([0, 1, 2], 
+    dbax.bar([-0.25, 0.75, 1.75], 
+            [df['raw'].mean(), df['sim1_raw'].mean(), df['sim2_raw'].mean()],
+            yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem()],
+            edgecolor='k', color=['tab:blue'], lw=1, width=0.4, label='Raw')
+    dbax.bar([0.25, 1.25, 2.25], 
             [df['state_diff'].mean(), df['sim1'].mean(), df['sim2'].mean()],
             yerr=[df['state_diff'].sem(), df['sim1'].sem(), df['sim2'].sem()],
-            edgecolor='k', color=['lightgrey'], lw=2, width=0.5)
+            edgecolor='k', color=['tab:orange'], lw=1, width=0.4, label='Pupil-corrected')
 
 else:
     dbax.bar([0, 1, 2], df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2']].mean(), 
                         yerr=df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2']].sem(),
-                        color='lightgrey', edgecolor='k', lw=2)
+                        color='lightgrey', edgecolor='k', lw=1)
     dbax.axhline(0, linestyle='--', color='k')   
 
 dbax.set_xticks([0, 1, 2])
-dbax.set_xticklabels(['Raw', '1st order', '2nd order'])
+dbax.set_xticklabels(['Raw', '1st order', '2nd order'], rotation=45)
 dbax.set_ylabel(r"$\Delta d'^{2}$")
-dbax.set_ylim((-.1, 1.5))
-dbax.set_title('Pupil-Corrected \n Decoding Improvement')
+dbax.set_ylim((0, 1.5))
+dbax.legend(frameon=False)
+dbax.set_title('Discriminability Improvement')
 
 # ============================= load and plot delta noise correlations across freq. bands =======================================
 boxcar = True
@@ -205,7 +241,7 @@ ncax.axhline(0, linestyle='--', lw=2, color='grey')
 ncax.legend(frameon=False)
 ncax.set_xticks(xvals)
 ncax.set_xticklabels(f_band, rotation=45)
-ncax.set_ylabel('rsc')
+ncax.set_ylabel('Noise Correlation')
 ncax.set_ylim((-0.01, 0.08))
 ncax.set_xlabel('Frequency Band (Hz)')
 
@@ -215,7 +251,7 @@ bsax.axhline(0, linestyle='--', lw=2, color='grey')
 bsax.legend(frameon=False)
 bsax.set_xticks(xvals)
 bsax.set_xticklabels(f_band, rotation=45)
-bsax.set_ylabel('rsc')
+bsax.set_ylabel('Noise Correlation')
 bsax.set_ylim((-0.01, 0.08))
 bsax.set_xlabel('Frequency Band (Hz)')
 
@@ -251,7 +287,7 @@ bins = np.arange(-0.45, 0.45, 0.05)
 pcorax.hist([raw_corr, pr_corr], rwidth=0.8, edgecolor='k', 
                 color=[color.RAW, color.CORRECTED], bins=bins)
 pcorax.legend(['Raw', 'Pupil-corrected'], frameon=False)
-pcorax.set_xlabel(r"$cor(r_{i}(t), p(t))$")
+pcorax.set_xlabel(r"Pearson's $r$")
 pcorax.set_ylabel(r"Neurons ($N$)")
 pcorax.set_title('Residual spike count \n correlation with pupil')
 

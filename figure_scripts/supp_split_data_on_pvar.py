@@ -18,12 +18,12 @@ import os
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams.update({'svg.fonttype': 'none'})
+#mpl.rcParams.update({'svg.fonttype': 'none'})
 
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 cache_file = path + 'high_pvar_stim_combos.csv'
-figsave = 'inkscape_figures/supp_fig1_split_data.svg'
+figsave = 'py_figures/supp_split_data.svg'
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 savefig = True
@@ -56,7 +56,7 @@ for site in sites:
     df = df.append(_df)
 
 # distribution of pupil ranges per stimulus pair
-f, ax = plt.subplots(1, 2, figsize=(8, 4))
+f, ax = plt.subplots(1, 2, figsize=(6, 3))
 
 bins = np.arange(0, 0.6, 0.01)
 y, x, _ = ax[0].hist(df['p_range'], bins=bins, color='lightgray', edgecolor='k', label='data')
@@ -86,18 +86,18 @@ mask = ((mean - abs(sd)) <= df['p_range']) & (df['p_range'] < (mean + abs(sd)))
 df[mask][['site']].to_csv(cache_file)
 
 
-ax[1].scatter(df[~mask].groupby(by='site').mean()['sp_dp'] ** (1/2), 
-           df[~mask].groupby(by='site').mean()['bp_dp'] ** (1/2),
+ax[1].scatter(df[~mask].groupby(by='site').mean()['sp_dp'], 
+           df[~mask].groupby(by='site').mean()['bp_dp'],
            color='b', edgecolor='white', s=50, label='small pupil variance')
-ax[1].scatter(df[mask].groupby(by='site').mean()['sp_dp'] ** (1/2), 
-           df[mask].groupby(by='site').mean()['bp_dp'] ** (1/2),
+ax[1].scatter(df[mask].groupby(by='site').mean()['sp_dp'], 
+           df[mask].groupby(by='site').mean()['bp_dp'],
            color='r', edgecolor='white', s=50, label='large pupil variance')
-ax[1].plot([0, 10], [0, 10], '--', color='grey')
+ax[1].plot([0, 70], [0, 70], '--', color='grey')
 ax[1].axhline(0, linestyle='--', color='grey')
 ax[1].axvline(0, linestyle='--', color='grey')
 
-ax[1].set_xlabel(r"$d'_{small}$")
-ax[1].set_ylabel(r"$d'_{big}$")
+ax[1].set_xlabel(r"$d'^2_{small}$")
+ax[1].set_ylabel(r"$d'^2_{big}$")
 ax[1].legend(frameon=False)
 
 f.tight_layout()

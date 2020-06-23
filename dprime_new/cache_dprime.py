@@ -72,6 +72,7 @@ nc_lv_z = False
 fix_tdr2 = False
 gain_only = False
 dc_only = False
+est_equal_val = False  # for low rep sites where can't perform cross-validation
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -110,6 +111,8 @@ for op in options:
         nc_lv_z = True
     if op == 'fixtdr2':
         fix_tdr2 = True
+    if op == 'eev':
+        est_equal_val = True
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
@@ -207,7 +210,7 @@ pupil_range = nat_preproc.get_pupil_range(X_pup, pup_mask_raw)
 log.info("Generate list of {0} est / val sets".format(njacks))
 
 # generate raw raw/val sets
-est_raw, val_raw, p_est_raw, p_val_raw = nat_preproc.get_est_val_sets(X_raw, pup_mask=pup_mask_raw, njacks=njacks)
+est_raw, val_raw, p_est_raw, p_val_raw = nat_preproc.get_est_val_sets(X_raw, pup_mask=pup_mask_raw, njacks=njacks, est_equal_val=est_equal_val)
 nreps_train_raw = est_raw[0].shape[1]
 nreps_test_raw = val_raw[0].shape[1]
 

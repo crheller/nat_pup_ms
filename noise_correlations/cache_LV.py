@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import pickle
+import pandas as pd 
+import os 
 
 from charlieTools.preprocessing import generate_state_corrected_psth, bandpass_filter_resp, sliding_window
 import charlieTools.nat_sounds_ms.decoding as decoding
@@ -18,9 +20,11 @@ import charlieTools.preprocessing as cpreproc
 from nems_lbhb.baphy import parse_cellid
 from nems_lbhb.preprocessing import create_pupil_mask
 
-sites = ['TAR010c', 'TAR017b', 
-        'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
-        'DRX007a.e1:64', 'DRX007a.e65:128', 
+sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
+        'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
+        'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
+        'DRX006b.e1:64', 'DRX006b.e65:128',
+        'DRX007a.e1:64', 'DRX007a.e65:128',
         'DRX008b.e1:64', 'DRX008b.e65:128',
         'BOL005c', 'BOL006b']
 zscore = True
@@ -118,6 +122,8 @@ for site in sites:
 
     lv_dict[site]['max_var_pc'] = np.argmax(var)
     lv_dict[site]['b2_dot_pc1'] = pca.components_[0].dot(evecs[:,0])
+    lv_dict[site]['b2_tot_var_ratio'] = np.sum(var)
+    lv_dict[site]['b2_var_pc1_ratio'] = np.sum(var) / pca.explained_variance_ratio_[0]
 
     # use model pred to get beta1
     residual = rec['psth']._data - rec['psth_sp']._data
