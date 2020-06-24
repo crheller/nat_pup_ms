@@ -21,14 +21,19 @@ mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
 fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig7_dissociate_1st_2nd_order.svg'
-
+mi_max = 0.3
+mi_min = -0.2
+vmin = -0.1
+vmax = 0.1
 # set up subplots
-f = plt.figure(figsize=(6, 6))
+f = plt.figure(figsize=(12, 7.5))
 
-ncax = plt.subplot2grid((2, 3), (0, 0), colspan=2)
-bsax = plt.subplot2grid((2, 3), (1, 0), colspan=2)
-mncax = plt.subplot2grid((2, 3), (0, 2), colspan=1)
-mdncax = plt.subplot2grid((2, 3), (1, 2), colspan=1)
+ncax = plt.subplot2grid((4, 6), (0, 0), colspan=3, rowspan=2)
+bsax = plt.subplot2grid((4, 6), (0, 3), colspan=3, rowspan=2)
+mncax = plt.subplot2grid((4, 6), (2, 2), colspan=1, rowspan=2)
+mdncax = plt.subplot2grid((4, 6), (2, 5), colspan=1, rowspan=2)
+rscax = plt.subplot2grid((4, 6), (2, 0), colspan=2, rowspan=2)
+drscax = plt.subplot2grid((4, 6), (2, 3), colspan=2, rowspan=2)
 
 # ============================= load and plot delta noise correlations across freq. bands =======================================
 boxcar = True
@@ -88,6 +93,7 @@ ncax.set_xticklabels(f_band, rotation=45)
 ncax.set_ylabel('Noise Correlation')
 ncax.set_ylim((-0.01, 0.08))
 ncax.set_xlabel('Frequency Band (Hz)')
+#ncax.set_aspect(cplt.get_square_asp(ncax))
 
 bsax.errorbar(xvals, bp_nc, yerr=bp_sem, marker='.', color=color.LARGE, label='Large')
 bsax.errorbar(xvals, sp_nc, yerr=sp_sem, marker='.', color=color.SMALL, label='Small')
@@ -98,6 +104,7 @@ bsax.set_xticklabels(f_band, rotation=45)
 bsax.set_ylabel('Noise Correlation')
 bsax.set_ylim((-0.01, 0.08))
 bsax.set_xlabel('Frequency Band (Hz)')
+#bsax.set_aspect(cplt.get_square_asp(bsax))
 
 
 # =============================== load and plot first vs. second order effects ==================================
@@ -124,7 +131,10 @@ m2 = [MI.loc[p.split('_')[1]] for p in rsc_df.index]
 rsc_df['m1'] = m1
 rsc_df['m2'] = m2
 rsc_df['diff'] = rsc_df['sp'] - rsc_df['bp']
-mask = (rsc_df['m1'] < .3) & (rsc_df['m1'] > -.2) & (rsc_df['m2'] < .3) & (rsc_df['m2'] > -.2)
+mask = (rsc_df['m1'] < mi_max) & (rsc_df['m1'] > mi_min) & (rsc_df['m2'] < mi_max) & (rsc_df['m2'] > mi_min)
+
+# mask low bin count data (see supp figure for histogram)
+rsc_df = rsc_df[mask]
 
 # model results
 rsc_df['m1*m2'] = rsc_df['m1'] * rsc_df['m2']
@@ -136,36 +146,75 @@ X = sm.add_constant(rsc_df[['m1', 'm2', 'm1*m2']])
 y = rsc_df['all']
 model_all = sm.OLS(y, X).fit()
 
-beta = [r'$0$', r'$MI_{i}$', r'$MI_{j}$', r'$MI_{i}*MI_{j}$']
+# plot heatmaps of noise corr vs. mi
+# plot overall noise correlation
+xbins = np.linspace(mi_min, mi_max, 10)
+ybins = np.linspace(mi_min, mi_max, 10)
+heatmap_rsc = ss.binned_statistic_2d(x=rsc_df['m1'], 
+                            y=rsc_df['m2'],
+                            values=rsc_df['all'],
+                            statistic='mean',
+                            bins=[xbins, ybins])
+
+im = rscax.imshow(heatmap_rsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
+                            extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
+                            origin='lower', interpolation='gaussian')
+divider = make_axes_locatable(rscax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+rscax.set_title(r"Noise Correlation")
+rscax.set_xlabel(r"$MI_j$")
+rscax.set_ylabel(r"$MI_i$")
+
+# plot diff
+heatmap_drsc = ss.binned_statistic_2d(x=rsc_df['m1'], 
+                            y=rsc_df['m2'],
+                            values=rsc_df['diff'],
+                            statistic='mean',
+                            bins=[xbins, ybins])
+
+im = drscax.imshow(heatmap_drsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
+                            extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
+                            origin='lower', interpolation='gaussian')
+divider = make_axes_locatable(drscax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+drscax.set_title(r"$\Delta$ Noise Correlation")
+drscax.set_xlabel(r"$MI_j$")
+drscax.set_ylabel(r"$MI_i$")
+
+beta = [r'$MI_{i}$', r'$MI_{j}$', r'$MI_{i*j}$']
 
 # plot
 ci = abs(model_dnc.conf_int()[0] - model_dnc.conf_int()[1])
-mdncax.errorbar([0, 1, 2, 3], model_dnc.params.values, yerr=ci.values, 
-                        color='k', marker='.', linestyle='none', lw=2, 
-                        label=r'$R^{2} = %s$' % round(model_dnc.rsquared, 3))
+#mdncax.errorbar([0, 1, 2], model_dnc.params.values[1:], yerr=ci.values[1:], 
+#                        color='k', marker='.', linestyle='none', lw=2, 
+#                        label=r'$R^{2} = %s$' % round(model_dnc.rsquared, 3))
+mdncax.errorbar(0, model_dnc.params.values[1], yerr=ci.values[1], marker='o', label=beta[0])
+mdncax.errorbar(1, model_dnc.params.values[2], yerr=ci.values[2], marker='o', label=beta[1])
+mdncax.errorbar(2, model_dnc.params.values[3], yerr=ci.values[3], marker='o', label=beta[2])
+
 mdncax.axhline(0, linestyle='--', color='grey', lw=2)
-mdncax.set_xlabel("Predictor")
-mdncax.set_ylabel(r"$\beta$ coefficient")
-mdncax.set_title(r"$\Delta$"+ "Noise \n Correlation", fontsize=10)
-mdncax.set_xticks([0, 1, 2, 3])
-mdncax.set_xticklabels(beta, rotation=45, fontsize=8)
+mdncax.set_ylabel(r"$\Delta$ Noise correlation per unit $MI$")
+mdncax.set_title(r"$R^2 = {}$".format(round(model_dnc.rsquared, 3)), fontsize=8)
 mdncax.set_xlim((-0.5, 3.5))
-mdncax.legend(frameon=False, fontsize=8)
-mdncax.set_ylim((-0.15, 0.15))
+mdncax.set_ylim((-0.2, 0.6))
 
 ci = abs(model_all.conf_int()[0] - model_all.conf_int()[1])
-mncax.errorbar([0, 1, 2, 3], model_all.params.values, yerr=ci.values, 
-                        color='k', marker='.', linestyle='none', lw=2, 
-                        label=r'$R^{2} = %s$' % round(model_all.rsquared, 3))
+#mncax.errorbar([0, 1, 2], model_all.params.values[1:], yerr=ci.values[1:], 
+#                        color=['k', 'g', 'b'], marker='.', linestyle='none', lw=2, 
+#                        label=r'$R^{2} = %s$' % round(model_all.rsquared, 3))
+
+mncax.errorbar(0, model_all.params.values[1], yerr=ci.values[1], marker='o', label=beta[0])
+mncax.errorbar(1, model_all.params.values[2], yerr=ci.values[2], marker='o', label=beta[1])
+mncax.errorbar(2, model_all.params.values[3], yerr=ci.values[3], marker='o', label=beta[2])
+
 mncax.axhline(0, linestyle='--', color='grey', lw=2)
-mncax.set_xlabel("Predictor")
-mncax.set_ylabel(r"$\beta$ coefficient")
-mncax.set_title("Noise \n Correlation", fontsize=10)
-mncax.set_xticks([0, 1, 2, 3])
-mncax.set_xticklabels(beta, rotation=45, fontsize=8)
+mncax.set_ylabel(r"Noise correlation per unit $MI$")
 mncax.set_xlim((-0.5, 3.5))
 mncax.legend(frameon=False, fontsize=8)
-mncax.set_ylim((-0.1, 0.8))
+mncax.set_title(r"$R^2 = {}$".format(round(model_all.rsquared, 3)), fontsize=8)
+mncax.set_ylim((-0.2, 2))
 
 f.tight_layout()
 

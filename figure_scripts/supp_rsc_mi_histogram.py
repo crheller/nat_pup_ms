@@ -20,17 +20,15 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp_rsc_mi_heatmaps.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp_rsc_mi_histogram.svg'
 mi_max = 0.3
 mi_min = -0.2
-vmin = -0.1
-vmax = 0.1
 # set up subplots
-f = plt.figure(figsize=(10, 3))
+f = plt.figure(figsize=(3.5, 3))
 
-cax = plt.subplot2grid((1, 3), (0, 0), colspan=1)
-rscax = plt.subplot2grid((1, 3), (0, 1), colspan=1)
-drscax = plt.subplot2grid((1, 3), (0, 2), colspan=1)
+cax = plt.subplot2grid((1, 1), (0, 0))
+#rscax = plt.subplot2grid((1, 3), (0, 1), colspan=1)
+#drscax = plt.subplot2grid((1, 3), (0, 2), colspan=1)
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
 MI_pred = True
@@ -85,6 +83,7 @@ line = np.array([[mi_min, mi_min],
                  [mi_min, mi_min]])
 cax.plot(line[:, 0], line[:, 1], linestyle='--', lw=2, color='k')
 
+'''
 # plot overall noise correlation
 xbins = np.linspace(mi_min, mi_max, 10)
 ybins = np.linspace(mi_min, mi_max, 10)
@@ -120,6 +119,7 @@ f.colorbar(im, cax=cbarax, orientation='vertical')
 drscax.set_title(r"$\Delta$ Noise Correlation")
 drscax.set_xlabel(r"$MI_j$")
 drscax.set_ylabel(r"$MI_i$")
+'''
 
 f.tight_layout()
 
