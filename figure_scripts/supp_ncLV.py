@@ -33,7 +33,7 @@ mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = False
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig7_LV.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp_ncLV.svg'
 
 site = 'DRX006b.e65:128' #'BOL006b' #'DRX006b.e65:128'
 batch = 289

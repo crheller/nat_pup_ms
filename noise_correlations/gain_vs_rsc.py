@@ -12,7 +12,8 @@ import os
 import load_results as ld
 
 path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
-
+MI_pred = True
+gain_pred = False
 df = pd.concat([pd.read_csv(os.path.join(path,'d_289_pup_sdexp.csv'), index_col=0),
                 pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0)])
 try:
@@ -22,7 +23,10 @@ except:
     pass
 
 df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se'])
-gain = df.loc[:, pd.IndexSlice['gain_mod', 'st.pup']]
+if MI_pred:
+    gain = df.loc[:, pd.IndexSlice['MI', 'st.pup']]
+elif gain_pred:
+    gain = df.loc[:, pd.IndexSlice['gain_mod', 'st.pup']]
 
 rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
 rsc_df = ld.load_noise_correlation('rsc_bal', path=rsc_path)
@@ -33,19 +37,22 @@ g2 = [gain.loc[p.split('_')[1]] for p in rsc_df.index]
 rsc_df['g1'] = g1
 rsc_df['g2'] = g2
 rsc_df['diff'] = rsc_df['sp'] - rsc_df['bp']
-mask = (rsc_df['g1'] < .5) & (rsc_df['g2'] < .5)
+if MI_pred:
+    mask = (rsc_df['g1'] < .3) & (rsc_df['g1'] > -.2) & (rsc_df['g2'] < .3) & (rsc_df['g2'] > -.2)
+elif gain_pred:
+    mask = (rsc_df['g1'] < .5) & (rsc_df['g2'] < .5)
 
 # heatmap of delta n.c vs. gain of each neuron
 f, ax = plt.subplots(1, 3, figsize=(15, 5))
 
 nbins = 15
-vm = rsc_df[mask]['all'].std() 
+vm = rsc_df[mask]['all'].std()*2
 rsc_df[mask].plot.hexbin(x='g1', y='g2', C='all', cmap='PRGn', vmin=-vm, vmax=vm, gridsize=nbins, ax=ax[0])
 ax[0].set_xlabel(r"$g_{i}$", fontsize=14)
 ax[0].set_ylabel(r"$g_{j}$", fontsize=14)
 ax[0].set_title(r"$r_{sc}$")
 
-vm = rsc_df[mask]['diff'].std()
+#vm = rsc_df[mask]['diff'].std()
 rsc_df[mask].plot.hexbin(x='g1', y='g2', C='diff', cmap='PRGn', vmin=-vm, vmax=vm, gridsize=nbins, ax=ax[1])
 ax[1].set_xlabel(r"$g_{i}$", fontsize=14)
 ax[1].set_ylabel(r"$g_{j}$", fontsize=14)
@@ -70,7 +77,10 @@ y = rsc_df['all']
 model_all = sm.OLS(y, X).fit()
 
 # plot model results
-beta = [r'$0$', r'$g_{i}$', r'$g_{j}$', r'$g_{i}g_{j}$']
+if gain_pred:
+    beta = [r'$0$', r'$g_{i}$', r'$g_{j}$', r'$g_{i}g_{j}$']
+elif MI_pred:
+    beta = [r'$0$', r'$MI_{i}$', r'$MI_{j}$', r'$MI_{i}MI_{j}$']
 
 f, ax = plt.subplots(1, 1, figsize=(6, 4))
 

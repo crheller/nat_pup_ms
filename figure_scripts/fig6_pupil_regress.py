@@ -2,9 +2,6 @@
 Illustrate that first and second order effects are independent by regressing out
 pupil-explained variance. Show that delta noise correlations and decoding improvement
 persist. 
-
-Show that overall noise correlations can be predicted from first order effects, while
-delta noise correlations cannot.
 """
 
 import load_results as ld
@@ -47,12 +44,12 @@ elif estval == '_test':
     y_cut = (0.2, 1) 
 
 # set up subplots
-f = plt.figure(figsize=(6, 6))
+f = plt.figure(figsize=(6, 3))
 
-pcorax = plt.subplot2grid((2, 2), (0, 0))
-dbax = plt.subplot2grid((2, 2), (0, 1))
-ncax = plt.subplot2grid((2, 2), (1, 0))
-bsax = plt.subplot2grid((2, 2), (1, 1))
+pcorax = plt.subplot2grid((1, 2), (0, 0))
+dbax = plt.subplot2grid((1, 2), (0, 1))
+#ncax = plt.subplot2grid((2, 2), (1, 0))
+#bsax = plt.subplot2grid((2, 2), (1, 1))
 
 #'bbl086b'
 sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
@@ -186,75 +183,6 @@ dbax.set_ylim((0, 1.5))
 dbax.legend(frameon=False)
 dbax.set_title('Discriminability Improvement')
 
-# ============================= load and plot delta noise correlations across freq. bands =======================================
-boxcar = True
-evoked = True
-fs4 = False
-
-modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
-              'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2',
-              'rsc_fft2-4', 'rsc_pr_rm2_fft2-4',
-              'rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
-              'rsc_fft10-25', 'rsc_pr_rm2_fft10-25',
-              'rsc_fft25-50', 'rsc_pr_rm2_fft25-50'
-              ]
-if fs4:
-    modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
-                'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2']
-if evoked:
-    modelnames = [m.replace('rsc', 'rsc_ev') for m in modelnames]
-if boxcar:
-    modelnames = [m.replace('fft', 'boxcar_fft') for m in modelnames]
-if fs4:
-    modelnames = [m.replace('fft', 'fs4_fft') for m in modelnames]
-
-raw = [m for m in modelnames if 'pr' not in m]
-corr = [m for m in modelnames if 'pr' in m]
-f_band = [m.split('fft')[-1] for m in raw]
-
-raw_results = []
-for r in raw:
-    print('loading {}'.format(r))
-    raw_results.append(ld.load_noise_correlation(r))
-
-corr_results = []
-for c in corr:
-    print('loading {}'.format(c))
-    corr_results.append(ld.load_noise_correlation(c))
-
-
-# plot results
-xvals = range(len(raw_results))
-raw_nc = [r['all'].mean() for r in raw_results]
-raw_sem = [r['all'].sem() for r in raw_results]
-corr_nc = [c['all'].mean() for c in corr_results]
-corr_sem = [c['all'].sem() for c in corr_results]
-
-bp_nc = [r['bp'].mean() for r in raw_results]
-bp_sem = [r['bp'].sem() for r in raw_results]
-sp_nc = [r['sp'].mean() for r in raw_results]
-sp_sem = [r['sp'].sem() for r in raw_results]
-
-ncax.errorbar(xvals, raw_nc, yerr=raw_sem, marker='.', color=color.RAW, label='Raw')
-ncax.errorbar(xvals, corr_nc, yerr=corr_sem, marker='.', color=color.CORRECTED, label='Corrected')
-ncax.axhline(0, linestyle='--', lw=2, color='grey')
-ncax.legend(frameon=False)
-ncax.set_xticks(xvals)
-ncax.set_xticklabels(f_band, rotation=45)
-ncax.set_ylabel('Noise Correlation')
-ncax.set_ylim((-0.01, 0.08))
-ncax.set_xlabel('Frequency Band (Hz)')
-
-bsax.errorbar(xvals, bp_nc, yerr=bp_sem, marker='.', color=color.LARGE, label='Large')
-bsax.errorbar(xvals, sp_nc, yerr=sp_sem, marker='.', color=color.SMALL, label='Small')
-bsax.axhline(0, linestyle='--', lw=2, color='grey')
-bsax.legend(frameon=False)
-bsax.set_xticks(xvals)
-bsax.set_xticklabels(f_band, rotation=45)
-bsax.set_ylabel('Noise Correlation')
-bsax.set_ylim((-0.01, 0.08))
-bsax.set_xlabel('Frequency Band (Hz)')
-
 # ========================================== Pupil/residual correlation =======================================
 raw_corr = []
 pr_corr = []
@@ -290,6 +218,7 @@ pcorax.legend(['Raw', 'Pupil-corrected'], frameon=False)
 pcorax.set_xlabel(r"Pearson's $r$")
 pcorax.set_ylabel(r"Neurons ($N$)")
 pcorax.set_title('Residual spike count \n correlation with pupil')
+
 
 f.tight_layout()
 

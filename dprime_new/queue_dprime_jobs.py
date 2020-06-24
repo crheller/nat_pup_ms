@@ -1,9 +1,9 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 force_rerun = True
-subset_289 = True  # only high rep sites (so that we can do cross validation)
+subset_289 = False  # only high rep sites (so that we can do cross validation)
 temp_subset = False # for exculding subset of models for faster run time on jobs
 nc_lv = True       # beta defined using nc LV method
 fix_tdr2 = True    # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
