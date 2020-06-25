@@ -39,6 +39,8 @@ else:
     sites = HIGHR_SITES
 
 # for each site extract dprime and site. Concat into master df
+import timeit
+start = timeit.default_timer()
 dfs = []
 for site in sites:
     if site in LOWR_SITES:
@@ -55,18 +57,11 @@ for site in sites:
     _df = pd.concat([bp, sp], axis=1)
     _df['site'] = site
 
-    # mean pupil range
-    combo_to_tup = lambda x: (int(x.split('_')[0]), int(x.split('_')[1])) 
-    combos = pd.Series(_df.index.get_level_values('combo').values).apply(combo_to_tup)
-    pr = results.pupil_range
-    get_mean = lambda x: (pr[pr.stim==x[0]]['range'] + pr[pr.stim==x[1]]['range']) / 2
-    pr_range = combos.apply(get_mean)
-
-    _df['p_range'] = pr_range
-
+    _df['p_range'] = results.get_result('mean_pupil_range', results.evoked_stimulus_pairs, n_components)[0]
     dfs.append(_df)
-
     del _df
+end = timeit.default_timer()
+print(end - start)
 
 df = pd.concat(dfs)
 # distribution of pupil ranges per stimulus pair
@@ -83,19 +78,22 @@ def gauss(x, mu, sigma, A):
 def bimodal(x,mu1,sigma1,A1,mu2,sigma2,A2):
     return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
 
-expected = (0.25, 0.1, 400, 0.4, 0.1, 400)
-params, cov = curve_fit(bimodal, x, y, expected)
+#expected = (0.25, 0.1, 400, 0.4, 0.1, 400)
+#params, cov = curve_fit(bimodal, x, y, expected)
 
 # add fit to the plot
-ax[0].plot(x, bimodal(x, *params), color='k', lw=2)
-ax[0].plot(x, gauss(x, *params[:3]), color='blue', lw=2, label='low variance')
-ax[0].plot(x, gauss(x, *params[3:]), color='red', lw=2, label='high variance')
+#ax[0].plot(x, bimodal(x, *params), color='k', lw=2)
+#ax[0].plot(x, gauss(x, *params[:3]), color='blue', lw=2, label='low variance')
+#ax[0].plot(x, gauss(x, *params[3:]), color='red', lw=2, label='high variance')
+div = 0 #np.median(df['p_range'])
+ax[0].axvline(div, color='red', lw=2)
 ax[0].legend(frameon=False)
 
 # keep only data in the right-most hump of the distribution
-mean = params[3]
-sd = params[4] * 3
-mask = ((mean - abs(sd)) <= df['p_range']) & (df['p_range'] < (mean + abs(sd)))
+#mean = params[3]
+#sd = params[4] * 3
+#mask = ((mean - abs(sd)) <= df['p_range']) & (df['p_range'] < (mean + abs(sd)))
+mask = df['p_range'] > div
 # save sites / combos where mask is True
 df[mask][['site']].to_csv(cache_file)
 
