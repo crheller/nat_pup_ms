@@ -73,12 +73,12 @@ for site in sites:
     high_var_pairs = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/dprime_new/high_pvar_stim_combos.csv', index_col=0)
     high_var_pairs = high_var_pairs[high_var_pairs.site==site].index.get_level_values('combo')
     if high_var_only:
-        stim = [s for s in stim if s in high_var_pairs]
+        stim = high_var_pairs
 
     if len(stim) == 0:
         pass
     else:
-        _df = _df.loc[pd.IndexSlice[stim, 2], :]
+        _df = _df.loc[_df.index.get_level_values('combo').isin(stim)]
         _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
         _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
         _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
