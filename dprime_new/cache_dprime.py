@@ -445,7 +445,7 @@ log.info("Saving results to {}".format(path))
 if not os.path.isdir(os.path.join(path, site)):
     os.mkdir(os.path.join(path, site))
 
-tdr_results.save_json(os.path.join(path, site, modelname+'_TDR.pickle'))
+tdr_results.save_json(os.path.join(path, site, modelname+'_TDR.json'))
 tdr_results.save_pickle(os.path.join(path, site, modelname+'_TDR.pickle'))
 
 if do_PCA:
