@@ -7,6 +7,8 @@ Goals:
 
 Plots generated here probably would make a nice supp. figure
 """
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
+
 import charlieTools.nat_sounds_ms.decoding as decoding
 
 import matplotlib.pyplot as plt
@@ -20,6 +22,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
+all_sites = True
 loader = decoding.DecodingResults()
 path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
 cache_file = path + 'high_pvar_stim_combos.csv'
@@ -29,15 +32,21 @@ n_components = 2
 savefig = True
 
 # list of sites with > 10 reps of each stimulus
-sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
-         'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
-         'DRX007a.e1:64', 'DRX007a.e65:128', 
-         'DRX008b.e1:64', 'DRX008b.e65:128']
+if all_sites:
+    sites = ALL_SITES
+
+else:
+    sites = HIGHR_SITES
 
 # for each site extract dprime and site. Concat into master df
-df = pd.DataFrame()
+dfs = []
 for site in sites:
-    fn = os.path.join(path, site, modelname+'_TDR.pickle')
+    if site in LOWR_SITES:
+        mn = modelname.replace('_jk10', '_jk1_eev')
+    else:
+        mn = modelname
+    
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results = loader.load_results(fn)
 
     bp = results.get_result('bp_dp', results.evoked_stimulus_pairs, n_components)[0]
@@ -53,8 +62,11 @@ for site in sites:
 
     _df['p_range'] = pr_range
 
-    df = df.append(_df)
+    dfs.append(_df)
 
+    del _df
+
+df = pd.concat(dfs)
 # distribution of pupil ranges per stimulus pair
 f, ax = plt.subplots(1, 2, figsize=(6, 3))
 
