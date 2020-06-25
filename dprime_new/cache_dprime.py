@@ -416,6 +416,15 @@ if do_PCA:
 if do_pls:
     pls_results.loc[:, 'combo'] = ['{0}_{1}'.format(c[0], c[1]) for c in pls_results.combo.values]
 
+# get mean pupil range for each combo
+log.info('Computing mean pupil range for each pair of stimuli')
+combo_to_tup = lambda x: (int(x.split('_')[0]), int(x.split('_')[1])) 
+combos = pd.Series(tdr_results['combo'].values).apply(combo_to_tup)
+pr = pupil_range
+get_mean = lambda x: (pr[pr.stim==x[0]]['range'] + pr[pr.stim==x[1]]['range']) / 2
+pr_range = combos.apply(get_mean)
+tdr_results['mean_pupil_range'] = pr_range.values
+
 # convert to correct dtypes
 tdr_results = decoding.cast_dtypes(tdr_results)
 if do_PCA:

@@ -56,9 +56,11 @@ for site in sites:
     _df['site'] = site
 
     # mean pupil range
-    combos = [(int(c.split('_')[0]), int(c.split('_')[1])) for c in _df.index.get_level_values('combo')]
+    combo_to_tup = lambda x: (int(x.split('_')[0]), int(x.split('_')[1])) 
+    combos = pd.Series(_df.index.get_level_values('combo').values).apply(combo_to_tup)
     pr = results.pupil_range
-    pr_range = [np.mean([pr[pr.stim==c[0]]['range'], pr[pr.stim==c[1]]['range']]) for c in combos]
+    get_mean = lambda x: (pr[pr.stim==x[0]]['range'] + pr[pr.stim==x[1]]['range']) / 2
+    pr_range = combos.apply(get_mean)
 
     _df['p_range'] = pr_range
 
