@@ -18,6 +18,7 @@ what the respective angles / vectors are (done inside plot fn)
 import colors as color
 import ax_labels as alab
 from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
@@ -31,15 +32,15 @@ mpl.rcParams['axes.spines.top'] = False
 
 savefig = False
 
-path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig3_overall_dprime.svg'
+path = DPRIME_DIR
+fig_fn = PY_FIGURES_DIR+'fig3_overall_dprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
 estval = '_test'
 nbins = 20
 cmap = 'Greens'
-all_sites = True
+all_sites = False
 high_var_only = False
 vmax = None
 
