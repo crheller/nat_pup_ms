@@ -40,17 +40,20 @@ val = 'dp_opt_test'
 estval = '_test'
 nbins = 20
 cmap = 'Greens'
-all_sites = False
+all_sites = True
 high_var_only = False
 vmax = None
+hexscale = 'log' # or 'log'
 
 # only crop the dprime value. Show count for everything
 if estval == '_train':
     x_cut = (3, 8.5)
     y_cut = (0.1, .45) 
 elif estval == '_test':
-    x_cut = (1, 8)
-    y_cut = (0.2, 1) 
+    #x_cut = (1, 8)
+    #y_cut = (0.2, 1) 
+    x_cut = (2, 6)
+    y_cut = (0, 1)
 
 f = plt.figure(figsize=(9, 6))
 
@@ -113,10 +116,10 @@ hax.tick_params(axis='y', colors=color.COSTHETA)
 hax.set_title(r"$d'^2$")
 
 # plot count histogram
-df.plot.hexbin(x='dU_mag'+estval, 
+df_dp.plot.hexbin(x='dU_mag'+estval, 
                y='cos_dU_evec'+estval, 
                C=None, 
-               gridsize=nbins, ax=cax, cmap='Reds') 
+               gridsize=nbins, ax=cax, cmap='Reds', bins=hexscale) 
 # overlay box for data extracted
 line = np.array([[x_cut[0], y_cut[0]], 
                  [x_cut[0], y_cut[1]], 

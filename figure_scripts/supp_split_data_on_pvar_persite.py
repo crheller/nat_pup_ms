@@ -54,9 +54,8 @@ for site in sites:
     #results = loader.load_json(fn.replace('.pickle', '.json'))
     bp = results.get_result('bp_dp', results.evoked_stimulus_pairs, n_components)[0]
     sp = results.get_result('sp_dp', results.evoked_stimulus_pairs, n_components)[0]
-    dp = results.get_result('dp_opt_test', results.evoked_stimulus_pairs, n_components)[0]
 
-    _df = pd.concat([bp, sp, dp], axis=1)
+    _df = pd.concat([bp, sp], axis=1)
     _df['site'] = site
 
     _df['p_range'] = results.get_result('mean_pupil_range', results.evoked_stimulus_pairs, n_components)[0]
@@ -66,53 +65,33 @@ end = timeit.default_timer()
 print(end - start)
 
 df = pd.concat(dfs)
-# distribution of pupil ranges per stimulus pair
-f, ax = plt.subplots(1, 2, figsize=(6, 3))
 
-bins = np.arange(0, 0.6, 0.01)
-y, x, _ = ax[0].hist(df['p_range'], bins=bins, color='lightgray', edgecolor='k', label='data')
-x = (x[1:] + x[:-1]) / 2
-ax[0].set_xlabel(r"$\frac{\bar p_{big, s} - \bar p_{small, s}}{\sigma^{2}_{p, all}}$", fontsize=12)
 
-# fit bimodal distribution
-def gauss(x, mu, sigma, A):
-    return A*np.exp(-(x-mu)**2/2/sigma**2)
-def bimodal(x,mu1,sigma1,A1,mu2,sigma2,A2):
-    return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
+mask = np.array([False] * df.shape[0])
+# for each site, split into high / low pupil variance
+for s in df.site.unique():
+    mask = mask | ((df['site']==s) & (df['p_range'] > df[df.site==s]['p_range'].median()))
 
-#expected = (0.25, 0.1, 400, 0.4, 0.1, 400)
-#params, cov = curve_fit(bimodal, x, y, expected)
-
-# add fit to the plot
-#ax[0].plot(x, bimodal(x, *params), color='k', lw=2)
-#ax[0].plot(x, gauss(x, *params[:3]), color='blue', lw=2, label='low variance')
-#ax[0].plot(x, gauss(x, *params[3:]), color='red', lw=2, label='high variance')
-div = np.median(df['p_range'])
-ax[0].axvline(div, color='red', lw=2)
-ax[0].legend(frameon=False)
-
-# keep only data in the right-most hump of the distribution
-#mean = params[3]
-#sd = params[4] * 3
-#mask = ((mean - abs(sd)) <= df['p_range']) & (df['p_range'] < (mean + abs(sd)))
-
-mask = df['p_range'] > div
-# save sites / combos where mask is True
+# save combos where mask is True
 df[mask][['site']].to_csv(cache_file)
 
-ax[1].scatter(df[~mask].groupby(by='site').mean()['sp_dp'], 
+f, ax = plt.subplots(1, 1, figsize=(5, 5))
+
+ax.scatter(df[~mask].groupby(by='site').mean()['sp_dp'], 
            df[~mask].groupby(by='site').mean()['bp_dp'],
            color='b', edgecolor='white', s=50, label='small pupil variance')
-ax[1].scatter(df[mask].groupby(by='site').mean()['sp_dp'], 
+ax.scatter(df[mask].groupby(by='site').mean()['sp_dp'], 
            df[mask].groupby(by='site').mean()['bp_dp'],
            color='r', edgecolor='white', s=50, label='large pupil variance')
-ax[1].plot([0, 70], [0, 70], '--', color='grey')
-ax[1].axhline(0, linestyle='--', color='grey')
-ax[1].axvline(0, linestyle='--', color='grey')
+ax.plot([df[~mask].groupby(by='site').mean()['sp_dp'], df[mask].groupby(by='site').mean()['sp_dp']],
+           [df[~mask].groupby(by='site').mean()['bp_dp'], df[mask].groupby(by='site').mean()['bp_dp']], color='grey')
+ax.plot([0, 100], [0, 100], '--', color='grey')
+ax.axhline(0, linestyle='--', color='grey')
+ax.axvline(0, linestyle='--', color='grey')
 
-ax[1].set_xlabel(r"$d'^2_{small}$")
-ax[1].set_ylabel(r"$d'^2_{big}$")
-ax[1].legend(frameon=False)
+ax.set_xlabel(r"$d'^2_{small}$")
+ax.set_ylabel(r"$d'^2_{big}$")
+ax.legend(frameon=False)
 
 f.tight_layout()
 
