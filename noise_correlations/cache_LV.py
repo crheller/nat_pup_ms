@@ -103,8 +103,10 @@ for site in sites:
     evecs = evecs[:, idx]
 
     beta2 = evecs[:, [0]]
+    beta2_lambda = evals[0]
 
     lv_dict[site]['beta2'] = beta2
+    lv_dict[site]['beta2_lambda'] = evals[0]
 
     # project rank1 data onto first eval of diff
     r1_resp = (resp_matrix.T.dot(evecs[:, 0])[:, np.newaxis] @ evecs[:, [0]].T).T
@@ -125,6 +127,58 @@ for site in sites:
     lv_dict[site]['b2_tot_var_ratio'] = np.sum(var)
     lv_dict[site]['b2_var_pc1_ratio'] = np.sum(var) / pca.explained_variance_ratio_[0]
 
+    # ===================================== perform analysis on shuff data =======================================
+    # do beta2 analysis 20 times on shuffled pupil to determine if first eval is significant pup dimension
+    np.random.seed(123)
+    shuffled_eval1 = []
+    niters = 20
+    for k in range(niters):
+        pupil = rec['pupil']._data.copy().squeeze()
+        np.random.shuffle(pupil)
+        rec['pupil'] = rec['pupil']._modified_copy(pupil[np.newaxis, :])
+
+        rec_bp = rec.copy()
+        ops = {'state': 'big', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse': True}
+        rec_bp = create_pupil_mask(rec_bp, **ops)
+        ops = {'state': 'small', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse': True}
+        rec_sp = rec.copy()
+        rec_sp = create_pupil_mask(rec_sp, **ops)
+
+        shuf_dict_small = rec_sp['resp'].extract_epochs(epochs, mask=rec_sp['mask'])
+        shuf_dict_big = rec_bp['resp'].extract_epochs(epochs, mask=rec_bp['mask'])
+
+        shuf_dict_small = cpreproc.zscore_per_stim(shuf_dict_small, d2=shuf_dict_small, with_std=True)
+        shuf_dict_big = cpreproc.zscore_per_stim(shuf_dict_big, d2=shuf_dict_big, with_std=True)
+
+        eps = list(shuf_dict_big.keys())
+        nCells = shuf_dict_big[eps[0]].shape[1]
+        eps = [e for e in eps if e in shuf_dict_small.keys()]
+        for i, k in enumerate(eps):
+            if i == 0:
+                shuf_matrix_small = np.transpose(shuf_dict_small[k], [1, 0, -1]).reshape(nCells, -1)
+                shuf_matrix_big = np.transpose(shuf_dict_big[k], [1, 0, -1]).reshape(nCells, -1)
+            else:
+                shuf_matrix_small = np.concatenate((shuf_matrix_small, np.transpose(shuf_dict_small[k], [1, 0, -1]).reshape(nCells, -1)), axis=-1)
+                shuf_matrix_big = np.concatenate((shuf_matrix_big, np.transpose(shuf_dict_big[k], [1, 0, -1]).reshape(nCells, -1)), axis=-1)
+
+        shuf_small = np.corrcoef(shuf_matrix_small)
+        shuf_big = np.corrcoef(shuf_matrix_big)
+        shuf_diff = shuf_small - shuf_big
+        shuf_evals, shuf_evecs = np.linalg.eig(shuf_diff)
+        shuf_evals = shuf_evals[np.argsort(shuf_evals)[::-1]]
+
+        shuffled_eval1.append(shuf_evals[0])
+
+    mean_shuf_beta2_lambda = np.mean(shuffled_eval1)
+    sem_shuf_beta2_lambda = np.std(shuffled_eval1) / np.sqrt(niters)
+
+    lv_dict[site]['shuf_beta2_lambda'] = mean_shuf_beta2_lambda
+    lv_dict[site]['shuf_beta2_lambda_sem'] = sem_shuf_beta2_lambda
+
+    # figure out if dim is significant
+    if (lv_dict[site]['beta2_lambda'] - lv_dict[site]['shuf_beta2_lambda']) > lv_dict[site]['shuf_beta2_lambda_sem']: lv_dict[site]['beta2_sig'] = True
+    else: lv_dict[site]['beta2_sig'] = False
+
     # use model pred to get beta1
     residual = rec['psth']._data - rec['psth_sp']._data
     if zscore:
@@ -134,30 +188,6 @@ for site in sites:
     pca2 = PCA()
     pca2.fit(residual.T)
     beta1 = pca2.components_[0, :]
-
-    '''
-    residual = rec['resp2']._data - rec['psth_sp']._data  # get rid of stimulus information
-    # zscore residual
-    residual = residual - residual.mean(axis=-1, keepdims=True)
-    #residual = residual / residual.std(axis=-1, keepdims=True)
-    rec['residual'] = rec['resp']._modified_copy(residual)
-    rec['pupil'] = rec['pupil']._modified_copy(rec['pupil2']._data)
-
-    # get large and small pupil means
-    rec = rec.create_mask(True)
-    ops = {'state': 'big', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse': True}
-    rec = create_pupil_mask(rec, **ops)
-
-    large = rec.apply_mask()['residual']._data
-
-    rec = rec.create_mask(True)
-    ops = {'state': 'small', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse': True}
-    rec = create_pupil_mask(rec, **ops)
-    small = rec.apply_mask()['residual']._data
-
-    beta1 = large.mean(axis=-1) - small.mean(axis=-1)
-    beta1 = beta1 / np.linalg.norm(beta1)
-    '''
 
     lv_dict[site]['beta1'] = beta1[:, np.newaxis]
 

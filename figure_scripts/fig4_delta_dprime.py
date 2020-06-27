@@ -69,10 +69,8 @@ lax4 = plt.subplot2grid((2, 3), (0, 2))
 
 df = []
 for site in sites:
-    if site in LOWR_SITES:
-        mn = modelname.replace('_jk10', '_jk1_eev')
-    else:
-        mn = modelname
+    if site in LOWR_SITES: mn = modelname.replace('_jk10', '_jk1_eev') 
+    else: mn = modelname
     fn = os.path.join(path, site, mn+'_TDR.pickle')
     results = loader.load_results(fn)
     _df = results.numeric_results

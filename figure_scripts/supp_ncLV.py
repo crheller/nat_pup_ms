@@ -8,6 +8,8 @@ Over all sites show:
     delta dprime depends on beta2 vs. dU
     lack of correlation between first order effects and second order effects
 """
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,7 +35,7 @@ mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = False
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp_ncLV.svg'
+fig_fn = PY_FIGURES_DIR + 'supp_ncLV.svg'
 
 site = 'DRX006b.e65:128' #'BOL006b' #'DRX006b.e65:128'
 batch = 289
@@ -170,9 +172,9 @@ modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
 sim2 = 'dprime_simInTDR_sim2_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
-nbins = 20
 cmap = 'PRGn'
-high_var_only = True
+high_var_only = False
+all_sites = True
 
 # where to crop the data
 if estval == '_train':
@@ -182,26 +184,31 @@ elif estval == '_test':
     x_cut = (1, 8)
     y_cut = (0.2, 1) 
 
-#'bbl086b'
-sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
-        'DRX006b.e1:64', 'DRX006b.e65:128', 
-        'DRX007a.e1:64', 'DRX007a.e65:128', 
-        'DRX008b.e1:64', 'DRX008b.e65:128']
+if all_sites:
+    sites = ALL_SITES
+else:
+    sites = HIGHR_SITES
 
 df = []
 df_sim1 = []
 df_sim2 = []
+path = DPRIME_DIR
 for site in sites:
-    path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-    fn = os.path.join(path, site, modelname+'_TDR.pickle')
+    if site in LOWR_SITES: mn = modelname.replace('_jk10', '_jk1_eev') 
+    else: mn = modelname
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results = loader.load_results(fn)
     _df = results.numeric_results
 
-    fn = os.path.join(path, site, sim1+'_TDR.pickle')
+    if site in LOWR_SITES: mn = sim1.replace('_jk10', '_jk1_eev') 
+    else: mn = sim1
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results_sim1 = loader.load_results(fn)
     _df_sim1 = results_sim1.numeric_results
 
-    fn = os.path.join(path, site, sim2+'_TDR.pickle')
+    if site in LOWR_SITES: mn = sim2.replace('_jk10', '_jk1_eev') 
+    else: mn = sim2
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results_sim2 = loader.load_results(fn)
     _df_sim2 = results_sim2.numeric_results
 
@@ -230,21 +237,21 @@ for site in sites:
         _df_sim2['site'] = site
         df_sim2.append(_df_sim2)
 
-df = pd.concat(df)
-df_sim1 = pd.concat(df_sim1)
-df_sim2 = pd.concat(df_sim2)
+df_all = pd.concat(df)
+df_sim1_all = pd.concat(df_sim1)
+df_sim2_all = pd.concat(df_sim2)
 
 # filter based on x_cut / y_cut
-mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
-mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cut[0])
-df = df[mask1 & mask2]
-df_sim1 = df_sim1[mask1 & mask2]
-df_sim2 = df_sim2[mask1 & mask2]
+mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
+mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+df = df_all[mask1 & mask2]
+df_sim1 = df_sim1_all[mask1 & mask2]
+df_sim2 = df_sim2_all[mask1 & mask2]
 
 # append the simulation results as columns in the raw dataframe
 df['sim1'] = df_sim1['state_diff']
 df['sim2'] = df_sim2['state_diff']
-df['dU_diff'] = (df['bp_dU_mag'] - df['sp_dU_mag']) / df['dU_mag_test']
+df['2nd_residual'] = df['state_diff'] - df['sim1']
 
 # load LV results for all sites
 fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
@@ -337,47 +344,57 @@ pcvar.set_title("Variance explained by second-order dimension \n along each prin
 
 
 # plot ratio of beta2 variance : pc1 variance vs. alignment with PC1
-varpc.scatter(b2_tot_var, b2_var_pc1_ratio, color='grey', edgecolor='white', s=50)
-varpc.scatter(ex_b2_tot_var, ex_var_pc1_ratio, color='tab:orange', edgecolor='white', s=50)
-varpc.axhline(0, linestyle='--', color='k')
-varpc.axvline(0, linestyle='--', color='k')
+sig_beta2 = [s for s in lv_dict.keys() if lv_dict[s]['beta2_sig']]
+lowr_mask = np.array([True if (s in LOWR_SITES) and (s in sig_beta2) else False for s in df.site.unique()])
+highr_mask = np.array([True if (s in HIGHR_SITES) and (s in sig_beta2) else False for s in df.site.unique()])
+varpc.scatter(np.array(b2_tot_var)[lowr_mask], np.array(b2_var_pc1_ratio)[lowr_mask], color='grey', marker='D', edgecolor='white', s=30)
+varpc.scatter(np.array(b2_tot_var)[highr_mask], np.array(b2_var_pc1_ratio)[highr_mask], color='k', edgecolor='white', s=50)
+varpc.scatter(ex_b2_tot_var, ex_var_pc1_ratio, color='tab:orange', edgecolor='white', s=50, zorder=3)
+varpc.axhline(0, linestyle='--', color='grey')
+varpc.axvline(0, linestyle='--', color='grey')
 varpc.set_xlabel(r"$\frac{var(\beta_2)}{var_{total}}$")
 varpc.set_ylabel(r"$\frac{var(\beta_2)}{var(PC_1)}$")
 varpc.set_xlim((-0.01, None))
 varpc.set_ylim((-0.1, 1))
 
-'''
-gvspc.scatter(gb2, pcb2, color='grey', edgecolor='white', s=35)
-gvspc.scatter(ex_gb2, ex_pcb2, color='tab:orange', edgecolor='white', s=50)
-gvspc.axhline(0, linestyle='--', color='k')
-gvspc.axvline(0, linestyle='--', color='k')
-gvspc.set_ylim((-0.1, 1))
-gvspc.set_xlim((-0.1, 1))
-gvspc.set_xlabel(r"$corr(gain, \beta_{2})$")
-gvspc.set_ylabel(r"$\mathbf{e}_{1} \cdot \beta_{2}$")
+#m1 = df['beta2_dot_dU']>0.3
+#m2 = df['beta2_dot_dU']<0.2
+#low = df[m2].groupby(by='site').mean()['sim2']
+#high = df[m1].groupby(by='site').mean()['sim2']
 
-b2dU.hist(df['beta2_dot_dU'], edgecolor='k', 
-            color='lightgrey', rwidth=0.7, bins=np.arange(0, 1, 0.05))
-b2dU.set_title("Second-order \n overlap with signal")
-b2dU.set_xlabel(r"$\beta_2 \cdot \Delta \mu$")
-b2dU.set_ylabel('per Recording Site, \n Stimulus Pair')
-'''
+# split by up/low quartile for each site independently (or by median...)
+df['high_mask'] = False
+df['low_mask'] = False
+for s in sig_beta2:
+    qts = df[df.site==s].beta2_dot_dU.quantile([0.25, 0.5, 0.75])
+    upper = qts.iloc[1]
+    lower = qts.iloc[1]
+    mh = (df.site==s) & (df['beta2_dot_dU'] >= upper)
+    ml = (df.site==s) & (df['beta2_dot_dU'] <= lower)
+    df.loc[mh, 'high_mask'] = True
+    df.loc[ml, 'low_mask'] = True
+low = df[df.low_mask].groupby(by='site').mean()['2nd_residual']
+high = df[df.high_mask].groupby(by='site').mean()['2nd_residual']
 
-m1 = df['beta2_dot_dU']>0.3
-m2 = df['beta2_dot_dU']<0.2
-low = df[m2].groupby(by='site').mean()['sim2']
-high = df[m1].groupby(by='site').mean()['sim2']
+try:
+    dpax.scatter([np.zeros(low.loc[low.index.isin(LOWR_SITES)].shape[0]), 
+            np.ones(low.loc[low.index.isin(LOWR_SITES)].shape[0])],
+          [low.loc[low.index.isin(LOWR_SITES)], high.loc[high.index.isin(LOWR_SITES)]], marker='D', color='grey', s=30, edgecolor='white', zorder=2)
+except:
+    pass
+dpax.scatter([np.zeros(low.loc[low.index.isin(HIGHR_SITES)].shape[0]), 
+            np.ones(low.loc[low.index.isin(HIGHR_SITES)].shape[0])],
+          [low.loc[low.index.isin(HIGHR_SITES)], high.loc[high.index.isin(HIGHR_SITES)]], marker='o', color='k', s=50, edgecolor='white', zorder=3)
 
-dpax.plot([np.zeros(low.shape[0]), 
-            np.ones(low.shape[0])],
-          [low, high], 'o', color='grey', zorder=2)
-dpax.plot([0, 1], [low.loc[ex_site], high.loc[ex_site]], 'o', color='tab:orange', zorder=3)
+dpax.scatter([0, 1], [low.loc[ex_site], high.loc[ex_site]], marker='o', color='tab:orange', edgecolor='white', zorder=4)
 
 for l, h, s in zip(low.values, high.values, high.index):
     if s == ex_site:
-        dpax.plot([0, 1], [l, h], 'tab:orange', zorder=2, lw=2)
+        dpax.plot([0, 1], [l, h], 'tab:orange', zorder=3, lw=2)
+    elif s in LOWR_SITES:
+        dpax.plot([0, 1], [l, h], 'grey', zorder=1)
     else:
-        dpax.plot([0, 1], [l, h], 'k-', zorder=1)
+        dpax.plot([0, 1], [l, h], 'k', zorder=2)
     
 dpax.axhline(0, linestyle='--', color='k')
 dpax.set_xticks([0, 1])

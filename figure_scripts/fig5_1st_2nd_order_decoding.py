@@ -5,6 +5,8 @@ Show that effects are in different areas of the heatmap.
     (with heatmap? Or with bar plots per quadrant? Or with linear regression model?)
 """
 
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
 import colors as color
 import ax_labels as alab
 
@@ -23,17 +25,21 @@ mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
 
-path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig5_decoding_simulation.svg'
+path = DPRIME_DIR
+fig_fn = PY_FIGURES_DIR + 'fig5_decoding_simulation.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
 sim2 = 'dprime_simInTDR_sim2_jk10_zscore_nclvz_fixtdr2'
 sim12 = 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
-nbins = 5
-high_var_only = True
-persite = False
+
+all_sites = True
+nbins = 8
+vmin = -.15
+vmax = .15
+high_var_only = False
+persite = True
 smooth = True
 cmap = 'Greens'
 
@@ -42,8 +48,10 @@ if estval == '_train':
     x_cut = (2.5, 9.5)
     y_cut = (0.05, .5) 
 elif estval == '_test':
-    x_cut = (1, 8)
-    y_cut = (0.2, 1) 
+    #x_cut = (1, 8)
+    #y_cut = (0.2, 1) 
+    x_cut = (1.5, 6)
+    y_cut = (0, 1)
 
 # set up subplots
 f = plt.figure(figsize=(9, 3))
@@ -52,29 +60,37 @@ bax = plt.subplot2grid((1, 3), (0, 0))
 s1ax = plt.subplot2grid((1, 3), (0, 1))
 s2ax = plt.subplot2grid((1, 3), (0, 2))
 
-#'bbl086b'
-sites = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
-         'DRX006b.e1:64', 'DRX006b.e65:128', 
-         'DRX007a.e1:64', 'DRX007a.e65:128', 
-         'DRX008b.e1:64', 'DRX008b.e65:128']
+if all_sites:
+    sites = ALL_SITES
+else:
+    sites = HIGHR_SITES
+
 df = []
 df_sim1 = []
 df_sim2 = []
 df_sim12 = []
 for site in sites:
-    fn = os.path.join(path, site, modelname+'_TDR.pickle')
+    if site in LOWR_SITES: mn = modelname.replace('_jk10', '_jk1_eev') 
+    else: mn = modelname
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results = loader.load_results(fn)
     _df = results.numeric_results
 
-    fn = os.path.join(path, site, sim1+'_TDR.pickle')
+    if site in LOWR_SITES: mn = sim1.replace('_jk10', '_jk1_eev') 
+    else: mn = sim1
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results_sim1 = loader.load_results(fn)
     _df_sim1 = results_sim1.numeric_results
 
-    fn = os.path.join(path, site, sim2+'_TDR.pickle')
+    if site in LOWR_SITES: mn = sim2.replace('_jk10', '_jk1_eev') 
+    else: mn = sim2
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results_sim2 = loader.load_results(fn)
     _df_sim2 = results_sim2.numeric_results
 
-    fn = os.path.join(path, site, sim12+'_TDR.pickle')
+    if site in LOWR_SITES: mn = sim12.replace('_jk10', '_jk1_eev') 
+    else: mn = sim12
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
     results_sim12 = loader.load_results(fn)
     _df_sim12 = results_sim12.numeric_results
 
@@ -108,23 +124,38 @@ for site in sites:
         _df_sim12['site'] = site
         df_sim12.append(_df_sim12)
 
-df = pd.concat(df)
-df_sim1 = pd.concat(df_sim1)
-df_sim2 = pd.concat(df_sim2)
-df_sim12 = pd.concat(df_sim12)
+df_all = pd.concat(df)
+df_sim1_all = pd.concat(df_sim1)
+df_sim2_all = pd.concat(df_sim2)
+df_sim12_all = pd.concat(df_sim12)
 
 # filter based on x_cut / y_cut
-mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
-mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cut[0])
-df = df[mask1 & mask2]
-df_sim1 = df_sim1[mask1 & mask2]
-df_sim2 = df_sim2[mask1 & mask2]
-df_sim12 = df_sim12[mask1 & mask2]
+mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
+mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+df = df_all[mask1 & mask2]
+df_sim1 = df_sim1_all[mask1 & mask2]
+df_sim2 = df_sim2_all[mask1 & mask2]
+df_sim12 = df_sim12_all[mask1 & mask2]
 
 # append the simulation results as columns in the raw dataframe
 df['sim1'] = df_sim1['state_diff']
 df['sim2'] = df_sim2['state_diff']
 df['sim12'] = df_sim12['state_diff']
+df['sim2'] = df['sim12'] - df['sim1']
+
+# compute z-scored (within site) state_diff results
+df['sim1_z'] = np.nan
+df['sim2_z'] = np.nan
+for s in df.site.unique():
+    z_sim1 = df.loc[df.site==s, 'sim1']
+    z_sim1 -= z_sim1.mean()
+    z_sim1 /= z_sim1.std()
+    df.loc[df.site==s, 'sim1_z'] = z_sim1
+
+    z_sim2 = df.loc[df.site==s, 'sim2']
+    z_sim2 -= z_sim2.mean()
+    z_sim2 /= z_sim2.std()
+    df.loc[df.site==s, 'sim2_z'] = z_sim2
 
 # bar plot of delta dprime for raw data, 1st order, and 2nd order simulation
 if not persite:
@@ -135,14 +166,20 @@ if not persite:
 
 else:
     #df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].T.plot(color='lightgrey', legend=False, ax=bax)
-    bax.bar([0, 1, 2, 3], df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].mean(), 
-                        yerr=df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].sem(),
-                        color='lightgrey', edgecolor='k', lw=1)
+    #bax.bar([0, 1, 2, 3], df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].mean(), 
+    #                    yerr=df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim2', 'sim12']].sem(),
+    #                    color='lightgrey', edgecolor='k', lw=1, zorder=1)
     for i, s in zip([0, 1, 2, 3], ['state_diff', 'sim1', 'sim2', 'sim12']):
-        vals = df.groupby(by='site').mean()[s]
-        bax.plot(i*np.ones(len(vals))+np.random.normal(0, 0.05, len(vals)),
-                    vals, 'ko')
-    bax.axhline(0, linestyle='--', color='k')     
+        try:
+            vals = df.loc[df.site.isin(LOWR_SITES)].groupby(by='site').mean()[s]
+            bax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.05, len(vals)),
+                        vals, color='grey', marker='D', edgecolor='white', s=30, zorder=2)
+        except:
+            pass
+        vals = df.loc[df.site.isin(HIGHR_SITES)].groupby(by='site').mean()[s]
+        bax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.05, len(vals)),
+                    vals, color='k', marker='o', edgecolor='white', s=50, zorder=3)
+    bax.axhline(0, linestyle='--', color='grey', lw=2)     
 
 bax.set_xticks([0, 1, 2, 3])
 bax.set_xticklabels(['Raw', '1st order', '2nd order', '1st + 2nd'], rotation=45)
@@ -153,8 +190,8 @@ if not persite:
 
 # plot delta dprime heatmaps for 1st and 2nd order
 hm = []
-xbins = np.linspace(1, 8, nbins)
-ybins = np.linspace(0.2, 1, nbins)
+xbins = np.linspace(x_cut[0], x_cut[1], nbins)
+ybins = np.linspace(y_cut[0], y_cut[1], nbins)
 for s in df.site.unique():
         vals = df[df.site==s]['sim1']
         vals -= vals.mean()
@@ -193,8 +230,8 @@ s1ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st-order")
 
 
 hm = []
-xbins = np.linspace(1, 8, nbins)
-ybins = np.linspace(0.2, 1, nbins)
+xbins = np.linspace(x_cut[0], x_cut[1], nbins)
+ybins = np.linspace(y_cut[0], y_cut[1], nbins)
 for s in df.site.unique():
         vals = df[df.site==s]['sim2']
         vals -= vals.mean()
@@ -209,10 +246,10 @@ t = np.nanmean(np.stack(hm), 0)
 
 if smooth:
     im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
-                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 else:
     im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
-                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 divider = make_axes_locatable(s2ax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
 f.colorbar(im, cax=cbarax, orientation='vertical')

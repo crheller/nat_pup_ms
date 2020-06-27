@@ -116,7 +116,7 @@ hax.tick_params(axis='y', colors=color.COSTHETA)
 hax.set_title(r"$d'^2$")
 
 # plot count histogram
-df_dp.plot.hexbin(x='dU_mag'+estval, 
+df.plot.hexbin(x='dU_mag'+estval, 
                y='cos_dU_evec'+estval, 
                C=None, 
                gridsize=nbins, ax=cax, cmap='Reds', bins=hexscale) 
