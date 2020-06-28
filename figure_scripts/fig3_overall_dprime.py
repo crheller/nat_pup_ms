@@ -30,7 +30,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR+'fig3_overall_dprime.svg'
@@ -52,7 +52,7 @@ if estval == '_train':
 elif estval == '_test':
     #x_cut = (1, 8)
     #y_cut = (0.2, 1) 
-    x_cut = (2, 6)
+    x_cut = (1.5, 6)
     y_cut = (0, 1)
 
 f = plt.figure(figsize=(9, 6))

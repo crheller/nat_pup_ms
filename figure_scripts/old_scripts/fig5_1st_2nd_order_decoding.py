@@ -36,8 +36,8 @@ estval = '_test'
 
 all_sites = True
 nbins = 8
-vmin = -.15
-vmax = .15
+vmin = -.2
+vmax = .2
 high_var_only = False
 persite = True
 smooth = True
@@ -146,6 +146,7 @@ df['sim2'] = df['sim12'] - df['sim1']
 # compute z-scored (within site) state_diff results
 df['sim1_z'] = np.nan
 df['sim2_z'] = np.nan
+df['sd_z'] = np.nan
 for s in df.site.unique():
     z_sim1 = df.loc[df.site==s, 'sim1']
     z_sim1 -= z_sim1.mean()
@@ -156,6 +157,11 @@ for s in df.site.unique():
     z_sim2 -= z_sim2.mean()
     z_sim2 /= z_sim2.std()
     df.loc[df.site==s, 'sim2_z'] = z_sim2
+
+    z_sd = df.loc[df.site==s, 'state_diff']
+    z_sd -= z_sd.mean()
+    z_sd /= z_sd.std()
+    df.loc[df.site==s, 'sd_z'] = z_sd
 
 # bar plot of delta dprime for raw data, 1st order, and 2nd order simulation
 if not persite:
@@ -206,10 +212,10 @@ t = np.nanmean(np.stack(hm), 0)
 
 if smooth:
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
-                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 else:
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
-                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-.5, vmax=.5)
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 divider = make_axes_locatable(s1ax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
 f.colorbar(im, cax=cbarax, orientation='vertical')

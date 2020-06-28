@@ -400,7 +400,7 @@ dpax.axhline(0, linestyle='--', color='k')
 dpax.set_xticks([0, 1])
 dpax.set_xticklabels(['Low', 'High'])
 dpax.set_xlabel(r"$\beta_2$ vs. $\Delta \mu$ similarity")
-dpax.set_ylabel(r"$\Delta d'$ (2nd-order)")
+dpax.set_ylabel(r"$\Delta d'^2$ (2nd-order)")
 dpax.set_xlim((-1, 2))
 
 f.tight_layout()

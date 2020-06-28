@@ -29,7 +29,7 @@ modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 norm_state_diff = True
 
-x_cut = (2, 6)
+x_cut = (1.5, 6)
 y_cut = (0, 1)
 
 # list of sites with > 10 reps of each stimulus

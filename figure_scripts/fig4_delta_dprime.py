@@ -21,7 +21,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
@@ -54,7 +54,7 @@ if estval == '_train':
 elif estval == '_test':
     #x_cut = (1, 8)
     #y_cut = (0.2, 1) 
-    x_cut = (2, 6)
+    x_cut = (1.5, 6)
     y_cut = (0, 1)
 
 # set up subplots
@@ -88,6 +88,7 @@ for site in sites:
         _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
         _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
         _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
+        _df['state_diff_abs'] = (_df['bp_dp'] - _df['sp_dp'])
         _df['site'] = site
         df.append(_df)
 

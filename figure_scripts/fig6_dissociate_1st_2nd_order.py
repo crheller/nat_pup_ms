@@ -20,7 +20,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig7_dissociate_1st_2nd_order.svg'
+fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig6_dissociate_1st_2nd_order.svg'
 mi_max = 0.3
 mi_min = -0.2
 vmin = -0.1
