@@ -25,6 +25,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -41,9 +42,9 @@
      inkscape:window-height="1043"
      id="namedview29267"
      showgrid="false"
-     inkscape:zoom="1.5509259"
-     inkscape:cx="432"
-     inkscape:cy="153.6"
+     inkscape:zoom="1.0966702"
+     inkscape:cx="474.63813"
+     inkscape:cy="50.334992"
      inkscape:window-x="1920"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -4710,7 +4711,7 @@
   </defs>
   <text
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:28px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     style="font-style:normal;font-weight:normal;font-size:24.00000072px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
      x="15.671642"
      y="22.384472"
      id="text31370"><tspan
@@ -4721,7 +4722,7 @@
        y="22.384472">A</tspan></text>
   <text
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:28px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     style="font-style:normal;font-weight:normal;font-size:24.00000072px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
      x="242.4364"
      y="22.342472"
      id="text31370-9"><tspan
@@ -4732,7 +4733,7 @@
        y="22.342472">B</tspan></text>
   <text
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:28px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
+     style="font-style:normal;font-weight:normal;font-size:24.00000072px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
      x="467.11401"
      y="22.342472"
      id="text31370-2"><tspan
