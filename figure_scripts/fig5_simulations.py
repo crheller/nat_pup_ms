@@ -43,7 +43,7 @@ sim12_pr = 'dprime_simInTDR_sim12_pr_rm2_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
 
 all_sites = True
-barplot = True
+barplot = False
 
 # where to crop the data
 if estval == '_train':
@@ -182,13 +182,26 @@ else:
     for i, s in zip([0, 1, 2], ['state_diff', 'sim1', 'sim12']):
         try:
             vals = df.loc[df.site.isin(LOWR_SITES)].groupby(by='site').mean()[s]
-            dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+            dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.0, len(vals)),
                         vals, color='grey', marker='D', edgecolor='white', s=30, zorder=2)
         except:
             pass
         vals = df.loc[df.site.isin(HIGHR_SITES)].groupby(by='site').mean()[s]
-        dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+        dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.0, len(vals)),
                     vals, color='k', marker='o', edgecolor='white', s=50, zorder=3)
+
+    # now, for each site draw lines between points in each model. Color red if 2nd order hurts, blue if helps
+    line_colors = []
+    for s in df.site.unique():
+        vals = df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim12']].loc[s].values
+        if vals[1] < vals[2]:
+            dax.plot([0, 1, 2], vals, color='blue', alpha=0.5, zorder=1)
+            line_colors.append('blue')
+        else:
+            dax.plot([0, 1, 2], vals, color='red', alpha=0.5, zorder=1)
+            line_colors.append('red')
+
+
     dax.axhline(0, linestyle='--', color='grey', lw=2)     
 dax.set_xticks([0, 1, 2])
 dax.set_xticklabels(['None', '1st order', '1st + 2nd'], rotation=45)
@@ -208,13 +221,19 @@ else:
     for i, s in zip([0.5, 1.5], ['sim1_pr', 'sim12_pr']):
         try:
             vals = df.loc[df.site.isin(LOWR_SITES)].groupby(by='site').mean()[s]
-            dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+            dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0, len(vals)),
                         vals, color='grey', marker='D', edgecolor='white', s=30, zorder=2)
         except:
             pass
         vals = df.loc[df.site.isin(HIGHR_SITES)].groupby(by='site').mean()[s]
-        dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+        dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0, len(vals)),
                     vals, color='k', marker='o', edgecolor='white', s=50, zorder=3)
+
+        # now, for each site draw lines between points in each model. Color red if 2nd order hurts, blue if helps
+    for i, s in enumerate(df.site.unique()):
+        vals = df.groupby(by='site').mean()[['sim1_pr', 'sim12_pr']].loc[s].values
+        dprax.plot([0.5, 1.5], vals, color=line_colors[i], alpha=0.5, zorder=1)
+
     dprax.axhline(0, linestyle='--', color='grey', lw=2)     
 dprax.set_xticks([0.5, 1.5])
 dprax.set_xticklabels(['1st order', '1st + 2nd'], rotation=45)
