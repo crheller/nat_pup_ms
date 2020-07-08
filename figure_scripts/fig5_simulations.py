@@ -24,6 +24,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import scipy.stats as ss
+import scipy.ndimage.filters as sf
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
@@ -47,6 +48,9 @@ barplot = False
 smooth = True
 sigma = 2
 nbins = 20
+cmap = 'Greens'
+vmin = -0.05
+vmax = 0.05
 
 # where to crop the data
 if estval == '_train':
@@ -300,10 +304,24 @@ prax.set_ylabel(r"Neuron Density")
 prax.set_title('Residual spike count \n correlation with pupil')
 
 # plot heatmaps
+hm = []
+xbins = np.linspace(x_cut[0], x_cut[1], nbins)
+ybins = np.linspace(y_cut[0], y_cut[1], nbins)
+for s in df.site.unique():
+        vals = df[df.site==s]['sim1']
+        vals -= vals.mean()
+        vals /= vals.std()
+        heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
+                                    y=df[df.site==s]['cos_dU_evec'+estval],
+                                    values=vals,
+                                    statistic='mean',
+                                    bins=[xbins, ybins])
+        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+t = np.nanmean(np.stack(hm), 0)
 if smooth:
     t = sf.gaussian_filter(t, sigma)
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
-                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-0.1, vmax=0.1)
 else:
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
                                 extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
