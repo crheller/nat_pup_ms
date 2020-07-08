@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import scipy.stats as ss
+import scipy.ndimage.filters as sf
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
@@ -37,10 +38,11 @@ reds = False  # if individual lines are plotted, color code them, or not
 center = True
 nline_bins = 8
 smooth = True
+sigma = 2
 per_site_heatmap = True # z-score dprime within site first, then sum over sites for heatmap
-nbins = 8
-vmin = -.15
-vmax = .15
+nbins = 20
+vmin = -.1
+vmax = .1
 
 if all_sites:
     sites = ALL_SITES
@@ -143,7 +145,10 @@ for s in df.site.unique():
 t = np.nanmean(np.stack(hm), 0)
 
 if smooth:
-    im = hax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+    #im = hax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+    #                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+    t = sf.gaussian_filter(t, sigma)
+    im = hax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
                                     extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 else:
     im = hax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 

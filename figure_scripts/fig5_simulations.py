@@ -44,6 +44,9 @@ estval = '_test'
 
 all_sites = True
 barplot = False
+smooth = True
+sigma = 2
+nbins = 20
 
 # where to crop the data
 if estval == '_train':
@@ -165,11 +168,13 @@ df['sim12_pr'] = df_sim12_pr['state_diff']
 
 # ========================================= Plot data =====================================================
 # set up subplots
-f = plt.figure(figsize=(9, 3.2))
+f = plt.figure(figsize=(9, 6.2))
 
-dax = plt.subplot2grid((1, 3), (0, 0))
-dprax = plt.subplot2grid((1, 3), (0, 1))
-prax = plt.subplot2grid((1, 3), (0, 2))
+dax = plt.subplot2grid((2, 3), (0, 0))
+dprax = plt.subplot2grid((2, 3), (1, 0))
+prax = plt.subplot2grid((2, 3), (1, 1))
+s1ax = plt.subplot2grid((2, 3), (0, 1))
+s12ax = plt.subplot2grid((2, 3), (0, 2))
 
 
 # plot dprime per site for the raw simulations
@@ -293,6 +298,71 @@ prax.plot(x, p, 'k', linewidth=2, color=color.CORRECTED)
 prax.set_xlabel(r"Pearson's $r$")
 prax.set_ylabel(r"Neuron Density")
 prax.set_title('Residual spike count \n correlation with pupil')
+
+# plot heatmaps
+if smooth:
+    t = sf.gaussian_filter(t, sigma)
+    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+else:
+    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+divider = make_axes_locatable(s1ax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+
+s1ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+s1ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+s1ax.spines['bottom'].set_color(color.SIGNAL)
+s1ax.xaxis.label.set_color(color.SIGNAL)
+s1ax.tick_params(axis='x', colors=color.SIGNAL)
+s1ax.spines['left'].set_color(color.COSTHETA)
+s1ax.yaxis.label.set_color(color.COSTHETA)
+s1ax.tick_params(axis='y', colors=color.COSTHETA)
+s1ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st-order")
+
+
+hm = []
+xbins = np.linspace(x_cut[0], x_cut[1], nbins)
+ybins = np.linspace(y_cut[0], y_cut[1], nbins)
+for s in df.site.unique():
+        vals = df[df.site==s]['sim12']
+        vals -= vals.mean()
+        vals /= vals.std()
+        heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
+                                    y=df[df.site==s]['cos_dU_evec'+estval],
+                                    values=vals,
+                                    statistic='mean',
+                                    bins=[xbins, ybins])
+        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+t = np.nanmean(np.stack(hm), 0)
+
+if smooth:
+    t = sf.gaussian_filter(t, sigma)
+    im = s12ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+else:
+    im = s12ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+divider = make_axes_locatable(s12ax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+s12ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+s12ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+s12ax.spines['bottom'].set_color(color.SIGNAL)
+s12ax.xaxis.label.set_color(color.SIGNAL)
+s12ax.tick_params(axis='x', colors=color.SIGNAL)
+s12ax.spines['left'].set_color(color.COSTHETA)
+s12ax.yaxis.label.set_color(color.COSTHETA)
+s12ax.tick_params(axis='y', colors=color.COSTHETA)
+s12ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st+2nd-order")
+
+f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
+
+plt.show()
 
 f.tight_layout()
 
