@@ -24,6 +24,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import scipy.stats as ss
+import scipy.ndimage.filters as sf
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
@@ -43,7 +44,13 @@ sim12_pr = 'dprime_simInTDR_sim12_pr_rm2_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
 
 all_sites = True
-barplot = True
+barplot = False
+smooth = True
+sigma = 2
+nbins = 20
+cmap = 'Greens'
+vmin = -0.05
+vmax = 0.05
 
 # where to crop the data
 if estval == '_train':
@@ -165,11 +172,13 @@ df['sim12_pr'] = df_sim12_pr['state_diff']
 
 # ========================================= Plot data =====================================================
 # set up subplots
-f = plt.figure(figsize=(9, 3.2))
+f = plt.figure(figsize=(9, 6.2))
 
-dax = plt.subplot2grid((1, 3), (0, 0))
-dprax = plt.subplot2grid((1, 3), (0, 1))
-prax = plt.subplot2grid((1, 3), (0, 2))
+dax = plt.subplot2grid((2, 3), (0, 0))
+dprax = plt.subplot2grid((2, 3), (1, 0))
+prax = plt.subplot2grid((2, 3), (1, 1))
+s1ax = plt.subplot2grid((2, 3), (0, 1))
+s12ax = plt.subplot2grid((2, 3), (0, 2))
 
 
 # plot dprime per site for the raw simulations
@@ -182,13 +191,26 @@ else:
     for i, s in zip([0, 1, 2], ['state_diff', 'sim1', 'sim12']):
         try:
             vals = df.loc[df.site.isin(LOWR_SITES)].groupby(by='site').mean()[s]
-            dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+            dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.0, len(vals)),
                         vals, color='grey', marker='D', edgecolor='white', s=30, zorder=2)
         except:
             pass
         vals = df.loc[df.site.isin(HIGHR_SITES)].groupby(by='site').mean()[s]
-        dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+        dax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.0, len(vals)),
                     vals, color='k', marker='o', edgecolor='white', s=50, zorder=3)
+
+    # now, for each site draw lines between points in each model. Color red if 2nd order hurts, blue if helps
+    line_colors = []
+    for s in df.site.unique():
+        vals = df.groupby(by='site').mean()[['state_diff', 'sim1', 'sim12']].loc[s].values
+        if vals[1] < vals[2]:
+            dax.plot([0, 1, 2], vals, color='blue', alpha=0.5, zorder=1)
+            line_colors.append('blue')
+        else:
+            dax.plot([0, 1, 2], vals, color='red', alpha=0.5, zorder=1)
+            line_colors.append('red')
+
+
     dax.axhline(0, linestyle='--', color='grey', lw=2)     
 dax.set_xticks([0, 1, 2])
 dax.set_xticklabels(['None', '1st order', '1st + 2nd'], rotation=45)
@@ -208,13 +230,19 @@ else:
     for i, s in zip([0.5, 1.5], ['sim1_pr', 'sim12_pr']):
         try:
             vals = df.loc[df.site.isin(LOWR_SITES)].groupby(by='site').mean()[s]
-            dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+            dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0, len(vals)),
                         vals, color='grey', marker='D', edgecolor='white', s=30, zorder=2)
         except:
             pass
         vals = df.loc[df.site.isin(HIGHR_SITES)].groupby(by='site').mean()[s]
-        dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0.1, len(vals)),
+        dprax.scatter(i*np.ones(len(vals))+np.random.normal(0, 0, len(vals)),
                     vals, color='k', marker='o', edgecolor='white', s=50, zorder=3)
+
+        # now, for each site draw lines between points in each model. Color red if 2nd order hurts, blue if helps
+    for i, s in enumerate(df.site.unique()):
+        vals = df.groupby(by='site').mean()[['sim1_pr', 'sim12_pr']].loc[s].values
+        dprax.plot([0.5, 1.5], vals, color=line_colors[i], alpha=0.5, zorder=1)
+
     dprax.axhline(0, linestyle='--', color='grey', lw=2)     
 dprax.set_xticks([0.5, 1.5])
 dprax.set_xticklabels(['1st order', '1st + 2nd'], rotation=45)
@@ -274,6 +302,85 @@ prax.plot(x, p, 'k', linewidth=2, color=color.CORRECTED)
 prax.set_xlabel(r"Pearson's $r$")
 prax.set_ylabel(r"Neuron Density")
 prax.set_title('Residual spike count \n correlation with pupil')
+
+# plot heatmaps
+hm = []
+xbins = np.linspace(x_cut[0], x_cut[1], nbins)
+ybins = np.linspace(y_cut[0], y_cut[1], nbins)
+for s in df.site.unique():
+        vals = df[df.site==s]['sim1']
+        vals -= vals.mean()
+        vals /= vals.std()
+        heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
+                                    y=df[df.site==s]['cos_dU_evec'+estval],
+                                    values=vals,
+                                    statistic='mean',
+                                    bins=[xbins, ybins])
+        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+t = np.nanmean(np.stack(hm), 0)
+if smooth:
+    t = sf.gaussian_filter(t, sigma)
+    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-0.1, vmax=0.1)
+else:
+    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+divider = make_axes_locatable(s1ax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+
+s1ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+s1ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+s1ax.spines['bottom'].set_color(color.SIGNAL)
+s1ax.xaxis.label.set_color(color.SIGNAL)
+s1ax.tick_params(axis='x', colors=color.SIGNAL)
+s1ax.spines['left'].set_color(color.COSTHETA)
+s1ax.yaxis.label.set_color(color.COSTHETA)
+s1ax.tick_params(axis='y', colors=color.COSTHETA)
+s1ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st-order")
+
+
+hm = []
+xbins = np.linspace(x_cut[0], x_cut[1], nbins)
+ybins = np.linspace(y_cut[0], y_cut[1], nbins)
+for s in df.site.unique():
+        vals = df[df.site==s]['sim12']
+        vals -= vals.mean()
+        vals /= vals.std()
+        heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
+                                    y=df[df.site==s]['cos_dU_evec'+estval],
+                                    values=vals,
+                                    statistic='mean',
+                                    bins=[xbins, ybins])
+        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+t = np.nanmean(np.stack(hm), 0)
+
+if smooth:
+    t = sf.gaussian_filter(t, sigma)
+    im = s12ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+else:
+    im = s12ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+divider = make_axes_locatable(s12ax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+s12ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+s12ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+s12ax.spines['bottom'].set_color(color.SIGNAL)
+s12ax.xaxis.label.set_color(color.SIGNAL)
+s12ax.tick_params(axis='x', colors=color.SIGNAL)
+s12ax.spines['left'].set_color(color.COSTHETA)
+s12ax.yaxis.label.set_color(color.COSTHETA)
+s12ax.tick_params(axis='y', colors=color.COSTHETA)
+s12ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st+2nd-order")
+
+f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
+
+plt.show()
 
 f.tight_layout()
 

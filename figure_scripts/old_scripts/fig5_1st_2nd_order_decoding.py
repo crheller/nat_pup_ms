@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+import scipy.ndimage.filters as sf
 import scipy.stats as ss
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
@@ -23,7 +24,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig5_decoding_simulation.svg'
@@ -41,6 +42,7 @@ vmax = .2
 high_var_only = False
 persite = True
 smooth = True
+sigma = 2
 cmap = 'Greens'
 
 # where to crop the data
@@ -54,11 +56,12 @@ elif estval == '_test':
     y_cut = (0, 1)
 
 # set up subplots
-f = plt.figure(figsize=(9, 3))
+f = plt.figure(figsize=(12, 3))
 
-bax = plt.subplot2grid((1, 3), (0, 0))
-s1ax = plt.subplot2grid((1, 3), (0, 1))
-s2ax = plt.subplot2grid((1, 3), (0, 2))
+bax = plt.subplot2grid((1, 4), (0, 0))
+s1ax = plt.subplot2grid((1, 4), (0, 1))
+s2ax = plt.subplot2grid((1, 4), (0, 2))
+s12ax = plt.subplot2grid((1, 4), (0, 3))
 
 if all_sites:
     sites = ALL_SITES
@@ -210,8 +213,13 @@ for s in df.site.unique():
         hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 
+vmin=-0.1
+vmax=0.1
 if smooth:
-    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+    #im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+    #                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+    t = sf.gaussian_filter(t, sigma)
+    im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
                                     extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 else:
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
@@ -250,8 +258,13 @@ for s in df.site.unique():
         hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 
+vmin=-0.05
+vmax=0.05
 if smooth:
-    im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+    #im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+    #                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+    t = sf.gaussian_filter(t, sigma)
+    im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
                                     extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 else:
     im = s2ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
@@ -272,6 +285,48 @@ s2ax.spines['left'].set_color(color.COSTHETA)
 s2ax.yaxis.label.set_color(color.COSTHETA)
 s2ax.tick_params(axis='y', colors=color.COSTHETA)
 s2ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 2nd-order")
+
+
+hm = []
+xbins = np.linspace(x_cut[0], x_cut[1], nbins)
+ybins = np.linspace(y_cut[0], y_cut[1], nbins)
+for s in df.site.unique():
+        vals = df[df.site==s]['sim12']
+        vals -= vals.mean()
+        vals /= vals.std()
+        heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
+                                    y=df[df.site==s]['cos_dU_evec'+estval],
+                                    values=vals,
+                                    statistic='mean',
+                                    bins=[xbins, ybins])
+        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+t = np.nanmean(np.stack(hm), 0)
+
+if smooth:
+    #im = s12ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='gaussian', 
+    #                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+    t = sf.gaussian_filter(t, sigma)
+    im = s12ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+else:
+    im = s12ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
+                                extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
+divider = make_axes_locatable(s12ax)
+cbarax = divider.append_axes('right', size='5%', pad=0.05)
+f.colorbar(im, cax=cbarax, orientation='vertical')
+#df.plot.hexbin(x='dU_mag'+estval, 
+#                  y='cos_dU_evec'+estval, 
+#                  C='sim2', 
+#                  gridsize=nbins, ax=s2ax, cmap=cmap, vmin=-3, vmax=3) 
+s12ax.set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+s12ax.set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+s12ax.spines['bottom'].set_color(color.SIGNAL)
+s12ax.xaxis.label.set_color(color.SIGNAL)
+s12ax.tick_params(axis='x', colors=color.SIGNAL)
+s12ax.spines['left'].set_color(color.COSTHETA)
+s12ax.yaxis.label.set_color(color.COSTHETA)
+s12ax.tick_params(axis='y', colors=color.COSTHETA)
+s12ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st+2nd-order")
 
 f.tight_layout()
 
