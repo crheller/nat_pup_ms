@@ -97,8 +97,8 @@ for site in sites:
     if site in LOWR_SITES: mn = modelname_pr.replace('_jk10', '_jk1_eev') 
     else: mn = modelname_pr
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn)
-    _df_pr = results.numeric_results
+    results_pr = loader.load_results(fn)
+    _df_pr = results_pr.numeric_results
 
     if site in LOWR_SITES: mn = sim1_pr.replace('_jk10', '_jk1_eev') 
     else: mn = sim1_pr
