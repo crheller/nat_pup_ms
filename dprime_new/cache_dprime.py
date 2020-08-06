@@ -209,7 +209,7 @@ pupil_range = nat_preproc.get_pupil_range(X_pup, pup_mask_raw)
 # critical that this happens first, and doesn't happend twice (if simulation is False)
 log.info("Generate list of {0} est / val sets".format(njacks))
 
-# generate raw raw/val sets
+# generate raw est/val sets
 est_raw, val_raw, p_est_raw, p_val_raw = nat_preproc.get_est_val_sets(X_raw, pup_mask=pup_mask_raw, njacks=njacks, est_equal_val=est_equal_val)
 nreps_train_raw = est_raw[0].shape[1]
 nreps_test_raw = val_raw[0].shape[1]

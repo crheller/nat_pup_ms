@@ -11,6 +11,7 @@ import charlieTools.preprocessing as preproc
 from nems_lbhb.baphy import parse_cellid
 import os
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
@@ -28,8 +29,8 @@ vmax = 0.1
 # set up subplots
 f = plt.figure(figsize=(12, 7.5))
 
-ncax = plt.subplot2grid((4, 6), (0, 0), colspan=3, rowspan=2)
-bsax = plt.subplot2grid((4, 6), (0, 3), colspan=3, rowspan=2)
+ncax = plt.subplot2grid((4, 6), (0, 0), colspan=2, rowspan=2)
+bsax = plt.subplot2grid((4, 6), (0, 3), colspan=2, rowspan=2)
 mncax = plt.subplot2grid((4, 6), (2, 2), colspan=1, rowspan=2)
 mdncax = plt.subplot2grid((4, 6), (2, 5), colspan=1, rowspan=2)
 rscax = plt.subplot2grid((4, 6), (2, 0), colspan=2, rowspan=2)
