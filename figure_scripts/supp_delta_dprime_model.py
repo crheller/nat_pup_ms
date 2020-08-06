@@ -20,7 +20,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'supp_modeldprime.svg'
@@ -32,6 +32,7 @@ high_var_only = False
 all_sites = True
 pred_heatmap = False
 equi_density = False
+model_mi = True # use d' MI rather than "delta d'"
 
 # where to crop the data
 if estval == '_train':
@@ -84,6 +85,7 @@ for site in sites:
         _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
         _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
         _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
+        _df['state_MI'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
         _df['site'] = site
         df.append(_df)
 
@@ -113,12 +115,15 @@ for s in df.site.unique():
     X = df[df.site==s][['cos_dU_evec'+estval, 'dU_mag'+estval]]
     X['dU_mag'+estval] = X['dU_mag'+estval] - X['dU_mag'+estval].mean()
     X['dU_mag'+estval] /= X['dU_mag'+estval].std()
-    X['cos_dU_evec'+estval] = X['cos_dU_evec'+estval] - X['dU_mag'+estval].mean()
+    X['cos_dU_evec'+estval] = X['cos_dU_evec'+estval] - X['cos_dU_evec'+estval].mean()
     X['cos_dU_evec'+estval] /= X['cos_dU_evec'+estval].std()
     
     X = sm.add_constant(X)
     X['interaction'] = X['cos_dU_evec'+estval] * X['dU_mag'+estval]
-    y = df[df.site==s]['state_diff']
+    if model_mi:
+        y = df[df.site==s]['state_MI'].values.copy()
+    else:
+        y = df[df.site==s]['state_diff'].values.copy()
     y -= y.mean()
     y /= y.std()
     df.loc[df.site==s, 'z_state_diff'] = y
@@ -141,11 +146,48 @@ for s in df.site.unique():
     ci_overall.append(high_ci - low_ci)
     pvals_overall.append(model.pvalues)
 
+
 beta_overall = np.stack(beta_overall)
 beta_delta = np.stack(beta_delta)
 pvals_overall = np.stack(pvals_overall)
 pvals_delta = np.stack(pvals_delta)
 highr_mask = np.array(highr_mask)
+
+# print statistics for reg. coefficients
+print("OVERALL D'")
+print("noise intereference beta       mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_overall[:,1]), 
+                                                       beta_overall[:,1].std() / np.sqrt(beta_overall.shape[0]), 
+                                                       ss.wilcoxon(beta_overall[:, 1]).pvalue))
+print("discrimination magnitude beta  mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_overall[:,2]), 
+                                                            beta_overall[:,2].std() / np.sqrt(beta_overall.shape[0]), 
+                                                            ss.wilcoxon(beta_overall[:, 2]).pvalue))
+print("interaction term beta          mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_overall[:,3]), 
+                                                    beta_overall[:,3].std() / np.sqrt(beta_overall.shape[0]), 
+                                                    ss.wilcoxon(beta_overall[:, 3]).pvalue))
+print("\n")
+print("DELTA D'")
+print("noise intereference beta       mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_delta[:,1]), 
+                                                       beta_delta[:,1].std() / np.sqrt(beta_delta.shape[0]), 
+                                                       ss.wilcoxon(beta_delta[:, 1]).pvalue))
+print("discrimination magnitude beta  mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_delta[:,2]), 
+                                                            beta_delta[:,2].std() / np.sqrt(beta_delta.shape[0]), 
+                                                            ss.wilcoxon(beta_delta[:, 2]).pvalue))
+print("interaction term beta          mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_delta[:,3]), 
+                                                    beta_delta[:,3].std() / np.sqrt(beta_delta.shape[0]), 
+                                                    ss.wilcoxon(beta_delta[:, 3]).pvalue))
+
 # plot beta weights
 for bo, bd, po, pd, rs in zip(beta_overall, beta_delta, pvals_overall, pvals_delta, rsquared):
     scax.plot([bo[1], bo[2]], [bd[1], bd[2]], color='grey', zorder=1)
@@ -160,12 +202,15 @@ scax.axvline(0, linestyle='--', color='k')
 scax.set_xlabel(r"$\beta$"
                 " for "
                 r"$d'^{2}$")
-scax.set_ylabel(r"$\beta$"
+if model_mi:
+    scax.set_ylabel(r"$\beta$"
                 " for "
                 r"$\Delta d'^{2}$")
+else:
+    scax.set_ylabel(r"$\beta$"
+                    " for "
+                    r"$\Delta d'^{2}$")
 scax.set_title("Regression coefficients")
-
-# print statistics for reg. coefficients
 
 if equi_density:
     # finally, get equi-density contours for each site to show distribution of data
