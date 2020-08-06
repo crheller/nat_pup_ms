@@ -22,7 +22,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
@@ -31,6 +31,7 @@ modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
 estval = '_test'
 cmap = 'Greens'
+mi_norm = True # compute MI to norm (instead of zscoring)
 high_var_only = False
 all_sites = True
 plot_individual = False # for line plots
@@ -41,8 +42,8 @@ smooth = True
 sigma = 2
 per_site_heatmap = True # z-score dprime within site first, then sum over sites for heatmap
 nbins = 20
-vmin = -.1
-vmax = .1
+vmin = None #0.1 #-.1
+vmax = None #0.3 #.1
 
 if all_sites:
     sites = ALL_SITES
@@ -91,6 +92,7 @@ for site in sites:
         _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
         _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
         _df['state_diff_abs'] = (_df['bp_dp'] - _df['sp_dp'])
+        _df['state_MI'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
         _df['site'] = site
         df.append(_df)
 
@@ -112,36 +114,29 @@ dpax.set_xlabel('Small pupil')
 dpax.set_ylabel('Large pupil')
 dpax.set_title(r"$d'^{2}$")
 
-# plot delta dprime (or prediction)
-X = df[['dU_mag'+estval, 'cos_dU_evec'+estval]].copy()
-X['interaction'] = X['dU_mag'+estval] * X['cos_dU_evec'+estval]
-X = X - X.mean(axis=0)
-X = X / X.std(axis=0)
-X = sm.add_constant(X)
-y = df['state_diff'].copy()
-y -= y.mean()
-y /= y.std()
-ols = sm.OLS(y, X)
-results = ols.fit()
-df['pred'] = ols.predict(results.params)
+# plot significance of group effect of scatter plot
+print("Large vs. small pupil dprime       pval: {0} \n"
+      "                                   n:    {1}".format(ss.wilcoxon(dfg['sp_dp'], dfg['bp_dp']).pvalue, dfg.shape[0]))
 
-val = 'state_diff'
-
-# loop over each site, compute zscore of delta dprime,
+# plot delta dprime
+# loop over each site, compute zscore of delta dprime or use MI of dprime,
 # bin, then average across sites
 hm = []
 xbins = np.linspace(x_cut[0], x_cut[1], nbins)
 ybins = np.linspace(y_cut[0], y_cut[1], nbins)
 for s in df.site.unique():
-        vals = df[df.site==s]['state_diff']
-        vals -= vals.mean()
-        vals /= vals.std()
+        if mi_norm:
+            vals = df[df.site==s]['state_MI']
+        else:
+            vals = df[df.site==s]['state_diff']
+            vals -= vals.mean()
+            vals /= vals.std()
         heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
                                     y=df[df.site==s]['cos_dU_evec'+estval],
                                     values=vals,
                                     statistic='mean',
                                     bins=[xbins, ybins])
-        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+        hm.append(heatmap.statistic.T) # / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 
 if smooth:
@@ -165,7 +160,10 @@ hax.tick_params(axis='x', colors=color.SIGNAL)
 hax.spines['left'].set_color(color.COSTHETA)
 hax.yaxis.label.set_color(color.COSTHETA)
 hax.tick_params(axis='y', colors=color.COSTHETA)
-hax.set_title(r"$\Delta d'^2$ (z-score)")
+if mi_norm:
+    hax.set_title(r"$\Delta d'^2$")    
+else:
+    hax.set_title(r"$\Delta d'^2$ (z-score)")
 
 grouped = df.groupby(by='site')
 if plot_individual:
@@ -178,6 +176,10 @@ du_dp = []
 cos_dp = []
 du_delta = []
 cos_delta = []
+cos_bp_dp = []
+cos_sp_dp = []
+du_bp_dp = []
+du_sp_dp = []
 cos_bin = []
 du_bin = []
 colors = plt.cm.get_cmap('Reds', len(df.site.unique()))
@@ -185,17 +187,15 @@ for i, g in enumerate(grouped):
     if center:
         g[1]['state_diff'] -= g[1]['state_diff'].mean()
         g[1]['state_diff'] /= g[1]['state_diff'].std()
-        g[1]['dp_opt_test'] -= g[1]['dp_opt_test'].mean()
-        g[1]['dp_opt_test'] /= g[1]['dp_opt_test'].std()
-    cos = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['state_diff'], statistic='mean', bins=cbins)
-    du = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['state_diff'], statistic='mean', bins=dbins)
-    du_val_delt = du.statistic 
-    #du_val_delt -= du_val_delt.mean()
-    cos_val_delt = cos.statistic 
-    #cos_val_delt -= cos_val_delt.mean()
-    #du_val_delt /= du_val_delt.std()
-    #cos_val_delt /= cos_val_delt.std()
+    if mi_norm:
+        cos = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['state_MI'], statistic='mean', bins=cbins)
+        du = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['state_MI'], statistic='mean', bins=dbins)
+    else:
+        cos = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['state_diff'], statistic='mean', bins=cbins)
+        du = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['state_diff'], statistic='mean', bins=dbins)
 
+    du_val_delt = du.statistic 
+    cos_val_delt = cos.statistic 
     du_delta.append(du_val_delt)
     cos_delta.append(cos_val_delt)
 
@@ -211,14 +211,18 @@ for i, g in enumerate(grouped):
     cos = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['dp_opt_test'], statistic='mean', bins=cbins)
     du = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['dp_opt_test'], statistic='mean', bins=dbins)
     du_val = du.statistic 
-    #du_val -= du_val.mean()
     cos_val = cos.statistic 
-    #cos_val -= cos_val.mean()
-    #du_val /= du_val.std()
-    #cos_val /= cos_val.std()
-
     du_dp.append(du_val)
     cos_dp.append(cos_val)
+
+    cos_bp = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['bp_dp'], statistic='mean', bins=cbins)
+    cos_sp = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['sp_dp'], statistic='mean', bins=cbins)
+    du_bp = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['bp_dp'], statistic='mean', bins=dbins)
+    du_sp = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['sp_dp'], statistic='mean', bins=dbins)
+    cos_bp_dp.append(cos_bp.statistic)
+    cos_sp_dp.append(cos_sp.statistic)
+    du_bp_dp.append(du_bp.statistic)
+    du_sp_dp.append(du_sp.statistic)
 
     if plot_individual:
         lax2.plot(cos.bin_edges[1:], cos_val, color=lcol, zorder=1)
@@ -235,30 +239,57 @@ du_val_delt_sem = np.nanstd(np.stack(du_delta), axis=0) / np.sqrt((~np.isnan(np.
 cos_val_delt = np.nanmean(np.stack(cos_delta), axis=0)
 cos_val_delt_sem = np.nanstd(np.stack(cos_delta), axis=0) / np.sqrt((~np.isnan(np.stack(cos_delta))).sum(axis=0))
 
+if mi_norm:
+    lab = r"$\Delta d'^2$"
+else:
+    lab = r"$\Delta d'^{2}$"
 if plot_individual:
     lax1.plot(cos_bin, cos_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
     lax3.plot(du_bin, du_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
 else:
-    lax1.errorbar(cos_bin, cos_val_delt, yerr=cos_val_delt_sem, marker='.', lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
-    lax3.errorbar(du_bin, du_val_delt, yerr=du_val_delt_sem, marker='.', lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    lax1.errorbar(cos_bin, cos_val_delt, yerr=cos_val_delt_sem, marker='.', lw=1, color='k', label=lab, zorder=4)
+    lax3.errorbar(du_bin, du_val_delt, yerr=du_val_delt_sem, marker='.', lw=1, color='k', label=lab, zorder=4)
     if center:
-        lax1.set_ylim((-0.3, 0.3))
-        lax3.set_ylim((-0.3, 0.3))
+        if mi_norm:
+            lax1.set_ylim((0.05, 0.25))
+            lax3.set_ylim((0.05, 0.25))
+        else:
+            lax1.set_ylim((-0.3, 0.3))
+            lax3.set_ylim((-0.3, 0.3))
 
 du_val = np.nanmean(np.stack(du_dp), axis=0)
 du_val_sem = np.nanstd(np.stack(du_dp), axis=0) / np.sqrt((~np.isnan(np.stack(du_dp))).sum(axis=0))
 cos_val = np.nanmean(np.stack(cos_dp), axis=0)
 cos_val_sem = np.nanstd(np.stack(cos_dp), axis=0) / np.sqrt((~np.isnan(np.stack(cos_dp))).sum(axis=0))
 
+du_bp_val = np.nanmean(np.stack(du_bp_dp), axis=0)
+du_bp_val_sem = np.nanstd(np.stack(du_bp_dp), axis=0) / np.sqrt((~np.isnan(np.stack(du_bp_dp))).sum(axis=0))
+du_sp_val = np.nanmean(np.stack(du_sp_dp), axis=0)
+du_sp_val_sem = np.nanstd(np.stack(du_sp_dp), axis=0) / np.sqrt((~np.isnan(np.stack(du_sp_dp))).sum(axis=0))
+
+cos_bp_val = np.nanmean(np.stack(cos_bp_dp), axis=0)
+cos_bp_val_sem = np.nanstd(np.stack(cos_bp_dp), axis=0) / np.sqrt((~np.isnan(np.stack(cos_bp_dp))).sum(axis=0))
+cos_sp_val = np.nanmean(np.stack(cos_sp_dp), axis=0)
+cos_sp_val_sem = np.nanstd(np.stack(cos_sp_dp), axis=0) / np.sqrt((~np.isnan(np.stack(cos_sp_dp))).sum(axis=0))
+
+
 if plot_individual:
     lax2.plot(cos_bin, cos_val, '-o', lw=3, color='k', label=r"$d'^{2}$", zorder=3)
     lax4.plot(du_bin, du_val, '-o', lw=3, color='k', label=r"$d'^{2}$", zorder=3)
 else:
-    lax2.errorbar(cos_bin, cos_val, yerr=cos_val_sem, marker='.', lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
-    lax4.errorbar(du_bin, du_val, yerr=du_val_sem, marker='.', lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    #lax2.errorbar(cos_bin, cos_val, yerr=cos_val_sem, marker='.', lw=1, color='k', label=r"$d'^2$", zorder=4)
+    #lax4.errorbar(du_bin, du_val, yerr=du_val_sem, marker='.', lw=1, color='k', label=r"$d'^2", zorder=4)
+    lax2.errorbar(cos_bin, cos_bp_val, yerr=cos_bp_val_sem, marker='.', lw=1, color='firebrick', label=r"$d'^2$", zorder=4)
+    lax2.errorbar(cos_bin, cos_sp_val, yerr=cos_sp_val_sem, marker='.', lw=1, color='navy', label=r"$d'^2$", zorder=4)
+    lax4.errorbar(du_bin, du_bp_val, yerr=du_bp_val_sem, marker='.', lw=1, color='firebrick', label=r"$d'^2", zorder=4)
+    lax4.errorbar(du_bin, du_sp_val, yerr=du_sp_val_sem, marker='.', lw=1, color='navy', label=r"$d'^2", zorder=4)
     if center:
-        lax2.set_ylim((-1.1, 1.1))
-        lax4.set_ylim((-1.1, 1.1))
+        if mi_norm:
+            lax2.set_ylim((0, 60))
+            lax4.set_ylim((0, 60))
+        else:
+            lax2.set_ylim((-1.1, 1.1))
+            lax4.set_ylim((-1.1, 1.1))
 
 lax1.set_xlabel(alab.COSTHETA, color=color.COSTHETA)
 lax1.spines['bottom'].set_color(color.COSTHETA)
@@ -282,10 +313,15 @@ lax4.spines['bottom'].set_color(color.SIGNAL)
 lax4.xaxis.label.set_color(color.SIGNAL)
 lax4.tick_params(axis='x', colors=color.SIGNAL)
 
-lax1.set_ylabel(r"$\Delta d'^{2}$ (z-score)")
-lax2.set_ylabel(r"$d'^{2}$ (z-score)")
-lax3.set_ylabel(r"$\Delta d'^{2}$ (z-score)")
-lax4.set_ylabel(r"$d'^{2}$ (z-score)")
+if mi_norm:
+    lax1.set_ylabel(r"$\Delta d'^{2}$")
+    lax3.set_ylabel(r"$\Delta d'^{2}$")
+else:
+    lax1.set_ylabel(r"$\Delta d'^{2}$ (z-score)")
+    lax3.set_ylabel(r"$\Delta d'^{2}$ (z-score)")
+    
+lax2.set_ylabel(r"$d'^{2}$")
+lax4.set_ylabel(r"$d'^{2}$")
 
 f.tight_layout()
 
@@ -293,3 +329,33 @@ if savefig:
     f.savefig(fig_fn)
 
 plt.show()
+
+
+# model delta dprime as function of each axis in order to quantify differences between heatmaps.
+X = df[['cos_dU_evec'+estval, 'dU_mag'+estval]]
+X['dU_mag'+estval] = X['dU_mag'+estval] - X['dU_mag'+estval].mean()
+X['dU_mag'+estval] /= X['dU_mag'+estval].std()
+X['cos_dU_evec'+estval] = X['cos_dU_evec'+estval] - X['cos_dU_evec'+estval].mean()
+X['cos_dU_evec'+estval] /= X['cos_dU_evec'+estval].std()
+X = sm.add_constant(X)
+X['interaction'] = X['cos_dU_evec'+estval] * X['dU_mag'+estval]
+
+y = df['state_MI']
+y -= y.mean()
+y /= y.std()
+
+model = sm.OLS(y, X).fit()
+
+# print model coefficients / confidence intervals / pvals
+print("Noise interference coefficient: {0}, ({1}, {2}), pval: {3}".format(model.params.cos_dU_evec_test,
+                                                                          model.conf_int().loc['cos_dU_evec_test'][0],
+                                                                          model.conf_int().loc['cos_dU_evec_test'][1],
+                                                                          model.pvalues.cos_dU_evec_test))
+print("Discrimination mag. coefficient: {0}, ({1}, {2}), pval: {3}".format(model.params.dU_mag_test,
+                                                                           model.conf_int().loc['dU_mag_test'][0],
+                                                                           model.conf_int().loc['dU_mag_test'][1],
+                                                                           model.pvalues.dU_mag_test))
+print("Interaction coefficient: {0}, ({1}, {2}), pval: {3}".format(model.params.interaction,
+                                                                   model.conf_int().loc['interaction'][0],
+                                                                   model.conf_int().loc['interaction'][1],
+                                                                   model.pvalues.interaction))

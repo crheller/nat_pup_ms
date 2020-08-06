@@ -30,7 +30,7 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = True
+savefig = False
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig5_simulations.svg'
@@ -46,11 +46,13 @@ estval = '_test'
 all_sites = True
 barplot = False
 smooth = True
+second_order_unique = True  #just for heatmap
+mi_norm = True
 sigma = 2
 nbins = 20
 cmap = 'Greens'
-vmin = -0.05
-vmax = 0.05
+vmin = None  #-0.05
+vmax = None   #0.05
 
 # where to crop the data
 if estval == '_train':
@@ -97,8 +99,8 @@ for site in sites:
     if site in LOWR_SITES: mn = modelname_pr.replace('_jk10', '_jk1_eev') 
     else: mn = modelname_pr
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn)
-    _df_pr = results.numeric_results
+    results_pr = loader.load_results(fn)
+    _df_pr = results_pr.numeric_results
 
     if site in LOWR_SITES: mn = sim1_pr.replace('_jk10', '_jk1_eev') 
     else: mn = sim1_pr
@@ -118,32 +120,38 @@ for site in sites:
     _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
     _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
     _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
+    _df['state_MI'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df['site'] = site
     df.append(_df)
 
     _df_sim1 = _df_sim1.loc[pd.IndexSlice[stim, 2], :]
     _df_sim1['state_diff'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / _df['dp_opt_test']
+    _df_sim1['state_MI'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim1['site'] = site
     df_sim1.append(_df_sim1)
 
     _df_sim12 = _df_sim12.loc[pd.IndexSlice[stim, 2], :]
     _df_sim12['state_diff'] = (_df_sim12['bp_dp'] - _df_sim12['sp_dp']) / _df['dp_opt_test']
+    _df_sim12['state_MI'] = (_df_sim12['bp_dp'] - _df_sim12['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim12['site'] = site
     df_sim12.append(_df_sim12)
 
     # pr results
     _df_pr = _df_pr.loc[pd.IndexSlice[stim, 2], :]
     _df_pr['state_diff'] = (_df_pr['bp_dp'] - _df_pr['sp_dp']) / _df['dp_opt_test']
+    _df_pr['state_MI'] = (_df_pr['bp_dp'] - _df_pr['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_pr['site'] = site
     df_pr.append(_df_pr)
 
     _df_sim1_pr = _df_sim1_pr.loc[pd.IndexSlice[stim, 2], :]
     _df_sim1_pr['state_diff'] = (_df_sim1_pr['bp_dp'] - _df_sim1_pr['sp_dp']) / _df['dp_opt_test']
+    _df_sim1_pr['state_MI'] = (_df_sim1_pr['bp_dp'] - _df_sim1_pr['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim1_pr['site'] = site
     df_sim1_pr.append(_df_sim1_pr)
 
     _df_sim12_pr = _df_sim12_pr.loc[pd.IndexSlice[stim, 2], :]
     _df_sim12_pr['state_diff'] = (_df_sim12_pr['bp_dp'] - _df_sim12_pr['sp_dp']) / _df['dp_opt_test']
+    _df_sim12_pr['state_MI'] = (_df_sim12_pr['bp_dp'] - _df_sim12_pr['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim12_pr['site'] = site
     df_sim12_pr.append(_df_sim12_pr)
 
@@ -164,11 +172,19 @@ df_pr = df_pr_all[mask1 & mask2]
 df_sim1_pr = df_sim1_pr_all[mask1 & mask2]
 df_sim12_pr = df_sim12_pr_all[mask1 & mask2]
 
-df['sim1'] = df_sim1['state_diff']
-df['sim12'] = df_sim12['state_diff']
-df['pr'] = df_pr['state_diff']
-df['sim1_pr'] = df_sim1_pr['state_diff']
-df['sim12_pr'] = df_sim12_pr['state_diff']
+if mi_norm:
+    df['state_diff'] = df['state_MI']
+    df['sim1'] = df_sim1['state_MI']
+    df['pr'] = df_pr['state_MI']
+    df['sim1_pr'] = df_sim1_pr['state_MI']
+    df['sim12'] = df_sim12['state_MI']
+    df['sim12_pr'] = df_sim12_pr['state_MI']
+else:
+    df['sim1'] = df_sim1['state_diff']
+    df['pr'] = df_pr['state_diff']
+    df['sim1_pr'] = df_sim1_pr['state_diff']
+    df['sim12'] = df_sim12['state_diff']
+    df['sim12_pr'] = df_sim12_pr['state_diff']
 
 # ========================================= Plot data =====================================================
 # set up subplots
@@ -215,9 +231,19 @@ else:
 dax.set_xticks([0, 1, 2])
 dax.set_xticklabels(['None', '1st order', '1st + 2nd'], rotation=45)
 dax.set_xlabel('Simulation')
-dax.set_ylabel(r"$\Delta d'^{2}$")
+if mi_norm:
+    dax.set_ylabel(r"$\Delta d'^{2}$")    
+else:
+    dax.set_ylabel(r"$\Delta d'^{2}$")
 dax.set_title('Discriminability Improvement \n Raw Data', color=color.RAW)
-dax.set_ylim((-1, 2))
+if not mi_norm:
+    dax.set_ylim((-1, 2))
+else:
+    dax.set_ylim((-.3, .5))
+
+# print statistics comparing full simulation vs. raw data
+print("Raw delta dprime vs. full simulation,   r: {0}".format(ss.pearsonr(df.groupby(by='site').mean()['sim12'], 
+                                                                              df.groupby(by='site').mean()['state_diff'])))
 
 # plot dprime per site for the pupil regress simulations
 if barplot:
@@ -247,7 +273,10 @@ else:
 dprax.set_xticks([0.5, 1.5])
 dprax.set_xticklabels(['1st order', '1st + 2nd'], rotation=45)
 dprax.set_xlabel('Simulation')
-dprax.set_ylabel(r"$\Delta d'^{2}$")
+if mi_norm:
+    dprax.set_ylabel(r"$\Delta d'^{2}$")
+else:
+    dprax.set_ylabel(r"$\Delta d'^{2}$")
 dprax.set_title('Discriminability Improvement \n Pupil Corrected Data', color=color.CORRECTED)
 dprax.set_ylim(dax.get_ylim())
 dprax.set_xlim(dax.get_xlim())
@@ -309,19 +338,20 @@ xbins = np.linspace(x_cut[0], x_cut[1], nbins)
 ybins = np.linspace(y_cut[0], y_cut[1], nbins)
 for s in df.site.unique():
         vals = df[df.site==s]['sim1']
-        vals -= vals.mean()
-        vals /= vals.std()
+        if not mi_norm:
+            vals -= vals.mean()
+            vals /= vals.std()
         heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
                                     y=df[df.site==s]['cos_dU_evec'+estval],
                                     values=vals,
                                     statistic='mean',
                                     bins=[xbins, ybins])
-        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+        hm.append(heatmap.statistic.T)# / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 if smooth:
     t = sf.gaussian_filter(t, sigma)
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
-                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=-0.1, vmax=0.1)
+                                    extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
 else:
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap, interpolation='none', 
                                 extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]], vmin=vmin, vmax=vmax)
@@ -337,22 +367,29 @@ s1ax.tick_params(axis='x', colors=color.SIGNAL)
 s1ax.spines['left'].set_color(color.COSTHETA)
 s1ax.yaxis.label.set_color(color.COSTHETA)
 s1ax.tick_params(axis='y', colors=color.COSTHETA)
-s1ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st-order")
+if mi_norm:
+    s1ax.set_title(r"$d'^2$ (MI)"+"\n 1st-order unique")
+else:
+    s1ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st-order unique")
 
 
 hm = []
 xbins = np.linspace(x_cut[0], x_cut[1], nbins)
 ybins = np.linspace(y_cut[0], y_cut[1], nbins)
 for s in df.site.unique():
-        vals = df[df.site==s]['sim12']
-        vals -= vals.mean()
-        vals /= vals.std()
+        if second_order_unique:
+            vals = df[df.site==s]['sim12'] - df[df.site==s]['sim1']
+        else:
+            vals = df[df.site==s]['sim12']
+        if not mi_norm:
+            vals -= vals.mean()
+            vals /= vals.std()
         heatmap = ss.binned_statistic_2d(x=df[df.site==s]['dU_mag'+estval], 
                                     y=df[df.site==s]['cos_dU_evec'+estval],
                                     values=vals,
                                     statistic='mean',
                                     bins=[xbins, ybins])
-        hm.append(heatmap.statistic.T / np.nanmax(heatmap.statistic))
+        hm.append(heatmap.statistic.T)# / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
 
 if smooth:
@@ -373,7 +410,12 @@ s12ax.tick_params(axis='x', colors=color.SIGNAL)
 s12ax.spines['left'].set_color(color.COSTHETA)
 s12ax.yaxis.label.set_color(color.COSTHETA)
 s12ax.tick_params(axis='y', colors=color.COSTHETA)
-s12ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st+2nd-order")
+if second_order_unique: tag = '2nd-order unique' 
+else: tag='1st+2nd-order'
+if mi_norm:
+    s12ax.set_title(r"$\Delta d'^2$"+"\n {}".format(tag))
+else:
+    s12ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n {}".format(tag))
 
 f.tight_layout()
 
@@ -382,9 +424,87 @@ if savefig:
 
 plt.show()
 
-f.tight_layout()
+# model delta dprime (for the first order sim and full - first) 
+# as function of each axis in order to quantify differences between heatmaps.
+beta_cos = []
+beta_du = []
+beta_int = []
+for s in df.site.unique():
+    X = df[df.site==s][['cos_dU_evec'+estval, 'dU_mag'+estval]].copy()
+    X['dU_mag'+estval] = X['dU_mag'+estval] - X['dU_mag'+estval].mean()
+    X['dU_mag'+estval] /= X['dU_mag'+estval].std()
+    X['cos_dU_evec'+estval] = X['cos_dU_evec'+estval] - X['cos_dU_evec'+estval].mean()
+    X['cos_dU_evec'+estval] /= X['cos_dU_evec'+estval].std()
+    X = sm.add_constant(X)
+    X['interaction'] = X['cos_dU_evec'+estval] * X['dU_mag'+estval]
 
-if savefig:
-    f.savefig(fig_fn)
+    y = df[df.site==s]['sim1'].values.copy()
+    y -= y.mean()
+    y /= y.std()
 
-plt.show()
+    model = sm.OLS(y, X).fit()
+
+    beta_cos.append(model.params.cos_dU_evec_test)
+    beta_du.append(model.params.dU_mag_test)
+    beta_int.append(model.params.interaction)
+
+# print model coefficients / confidence intervals / pvals
+print("First order simualtion results: \n")
+print("noise intereference beta       mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_cos), 
+                                                       np.std(beta_cos) / np.sqrt(len(beta_cos)), 
+                                                       ss.wilcoxon(beta_cos).pvalue))
+print("discrimination magnitude beta  mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_du), 
+                                                            np.std(beta_du) / np.sqrt(len(beta_du)), 
+                                                            ss.wilcoxon(beta_du).pvalue))
+print("interaction term beta          mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_int), 
+                                                    np.std(beta_int) / np.sqrt(len(beta_int)), 
+                                                    ss.wilcoxon(beta_int).pvalue))
+print('\n \n')
+
+
+beta_cos = []
+beta_du = []
+beta_int = []
+for s in df.site.unique():
+    X = df[df.site==s][['cos_dU_evec'+estval, 'dU_mag'+estval]].copy()
+    X['dU_mag'+estval] = X['dU_mag'+estval] - X['dU_mag'+estval].mean()
+    X['dU_mag'+estval] /= X['dU_mag'+estval].std()
+    X['cos_dU_evec'+estval] = X['cos_dU_evec'+estval] - X['cos_dU_evec'+estval].mean()
+    X['cos_dU_evec'+estval] /= X['cos_dU_evec'+estval].std()
+    X = sm.add_constant(X)
+    X['interaction'] = X['cos_dU_evec'+estval] * X['dU_mag'+estval]
+
+    y = df[df.site==s]['sim12'].values.copy() - df[df.site==s]['sim1'].values.copy()
+    y -= y.mean()
+    y /= y.std()
+
+    model = sm.OLS(y, X).fit()
+
+    beta_cos.append(model.params.cos_dU_evec_test)
+    beta_du.append(model.params.dU_mag_test)
+    beta_int.append(model.params.interaction)
+
+# print model coefficients / confidence intervals / pvals
+print("Second order simualtion results: \n")
+print("noise intereference beta       mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_cos), 
+                                                       np.std(beta_cos) / np.sqrt(len(beta_cos)), 
+                                                       ss.wilcoxon(beta_cos).pvalue))
+print("discrimination magnitude beta  mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_du), 
+                                                            np.std(beta_du) / np.sqrt(len(beta_du)), 
+                                                            ss.wilcoxon(beta_du).pvalue))
+print("interaction term beta          mean:  {0} \n"
+      "                               sem:   {1} \n"
+      "                               pval:  {2} \n".format(np.mean(beta_int), 
+                                                    np.std(beta_int) / np.sqrt(len(beta_int)), 
+                                                    ss.wilcoxon(beta_int).pvalue))
+print('\n \n')
