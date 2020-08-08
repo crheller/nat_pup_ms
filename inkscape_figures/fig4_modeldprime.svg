@@ -16,7 +16,7 @@
    width="648pt"
    id="svg14529"
    sodipodi:docname="fig4_modeldprime.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
   <metadata
      id="metadata14533">
     <rdf:RDF>
@@ -25,7 +25,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -38,15 +38,15 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1021"
+     inkscape:window-width="1848"
+     inkscape:window-height="1016"
      id="namedview14531"
      showgrid="false"
-     inkscape:zoom="1.0287422"
+     inkscape:zoom="0.72743059"
      inkscape:cx="432"
-     inkscape:cy="288"
+     inkscape:cy="411.72315"
      inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg14529" />
   <defs
@@ -7220,4 +7220,26 @@
        style="font-size:28px;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
        x="227.36952"
        y="232.24091">D</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:12px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#b22222;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round;"
+     x="391.70703"
+     y="38.18964"
+     id="text1942"><tspan
+       sodipodi:role="line"
+       id="tspan1940"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round;fill:#b22222;fill-opacity:1;"
+       x="391.70703"
+       y="38.18964">Large pupil</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:12px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000080;fill-opacity:1;stroke:none;stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round;"
+     x="391.62305"
+     y="52.974365"
+     id="text1942-3"><tspan
+       sodipodi:role="line"
+       id="tspan1940-6"
+       style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round;fill:#000080;fill-opacity:1;"
+       x="391.62305"
+       y="52.974365">Small pupil</tspan></text>
 </svg>
