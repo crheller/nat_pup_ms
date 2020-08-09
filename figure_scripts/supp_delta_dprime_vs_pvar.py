@@ -21,6 +21,7 @@ mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
 all_sites = True
+mi_norm = True
 loader = decoding.DecodingResults()
 path = DPRIME_DIR
 cache_file = path + 'high_pvar_stim_combos.csv'
@@ -74,8 +75,10 @@ mask1 = (df_all['dU_mag_test'] < x_cut[1]) & (df_all['dU_mag_test'] > x_cut[0])
 mask2 = (df_all['cos_dU_evec_test'] < y_cut[1]) & (df_all['cos_dU_evec_test'] > y_cut[0])
 df = df_all[mask1 & mask2]
 
-
-df['state_diff'] = (df['bp_dp'] - df['sp_dp']) / df['dp_opt_test']
+if mi_norm:
+    df['state_diff'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
+else:
+    df['state_diff'] = (df['bp_dp'] - df['sp_dp']) / df['dp_opt_test']
 df['abs_diff'] = (df['bp_dp'] - df['sp_dp'])
 norm_pvar = df.groupby(by='site').mean()['p_range']
 pvar = df.groupby(by='site').mean()['p_var']
@@ -88,14 +91,41 @@ ax.axhline(0, linestyle='--', color='grey', lw=2, zorder=1)
 
 if norm_state_diff:
     cc = ss.pearsonr(norm_pvar, state_diff)
+
+    # perform permutation test to calculate pvalue on correlation
+    true_cc = cc[0]
+    np.random.seed(123)
+    cc = []
+    niters = 1000
+    for i in range(0, niters):
+        idx = np.random.choice(range(0, state_diff.shape[0]), state_diff.shape[0], replace=True)
+        sd = state_diff.values[idx]
+        cc.append(np.corrcoef(norm_pvar, sd)[0, 1])
+
+    pval = sum(abs(np.array(cc)) >= abs(true_cc)) / niters
+    print("Bootstrap test pvalue: {0}, min pval: {1}".format(pval, 1/niters))
+
     ax.scatter(norm_pvar.loc[HIGHR_SITES], state_diff.loc[HIGHR_SITES], marker='o', edgecolor='white', color='k', s=50,
-                    label=r"$r = %s, p = %s$" % (round(cc[0], 2), round(cc[1], 3)), zorder=3)
+                    label=r"$r = %s, p = %s$" % (round(true_cc, 2), round(pval, 3)), zorder=3)
     ax.legend(frameon=False)
     ax.scatter(norm_pvar.loc[LOWR_SITES], state_diff.loc[LOWR_SITES], marker='D', edgecolor='white', color='grey', s=30, zorder=2)
 else:
     cc = ss.pearsonr(norm_pvar, abs_diff)
+
+    true_cc = cc[0]
+    np.random.seed(123)
+    cc = []
+    niters = 1000
+    for i in range(0, niters):
+        idx = np.random.choice(range(0, state_diff.shape[0]), state_diff.shape[0], replace=True)
+        sd = state_diff.values[idx]
+        cc.append(np.corrcoef(norm_pvar, sd)[0, 1])
+
+    pval = sum(abs(np.array(cc)) >= abs(true_cc)) / niters
+    print("Bootstrap test pvalue: {0}, min pval: {1}".format(pval, 1/niters))
+
     ax.scatter(norm_pvar.loc[HIGHR_SITES], abs_diff.loc[HIGHR_SITES], marker='o', edgecolor='white', color='k', s=50,
-                    label=r"$r = %s, p = %s$" % (round(cc[0], 2), round(cc[1], 3)), zorder=3)
+                    label=r"$r = %s, p = %s$" % (round(true_cc, 2), round(pval, 3)), zorder=3)
     ax.legend(frameon=False)
     ax.scatter(norm_pvar.loc[LOWR_SITES], abs_diff.loc[LOWR_SITES], marker='D', edgecolor='white', color='grey', s=30, zorder=2)
 

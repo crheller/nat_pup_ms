@@ -235,7 +235,7 @@ if mi_norm:
     dax.set_ylabel(r"$\Delta d'^{2}$")    
 else:
     dax.set_ylabel(r"$\Delta d'^{2}$")
-dax.set_title('Discriminability Improvement \n Raw Data', color=color.RAW)
+dax.set_title('Discriminability Change \n Raw Data', color=color.RAW)
 if not mi_norm:
     dax.set_ylim((-1, 2))
 else:
@@ -277,7 +277,7 @@ if mi_norm:
     dprax.set_ylabel(r"$\Delta d'^{2}$")
 else:
     dprax.set_ylabel(r"$\Delta d'^{2}$")
-dprax.set_title('Discriminability Improvement \n Pupil Corrected Data', color=color.CORRECTED)
+dprax.set_title('Discriminability Change \n Pupil Corrected Data', color=color.CORRECTED)
 dprax.set_ylim(dax.get_ylim())
 dprax.set_xlim(dax.get_xlim())
 
@@ -368,7 +368,7 @@ s1ax.spines['left'].set_color(color.COSTHETA)
 s1ax.yaxis.label.set_color(color.COSTHETA)
 s1ax.tick_params(axis='y', colors=color.COSTHETA)
 if mi_norm:
-    s1ax.set_title(r"$d'^2$ (MI)"+"\n 1st-order unique")
+    s1ax.set_title(r"$\Delta d'^2$"+"\n 1st-order unique")
 else:
     s1ax.set_title(r"$\Delta d'^2$ (z-score)"+"\n 1st-order unique")
 

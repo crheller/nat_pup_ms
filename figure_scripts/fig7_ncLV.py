@@ -35,10 +35,11 @@ mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = False
-fig_fn = PY_FIGURES_DIR + 'supp_ncLV.svg'
+fig_fn = PY_FIGURES_DIR + 'fig7_ncLV.svg'
 
 site = 'DRX006b.e65:128' #'BOL006b' #'DRX006b.e65:128'
 batch = 289
+mi_norm = True # use "MI" to define delta dprime
 
 fs = 4
 ex_site = site
@@ -223,17 +224,26 @@ for site in sites:
         _df = _df.loc[pd.IndexSlice[stim, 2], :]
         _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
         _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
-        _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
+        if mi_norm:
+            _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
+        else:
+            _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
         _df['site'] = site
         df.append(_df)
 
         _df_sim1 = _df_sim1.loc[pd.IndexSlice[stim, 2], :]
-        _df_sim1['state_diff'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / _df['dp_opt_test']
+        if mi_norm:
+            _df_sim1['state_diff'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / (_df_sim1['bp_dp'] + _df_sim1['sp_dp'])
+        else:
+            _df_sim1['state_diff'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / _df['dp_opt_test']
         _df_sim1['site'] = site
         df_sim1.append(_df_sim1)
 
         _df_sim2 = _df_sim2.loc[pd.IndexSlice[stim, 2], :]
-        _df_sim2['state_diff'] = (_df_sim2['bp_dp'] - _df_sim2['sp_dp']) / _df['dp_opt_test']
+        if mi_norm:
+            _df_sim2['state_diff'] = (_df_sim2['bp_dp'] - _df_sim2['sp_dp']) / (_df_sim2['bp_dp'] + _df_sim2['sp_dp'])
+        else:
+            _df_sim2['state_diff'] = (_df_sim2['bp_dp'] - _df_sim2['sp_dp']) / _df['dp_opt_test']
         _df_sim2['site'] = site
         df_sim2.append(_df_sim2)
 
@@ -367,8 +377,8 @@ df['high_mask'] = False
 df['low_mask'] = False
 for s in sig_beta2:
     qts = df[df.site==s].beta2_dot_dU.quantile([0.25, 0.5, 0.75])
-    upper = qts.iloc[1]
-    lower = qts.iloc[1]
+    upper = qts.iloc[2]
+    lower = qts.iloc[0]
     mh = (df.site==s) & (df['beta2_dot_dU'] >= upper)
     ml = (df.site==s) & (df['beta2_dot_dU'] <= lower)
     df.loc[mh, 'high_mask'] = True
@@ -387,6 +397,13 @@ dpax.scatter([np.zeros(low.loc[low.index.isin(HIGHR_SITES)].shape[0]),
           [low.loc[low.index.isin(HIGHR_SITES)], high.loc[high.index.isin(HIGHR_SITES)]], marker='o', color='k', s=50, edgecolor='white', zorder=3)
 
 dpax.scatter([0, 1], [low.loc[ex_site], high.loc[ex_site]], marker='o', color='tab:orange', edgecolor='white', zorder=4)
+
+# print stats to compare high vs. low overlap
+print("mean low overlap: {0}, {1} \n mean high overlap: {2}, {3} \n pval: {4}".format(low.mean(),
+                                                                                      low.sem(),
+                                                                                      high.mean(),
+                                                                                      high.sem(),
+                                                                                      ss.wilcoxon(low, high).pvalue))
 
 for l, h, s in zip(low.values, high.values, high.index):
     if s == ex_site:

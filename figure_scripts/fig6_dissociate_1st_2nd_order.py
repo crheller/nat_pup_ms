@@ -5,6 +5,7 @@ Dissociate first and second order effects. Do this by:
 """
 import load_results as ld
 import colors as color
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.preprocessing as preproc
@@ -21,7 +22,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/fig6_dissociate_1st_2nd_order.svg'
+fig_fn = PY_FIGURES_DIR + '/fig6_dissociate_1st_2nd_order.svg'
 mi_max = 0.3
 mi_min = -0.2
 vmin = -0.1
@@ -72,38 +73,51 @@ for c in corr:
     print('loading {}'.format(c))
     corr_results.append(ld.load_noise_correlation(c))
 
+# print pvalues for each relevant comparison (corr vs. raw, and big vs. small)
+for b in range(0, len(raw_results)):
+    print("bin {0} corr. vs. raw:     pval: {1}".format(b+1, ss.wilcoxon(corr_results[b].groupby(by='site').mean()['all'], 
+                                                                        raw_results[b].groupby(by='site').mean()['all']).pvalue))
+
+    print("bin {0} big vs. small:     pval: {1}".format(b+1, ss.wilcoxon(raw_results[b].groupby(by='site').mean()['bp'], 
+                                                                        raw_results[b].groupby(by='site').mean()['sp']).pvalue))
+
+    print('\n')
 
 # plot results
 xvals = range(len(raw_results))
-raw_nc = [r['all'].mean() for r in raw_results]
-raw_sem = [r['all'].sem() for r in raw_results]
-corr_nc = [c['all'].mean() for c in corr_results]
-corr_sem = [c['all'].sem() for c in corr_results]
+raw_nc = np.array([r.groupby(by='site').mean()['all'].mean() for r in raw_results])
+raw_sem = np.array([r.groupby(by='site').mean()['all'].sem() for r in raw_results])
+corr_nc = np.array([c.groupby(by='site').mean()['all'].mean() for c in corr_results])
+corr_sem = np.array([c.groupby(by='site').mean()['all'].sem() for c in corr_results])
 
-bp_nc = [r['bp'].mean() for r in raw_results]
-bp_sem = [r['bp'].sem() for r in raw_results]
-sp_nc = [r['sp'].mean() for r in raw_results]
-sp_sem = [r['sp'].sem() for r in raw_results]
+bp_nc = np.array([r.groupby(by='site').mean()['bp'].mean() for r in raw_results])
+bp_sem = np.array([r.groupby(by='site').mean()['bp'].sem() for r in raw_results])
+sp_nc = np.array([r.groupby(by='site').mean()['sp'].mean() for r in raw_results])
+sp_sem = np.array([r.groupby(by='site').mean()['sp'].sem() for r in raw_results])
 
-ncax.errorbar(xvals, raw_nc, yerr=raw_sem, marker='.', color=color.RAW, label='Raw')
-ncax.errorbar(xvals, corr_nc, yerr=corr_sem, marker='.', color=color.CORRECTED, label='Corrected')
+ncax.plot(xvals, raw_nc, marker='.', color=color.RAW, label='Raw')
+ncax.fill_between(xvals, raw_nc-raw_sem, raw_nc+raw_sem, alpha=0.2, color=color.RAW, lw=0)
+ncax.plot(xvals, corr_nc, marker='.', color=color.CORRECTED, label='Corrected')
+ncax.fill_between(xvals, corr_nc-corr_sem, corr_nc+corr_sem, alpha=0.2, color=color.CORRECTED, lw=0)
 ncax.axhline(0, linestyle='--', lw=2, color='grey')
 ncax.legend(frameon=False)
 ncax.set_xticks(xvals)
 ncax.set_xticklabels(f_band, rotation=45)
 ncax.set_ylabel('Noise Correlation')
-ncax.set_ylim((-0.01, 0.08))
+ncax.set_ylim((-0.01, 0.12))
 ncax.set_xlabel('Frequency Band (Hz)')
 #ncax.set_aspect(cplt.get_square_asp(ncax))
 
-bsax.errorbar(xvals, bp_nc, yerr=bp_sem, marker='.', color=color.LARGE, label='Large')
-bsax.errorbar(xvals, sp_nc, yerr=sp_sem, marker='.', color=color.SMALL, label='Small')
+bsax.plot(xvals, bp_nc, marker='.', color=color.LARGE, label='Large')
+bsax.fill_between(xvals, bp_nc-bp_sem, bp_nc+bp_sem, alpha=0.2, color=color.LARGE, lw=0)
+bsax.plot(xvals, sp_nc, marker='.', color=color.SMALL, label='Small')
+bsax.fill_between(xvals, sp_nc-sp_sem, sp_nc+sp_sem, alpha=0.2, color=color.SMALL, lw=0)
 bsax.axhline(0, linestyle='--', lw=2, color='grey')
 bsax.legend(frameon=False)
 bsax.set_xticks(xvals)
 bsax.set_xticklabels(f_band, rotation=45)
 bsax.set_ylabel('Noise Correlation')
-bsax.set_ylim((-0.01, 0.08))
+bsax.set_ylim((-0.01, 0.12))
 bsax.set_xlabel('Frequency Band (Hz)')
 #bsax.set_aspect(cplt.get_square_asp(bsax))
 

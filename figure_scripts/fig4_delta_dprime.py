@@ -295,7 +295,7 @@ lax1.set_xlabel(alab.COSTHETA, color=color.COSTHETA)
 lax1.spines['bottom'].set_color(color.COSTHETA)
 lax1.xaxis.label.set_color(color.COSTHETA)
 lax1.tick_params(axis='x', colors=color.COSTHETA)
-lax1.set_title('Discriminability Improvement')
+lax1.set_title('Discriminability Change')
 
 lax2.set_xlabel(alab.COSTHETA, color=color.COSTHETA)
 lax2.spines['bottom'].set_color(color.COSTHETA)
