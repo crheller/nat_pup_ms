@@ -17,7 +17,7 @@ import numpy as np
 import scipy.stats as ss
 import seaborn as sns
 import load_results as ld
-
+import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
@@ -117,4 +117,49 @@ f.tight_layout()
 if savefig:
     f.savefig(fig_fn)
 
+
+# print out relevant stats
+
+# full model vs. shuffled model
+# single cells
+pval = ss.wilcoxon(df.loc[:, pd.IndexSlice['r', 'st.pup0']], df.loc[:, pd.IndexSlice['r', 'st.pup']]).pvalue
+print("r vs. r0 for single cells: r: {0}, {1}\n r0: {2}, {3}\n pval: {2}".format(
+                        df.loc[:, pd.IndexSlice['r', 'st.pup']].mean(),
+                        df.loc[:, pd.IndexSlice['r', 'st.pup']].sem(),
+                        df.loc[:, pd.IndexSlice['r', 'st.pup0']].mean(),
+                        df.loc[:, pd.IndexSlice['r', 'st.pup0']].sem(),
+                        pval
+))
+print("\n")
+
+# gain modulation
+pval = ss.wilcoxon(gain).pvalue
+print("gain: mean: {0}, {1} \n pval: {2}".format(
+                        gain.mean(),
+                        gain.sem(),
+                        pval
+))
+print("\n")
+
+# DC modulation
+pval = ss.wilcoxon(dc).pvalue
+print("DC: mean: {0}, {1} \n pval: {2}".format(
+                        dc.mean(),
+                        dc.sem(),
+                        pval
+))
+print("\n")
+
+# noise correlations
+pval = ss.wilcoxon(rsc_df['bp'], rsc_df['sp'])
+print("rsc: large: {0}, {1} \n small: {2}, {3}, \n pval: {4}".format(
+                        rsc_df['bp'].mean(),
+                        rsc_df['bp'].sem(),
+                        rsc_df['sp'].mean(),
+                        rsc_df['sp'].sem(),
+                        pval
+))
+print("\n")
+
 plt.show()
+
