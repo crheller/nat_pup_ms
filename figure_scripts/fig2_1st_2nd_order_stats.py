@@ -123,7 +123,7 @@ if savefig:
 # full model vs. shuffled model
 # single cells
 pval = ss.wilcoxon(df.loc[:, pd.IndexSlice['r', 'st.pup0']], df.loc[:, pd.IndexSlice['r', 'st.pup']]).pvalue
-print("r vs. r0 for single cells: r: {0}, {1}\n r0: {2}, {3}\n pval: {2}".format(
+print("r vs. r0 for single cells: r: {0}, {1}\n r0: {2}, {3}\n pval: {4}".format(
                         df.loc[:, pd.IndexSlice['r', 'st.pup']].mean(),
                         df.loc[:, pd.IndexSlice['r', 'st.pup']].sem(),
                         df.loc[:, pd.IndexSlice['r', 'st.pup0']].mean(),

@@ -5,24 +5,29 @@ force_rerun = True
 boxcar = False
 evoked = True
 slow = False
+custom = True  # run a subset of jobs
 for batch in batches:
 
-    modelnames = ['rsc', 'rsc_pr_rm2', 
-                'rsc_fft0-0.05', 'rsc_pr_rm2_fft0-0.05',
-                'rsc_fft0.05-0.1', 'rsc_pr_rm2_fft0.05-0.1',
-                'rsc_fft0.1-0.25', 'rsc_pr_rm2_fft0.1-0.25',
-                'rsc_fft0.25-0.5', 'rsc_pr_rm2_fft0.25-0.5',
-                'rsc_fft0-0.1', 'rsc_pr_rm2_fft0-0.1',
-                'rsc_fft0-0.25', 'rsc_pr_rm2_fft0-0.25',
-                'rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
-                'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2',
-                'rsc_fft2-4', 'rsc_pr_rm2_fft2-4',
-                'rsc_fft0.1-4', 'rsc_pr_rm2_fft0.1-4',
-                'rsc_fft0.25-4', 'rsc_pr_rm2_fft0.25-4',
-                'rsc_fft0.5-4', 'rsc_pr_rm2_fft0.5-4',
-                'rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
-                'rsc_fft10-25', 'rsc_pr_rm2_fft10-25',
-                'rsc_fft25-50', 'rsc_pr_rm2_fft25-50']
+    if custom:
+        modelnames = ['rsc_nrem'] # testing w/o rem
+    else:
+
+        modelnames = ['rsc', 'rsc_pr_rm2', 
+                    'rsc_fft0-0.05', 'rsc_pr_rm2_fft0-0.05',
+                    'rsc_fft0.05-0.1', 'rsc_pr_rm2_fft0.05-0.1',
+                    'rsc_fft0.1-0.25', 'rsc_pr_rm2_fft0.1-0.25',
+                    'rsc_fft0.25-0.5', 'rsc_pr_rm2_fft0.25-0.5',
+                    'rsc_fft0-0.1', 'rsc_pr_rm2_fft0-0.1',
+                    'rsc_fft0-0.25', 'rsc_pr_rm2_fft0-0.25',
+                    'rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
+                    'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2',
+                    'rsc_fft2-4', 'rsc_pr_rm2_fft2-4',
+                    'rsc_fft0.1-4', 'rsc_pr_rm2_fft0.1-4',
+                    'rsc_fft0.25-4', 'rsc_pr_rm2_fft0.25-4',
+                    'rsc_fft0.5-4', 'rsc_pr_rm2_fft0.5-4',
+                    'rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
+                    'rsc_fft10-25', 'rsc_pr_rm2_fft10-25',
+                    'rsc_fft25-50', 'rsc_pr_rm2_fft25-50']
 
     if slow:
         modelnames = ['rsc', 'rsc_pr_rm2', 

@@ -20,6 +20,8 @@ sys.path.append('/auto/users/hellerc/code/charlieTools/')
 import charlieTools.simulate_data as sim
 import charlieTools.preprocessing as preproc
 import charlieTools.noise_correlations as nc
+from charlieTools.nat_sounds_ms.preprocessing import get_pupil_range
+from charlieTools.nat_sounds_ms.decoding import load_site
 import pandas as pd
 import numpy as np
 import scipy.stats as ss
@@ -86,6 +88,7 @@ log.info('Computing noise correlations for site: {0} with options: \n \
             balanced pupil epochs: {3}'.format(site, pupil_regress, lv_regress, balanced))
 
 log.info("Saving results to: {}".format(path))
+
 
 batch = int(batch)
 if filt & (fs4 == False):
@@ -156,6 +159,22 @@ if evoked:
 
 rec = rec.apply_mask(reset_epochs=True)
 
+# get the pupil range for each stimulus pair, then save the mean of this for the site
+use_xforms = regression_method2
+X, sp_bins, X_pup, pup_mask = load_site(site=site, batch=batch, 
+                                       regress_pupil=pupil_regress,
+                                       use_xforms=use_xforms)
+ncells = X.shape[0]
+nreps_raw = X.shape[1]
+nstim = X.shape[2]
+nbins = X.shape[3]
+sp_bins = sp_bins.reshape(1, sp_bins.shape[1], nstim * nbins)
+nstim = nstim * nbins
+X_pup = X_pup.reshape(1, nreps_raw, nstim)
+pup_mask = pup_mask.reshape(1, nreps_raw, nstim)
+pupil_range = get_pupil_range(X_pup, pup_mask)
+mean_pupil_range = pupil_range['range'].iloc[:-1].mean()
+
 log.info("Mask large and small pupil")
 # handle using xforms pupil mask
 rec_bp = rec.copy()
@@ -186,6 +205,7 @@ df['p_bp'] = df_big['pval']
 df['sp'] = df_small['rsc']
 df['p_sp'] = df_small['pval']
 df['site'] = site
+df['mean_pupil_range'] = mean_pupil_range
 
 log.info("save noise corr results for model: {0}, site: {1}".format(modelname, site))
 
