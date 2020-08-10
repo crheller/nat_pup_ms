@@ -7,7 +7,7 @@
 3) (?) Can't predict delta noise correlations from first order effect magnitude.
     - Or show this as supplementary figure
 """
-
+import charlieTools.statistics as stats
 from single_cell_models.mod_per_state import get_model_results_per_state_model
 import os
 import pandas as pd
@@ -62,7 +62,40 @@ ntot = gain.shape[0]
 
 # load noise correlations
 rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
-rsc_df = ld.load_noise_correlation('rsc_bal', path=rsc_path)
+rsc_df = ld.load_noise_correlation('rsc_ev_nrem', xforms_model='NULL', path=rsc_path)
+mask = ~(rsc_df['bp'].isna() | rsc_df['sp'].isna())
+rsc_df = rsc_df[mask]
+# hierarchical bootstrapping, compare even / weighted sampling
+rsc_df['diff'] = rsc_df['sp']-rsc_df['bp']
+d = dict()
+for s in rsc_df.site.unique(): 
+     d[s] = rsc_df[rsc_df.site==s]['diff'].values.squeeze() 
+bs_even = stats.get_bootstrapped_sample(d, even_sample=True, nboot=10000)
+bs_weighted = stats.get_bootstrapped_sample(d, even_sample=False, nboot=10000)
+bins = np.arange(-0.02, 0.02, 0.001)
+
+# get pvalue for each method (and for standard Wilcoxon over the population, ignoring sites, one sided)
+p_even = round(1 - stats.get_direct_prob(np.zeros(len(bs_even)), bs_even)[0], 5)
+p_weighted = round(1 - stats.get_direct_prob(np.zeros(len(bs_even)), bs_weighted)[0], 5)
+p_wilcox = round(ss.wilcoxon(rsc_df['bp'], rsc_df['sp'], alternative='less').pvalue, 5)
+p_wilcox_g = round(ss.wilcoxon(rsc_df.groupby(by='site').mean()['bp'], 
+                        rsc_df.groupby(by='site').mean()['sp'], alternative='less').pvalue, 5)
+
+# plot results
+f, ax = plt.subplots(1, 1)
+
+ax.hist(bs_even, bins=bins, alpha=0.5, label='Even re-sampling, pvalue: {}'.format(p_even))
+ax.hist(bs_weighted, bins=bins, alpha=0.5, label='Weighted re-sampling, pvalue: {}'.format(p_weighted))
+ax.axvline(rsc_df['diff'].mean(), color='k', linestyle='--', lw=2, label='True pop. mean, Wilcoxon Sign-test pvalue: {0}'.format(p_wilcox))
+ax.axvline(rsc_df.groupby(by='site').mean()['diff'].mean(), color='grey', linestyle='--', lw=2, 
+                            label='Grouped pop. mean, Wilcoxon Sign-test pvalue: {0}'.format(p_wilcox_g))
+
+ax.legend(frameon=False, fontsize=12)
+ax.set_xlabel(r"Mean $\Delta$noise correlation", fontsize=12)
+ax.set_ylabel(r"$n$ bootstraps", fontsize=12)
+f.tight_layout()
+
+plt.show()
 
 # set up figures
 f = plt.figure(figsize=(6, 2))
@@ -122,42 +155,47 @@ if savefig:
 
 # full model vs. shuffled model
 # single cells
-pval = ss.wilcoxon(df.loc[:, pd.IndexSlice['r', 'st.pup0']], df.loc[:, pd.IndexSlice['r', 'st.pup']]).pvalue
-print("r vs. r0 for single cells: r: {0}, {1}\n r0: {2}, {3}\n pval: {4}".format(
-                        df.loc[:, pd.IndexSlice['r', 'st.pup']].mean(),
-                        df.loc[:, pd.IndexSlice['r', 'st.pup']].sem(),
-                        df.loc[:, pd.IndexSlice['r', 'st.pup0']].mean(),
-                        df.loc[:, pd.IndexSlice['r', 'st.pup0']].sem(),
-                        pval
+df['site'] = [d[:7] for d in df.index] 
+wstat, pval = ss.wilcoxon(df.groupby(by='site').mean().loc[:, pd.IndexSlice['r', 'st.pup0']], df.groupby(by='site').mean().loc[:, pd.IndexSlice['r', 'st.pup']])
+print("r vs. r0 for single cells: r: {0}, {1}\n r0: {2}, {3}\n pval: {4}, W: {5}".format(
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['r', 'st.pup']].mean(),
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['r', 'st.pup']].sem(),
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['r', 'st.pup0']].mean(),
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['r', 'st.pup0']].sem(),
+                        pval,
+                        wstat
 ))
 print("\n")
 
 # gain modulation
-pval = ss.wilcoxon(gain).pvalue
-print("gain: mean: {0}, {1} \n pval: {2}".format(
-                        gain.mean(),
-                        gain.sem(),
-                        pval
+wstat, pval = ss.wilcoxon(df.groupby(by='site').mean().loc[:, pd.IndexSlice['gain_mod', 'st.pup']])
+print("gain: mean: {0}, {1} \n pval: {2}, W: {3}".format(
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['gain_mod', 'st.pup']].mean(),
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['gain_mod', 'st.pup']].sem(),
+                        pval,
+                        wstat
 ))
 print("\n")
 
 # DC modulation
-pval = ss.wilcoxon(dc).pvalue
-print("DC: mean: {0}, {1} \n pval: {2}".format(
-                        dc.mean(),
-                        dc.sem(),
-                        pval
+wstat, pval = ss.wilcoxon(df.groupby(by='site').mean().loc[:, pd.IndexSlice['dc_mod', 'st.pup']])
+print("DC: mean: {0}, {1} \n pval: {2}, W: {3}".format(
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['dc_mod', 'st.pup']].mean(),
+                        df.groupby(by='site').mean().loc[:, pd.IndexSlice['dc_mod', 'st.pup']].sem(),
+                        pval,
+                        wstat
 ))
 print("\n")
 
 # noise correlations
-pval = ss.wilcoxon(rsc_df['bp'], rsc_df['sp'])
-print("rsc: large: {0}, {1} \n small: {2}, {3}, \n pval: {4}".format(
-                        rsc_df['bp'].mean(),
-                        rsc_df['bp'].sem(),
-                        rsc_df['sp'].mean(),
-                        rsc_df['sp'].sem(),
-                        pval
+wstat, pval = ss.wilcoxon(rsc_df.groupby(by='site').mean()['bp'], rsc_df.groupby(by='site').mean()['sp'])
+print("rsc: large: {0}, {1} \n small: {2}, {3}, \n pval: {4}, W: {5}".format(
+                        rsc_df.groupby(by='site').mean()['bp'].mean(),
+                        rsc_df.groupby(by='site').mean()['bp'].sem(),
+                        rsc_df.groupby(by='site').mean()['sp'].mean(),
+                        rsc_df.groupby(by='site').mean()['sp'].sem(),
+                        pval,
+                        wstat
 ))
 print("\n")
 

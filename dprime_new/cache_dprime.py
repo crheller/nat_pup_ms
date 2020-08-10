@@ -73,6 +73,7 @@ fix_tdr2 = False
 gain_only = False
 dc_only = False
 est_equal_val = False  # for low rep sites where can't perform cross-validation
+n_noise_axes = None    # whether or not to go beyond TDR = 2 dimensions. e.g. if this is 2, Will compute a 4D TDR space (2 more noise dimensions)
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -113,7 +114,8 @@ for op in options:
         fix_tdr2 = True
     if op == 'eev':
         est_equal_val = True
-
+    if 'noiseDim' in op:
+        n_noise_axes = int(op[8:])
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
     raise DeprecationWarning("Updates have been made since this was last used. Make sure behavior is as expected")
@@ -298,7 +300,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
             raw_data = (xtrain_raw, nreps_train_raw)
 
         # ============================== TDR ANALYSIS ==============================
-        # custom dim reduction onto plane defined by dU and first PC of noise covariance
+        # custom dim reduction onto plane defined by dU and first PC of noise covariance (+ additional noise axes)
         if sim_tdr_space:
             # simulate data *after* after projecting into TDR space.
             _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
@@ -306,6 +308,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                             nreps_train,
                                             nreps_test,
                                             tdr_data=raw_data,
+                                            n_additional_axes=n_noise_axes,
                                             sim1=sim1,
                                             sim2=sim2,
                                             sim12=sim12,
@@ -321,6 +324,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                                         nreps_train,
                                                         nreps_test,
                                                         tdr_data=raw_data,
+                                                        n_additional_axes=n_noise_axes,
                                                         beta1=beta1,
                                                         beta2=beta2,
                                                         tdr2_axis=tdr2_axis,
@@ -328,7 +332,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                                         ptest_mask=ptest_mask)
         
         _tdr_results.update({
-            'n_components': 2,
+            'n_components': 2+n_noise_axes,
             'jack_idx': ev_set,
             'combo': combo,
             'category': category,

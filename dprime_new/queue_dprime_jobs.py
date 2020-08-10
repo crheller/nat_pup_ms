@@ -9,6 +9,7 @@ nc_lv = True       # beta defined using nc LV method
 fix_tdr2 = True    # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
 sim_in_tdr = True  # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 no_crossval = False # for no cross validation
+n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
@@ -51,6 +52,9 @@ if fix_tdr2:
 
 if temp_subset:
     modellist = [m for m in modellist if ('_sim' in m)]
+
+if n_additional_noise_dims > 0:
+    modellist = [m+'_noiseDim{0}'.format(n_additional_noise_dims) for m in modellist]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
