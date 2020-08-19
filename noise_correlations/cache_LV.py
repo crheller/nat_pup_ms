@@ -45,8 +45,6 @@ for site in sites:
     if batch == 294:
         xmodel = xmodel.replace('ns.fs4.pup', 'ns.fs4.pup.voc')
     path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
-    low = 0.5
-    high = 2  # for filtering the projection
 
     cells, _ = parse_cellid(ops)
     rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,

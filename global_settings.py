@@ -9,6 +9,8 @@ ALL_SITES = ['BOL005c', 'BOL006b', 'bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', '
             'DRX007a.e1:64', 'DRX007a.e65:128',
             'DRX008b.e1:64', 'DRX008b.e65:128']
 
+
+# BRT032, BRT033, and BRT037 + TAR009d?? Excluded because flat pupil, I think...
 # subset in which cross-validation can be performed
 HIGHR_SITES = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
             'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 

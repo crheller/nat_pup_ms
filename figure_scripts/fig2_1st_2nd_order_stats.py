@@ -62,7 +62,7 @@ ntot = gain.shape[0]
 
 # load noise correlations
 rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
-rsc_df = ld.load_noise_correlation('rsc_ev_nrem', xforms_model='NULL', path=rsc_path)
+rsc_df = ld.load_noise_correlation('rsc_ev', xforms_model='NULL', path=rsc_path)
 mask = ~(rsc_df['bp'].isna() | rsc_df['sp'].isna())
 rsc_df = rsc_df[mask]
 # hierarchical bootstrapping, compare even / weighted sampling

@@ -73,7 +73,7 @@ fix_tdr2 = False
 gain_only = False
 dc_only = False
 est_equal_val = False  # for low rep sites where can't perform cross-validation
-n_noise_axes = None    # whether or not to go beyond TDR = 2 dimensions. e.g. if this is 2, Will compute a 4D TDR space (2 more noise dimensions)
+n_noise_axes = 0    # whether or not to go beyond TDR = 2 dimensions. e.g. if this is 2, Will compute a 4D TDR space (2 more noise dimensions)
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])

@@ -25,7 +25,7 @@ def load_noise_correlation(modelname, xforms_model=None, path=None):
             xf_model = xforms_model
         try:
             if ('fft' in modelname) | (xforms_model=='NULL'):
-                dfs.append(pd.read_csv(path+s+'/'+modelname+'.csv', index_col=[0]))
+                dfs.append(pd.read_csv(path+s+'/'+modelname+'.csv', index_col=[0]))               
             else:
                 dfs.append(pd.read_csv(path+s+'/'+xf_model+'/'+modelname+'.csv', index_col=0))
         except:
