@@ -16,7 +16,7 @@
    width="8in"
    id="svg23226"
    sodipodi:docname="supp_modeldprime.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
   <metadata
      id="metadata23230">
     <rdf:RDF>
@@ -38,8 +38,8 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1021"
+     inkscape:window-width="1848"
+     inkscape:window-height="1016"
      id="namedview23228"
      showgrid="false"
      units="in"
@@ -47,7 +47,7 @@
      inkscape:cx="377.8983"
      inkscape:cy="163.52542"
      inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg23226" />
   <defs
@@ -2358,7 +2358,7 @@
   <g
      id="line2d_41"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="translate(258.71185,15.254241)">
+     transform="translate(285.71185,12.254241)">
     <path
        id="path55670"
        style="fill:none;stroke:#000000;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:5.55, 2.4;stroke-dashoffset:0"
@@ -2390,7 +2390,7 @@
   <g
      id="patch_4"
      style="stroke-linecap:butt;stroke-linejoin:round"
-     transform="translate(258.71185,15.254241)">
+     transform="translate(285.71185,12.254241)">
     <path
        id="path55679"
        style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:square;stroke-linejoin:miter"
