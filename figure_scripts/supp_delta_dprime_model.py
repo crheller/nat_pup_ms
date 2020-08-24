@@ -157,36 +157,63 @@ highr_mask = np.array(highr_mask)
 print("OVERALL D'")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_overall[:,1]), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_overall[:,1]), 
                                                        beta_overall[:,1].std() / np.sqrt(beta_overall.shape[0]), 
-                                                       ss.wilcoxon(beta_overall[:, 1]).pvalue))
+                                                       ss.wilcoxon(beta_overall[:, 1]).pvalue,
+                                                       ss.wilcoxon(beta_overall[:, 1]).statistic))
+print("{0} / {1} sites significant \n".format((pvals_overall[:,1]<0.05).sum(), pvals_overall.shape[0]))
+      
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_overall[:,2]), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_overall[:,2]), 
                                                             beta_overall[:,2].std() / np.sqrt(beta_overall.shape[0]), 
-                                                            ss.wilcoxon(beta_overall[:, 2]).pvalue))
+                                                            ss.wilcoxon(beta_overall[:, 2]).pvalue,
+                                                            ss.wilcoxon(beta_overall[:, 2]).statistic))
+print("{0} / {1} sites significant \n".format((pvals_overall[:,2]<0.05).sum(), pvals_overall.shape[0]))
+
+      
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_overall[:,3]), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_overall[:,3]), 
                                                     beta_overall[:,3].std() / np.sqrt(beta_overall.shape[0]), 
-                                                    ss.wilcoxon(beta_overall[:, 3]).pvalue))
+                                                    ss.wilcoxon(beta_overall[:, 3]).pvalue,
+                                                    ss.wilcoxon(beta_overall[:, 3]).statistic))
+print("{0} / {1} sites significant \n".format((pvals_overall[:,3]<0.05).sum(), pvals_overall.shape[0]))
+
+      
+      
 print("\n")
 print("DELTA D'")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_delta[:,1]), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_delta[:,1]), 
                                                        beta_delta[:,1].std() / np.sqrt(beta_delta.shape[0]), 
-                                                       ss.wilcoxon(beta_delta[:, 1]).pvalue))
+                                                       ss.wilcoxon(beta_delta[:, 1]).pvalue,
+                                                       ss.wilcoxon(beta_delta[:, 1]).statistic))
+print("{0} / {1} sites significant \n".format((pvals_delta[:,1]<0.05).sum(), pvals_overall.shape[0]))
+
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_delta[:,2]), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_delta[:,2]), 
                                                             beta_delta[:,2].std() / np.sqrt(beta_delta.shape[0]), 
-                                                            ss.wilcoxon(beta_delta[:, 2]).pvalue))
+                                                            ss.wilcoxon(beta_delta[:, 2]).pvalue,
+                                                            ss.wilcoxon(beta_delta[:, 2]).statistic))
+print("{0} / {1} sites significant \n".format((pvals_delta[:,2]<0.05).sum(), pvals_overall.shape[0]))
+
+      
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_delta[:,3]), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_delta[:,3]), 
                                                     beta_delta[:,3].std() / np.sqrt(beta_delta.shape[0]), 
-                                                    ss.wilcoxon(beta_delta[:, 3]).pvalue))
+                                                    ss.wilcoxon(beta_delta[:, 3]).pvalue,
+                                                    ss.wilcoxon(beta_delta[:, 3]).statistic))
+print("{0} / {1} sites significant \n".format((pvals_delta[:,3]<0.05).sum(), pvals_overall.shape[0]))
 
 # plot beta weights
 for bo, bd, po, pd, rs in zip(beta_overall, beta_delta, pvals_overall, pvals_delta, rsquared):

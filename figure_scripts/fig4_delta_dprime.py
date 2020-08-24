@@ -22,7 +22,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
@@ -116,7 +116,8 @@ dpax.set_title(r"$d'^{2}$")
 
 # plot significance of group effect of scatter plot
 print("Large vs. small pupil dprime       pval: {0} \n"
-      "                                   n:    {1}".format(ss.wilcoxon(dfg['sp_dp'], dfg['bp_dp']).pvalue, dfg.shape[0]))
+      "                                   n:    {1} \n"
+      "                                   W stat: {2} \n".format(ss.wilcoxon(dfg['sp_dp'], dfg['bp_dp']).pvalue, dfg.shape[0], ss.wilcoxon(dfg['sp_dp'], dfg['bp_dp']).statistic))
 
 # plot delta dprime
 # loop over each site, compute zscore of delta dprime or use MI of dprime,

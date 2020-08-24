@@ -103,7 +103,7 @@ if norm_state_diff:
         cc.append(np.corrcoef(norm_pvar, sd)[0, 1])
 
     pval = sum(abs(np.array(cc)) >= abs(true_cc)) / niters
-    print("Bootstrap test pvalue: {0}, min pval: {1}".format(pval, 1/niters))
+    print("Permutation test pvalue: {0}, min pval: {1}".format(pval, 1/niters))
 
     ax.scatter(norm_pvar.loc[HIGHR_SITES], state_diff.loc[HIGHR_SITES], marker='o', edgecolor='white', color='k', s=50,
                     label=r"$r = %s, p = %s$" % (round(true_cc, 2), round(pval, 3)), zorder=3)

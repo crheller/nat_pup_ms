@@ -4,6 +4,7 @@ of each cell's MI (supp. to Figure 7)
 """
 import load_results as ld
 import colors as color
+from path_settings import PY_FIGURES_DIR
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.preprocessing as preproc
@@ -20,7 +21,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
-fig_fn = '/home/charlie/Desktop/lbhb/code/projects/nat_pup_ms/py_figures/supp_rsc_mi_histogram.svg'
+fig_fn = PY_FIGURES_DIR+ 'supp_rsc_mi_histogram.svg'
 mi_max = 0.3
 mi_min = -0.2
 # set up subplots
@@ -45,7 +46,7 @@ df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', value
 MI = df.loc[:, pd.IndexSlice['MI', 'st.pup']]
 
 rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
-rsc_df = ld.load_noise_correlation('rsc_bal', path=rsc_path)
+rsc_df = ld.load_noise_correlation('rsc_ev', xforms_model='NULL', path=rsc_path)
 
 # add column for the gain of each neuron
 m1 = [MI.loc[p.split('_')[0]] for p in rsc_df.index]

@@ -6,6 +6,7 @@ Dissociate first and second order effects. Do this by:
 import load_results as ld
 import colors as color
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR
+from global_settings import ALL_SITES
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.preprocessing as preproc
@@ -21,12 +22,12 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = False
+savefig = True
 fig_fn = PY_FIGURES_DIR + '/fig6_dissociate_1st_2nd_order.svg'
 mi_max = 0.3
 mi_min = -0.2
-vmin = -0.1
-vmax = 0.1
+vmin = -0.15
+vmax = 0.15
 # set up subplots
 f = plt.figure(figsize=(12, 7.5))
 
@@ -76,10 +77,10 @@ for c in corr:
 # print pvalues for each relevant comparison (corr vs. raw, and big vs. small)
 for b in range(0, len(raw_results)):
     print("bin {0} corr. vs. raw:     pval: {1}".format(b+1, ss.wilcoxon(corr_results[b].groupby(by='site').mean()['all'], 
-                                                                        raw_results[b].groupby(by='site').mean()['all']).pvalue))
+                                                                        raw_results[b].groupby(by='site').mean()['all'])))
 
     print("bin {0} big vs. small:     pval: {1}".format(b+1, ss.wilcoxon(raw_results[b].groupby(by='site').mean()['bp'], 
-                                                                        raw_results[b].groupby(by='site').mean()['sp']).pvalue))
+                                                                        raw_results[b].groupby(by='site').mean()['sp'])))
 
     print('\n')
 
@@ -135,10 +136,13 @@ except:
     pass
 
 df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se'])
+df['site'] = [idx[:7] for idx in df.index]
+df = df[df.loc[:, 'site'].isin([s[:7] for s in ALL_SITES])]
+
 MI = df.loc[:, pd.IndexSlice['MI', 'st.pup']]
 
 rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
-rsc_df = ld.load_noise_correlation('rsc_bal', path=rsc_path)
+rsc_df = ld.load_noise_correlation('rsc_ev', xforms_model='NULL', path=rsc_path)
 
 # add column for the gain of each neuron
 m1 = [MI.loc[p.split('_')[0]] for p in rsc_df.index]
@@ -163,8 +167,8 @@ model_all = sm.OLS(y, X).fit()
 
 # plot heatmaps of noise corr vs. mi
 # plot overall noise correlation
-xbins = np.linspace(mi_min, mi_max, 10)
-ybins = np.linspace(mi_min, mi_max, 10)
+xbins = np.linspace(mi_min, mi_max, 20)
+ybins = np.linspace(mi_min, mi_max, 20)
 heatmap_rsc = ss.binned_statistic_2d(x=rsc_df['m1'], 
                             y=rsc_df['m2'],
                             values=rsc_df['all'],
@@ -173,7 +177,7 @@ heatmap_rsc = ss.binned_statistic_2d(x=rsc_df['m1'],
 
 im = rscax.imshow(heatmap_rsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
                             extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
-                            origin='lower', interpolation='gaussian')
+                            origin='lower', interpolation='none')
 divider = make_axes_locatable(rscax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
 f.colorbar(im, cax=cbarax, orientation='vertical')
@@ -190,7 +194,7 @@ heatmap_drsc = ss.binned_statistic_2d(x=rsc_df['m1'],
 
 im = drscax.imshow(heatmap_drsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
                             extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
-                            origin='lower', interpolation='gaussian')
+                            origin='lower', interpolation='none')
 divider = make_axes_locatable(drscax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
 f.colorbar(im, cax=cbarax, orientation='vertical')

@@ -16,6 +16,7 @@ import ax_labels as alab
 
 from nems_lbhb.baphy import parse_cellid
 
+import charlieTools.statistics as stats
 import charlieTools.preprocessing as preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
@@ -30,7 +31,7 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = False
+savefig = True
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig5_simulations.svg'
@@ -242,8 +243,15 @@ else:
     dax.set_ylim((-.3, .5))
 
 # print statistics comparing full simulation vs. raw data
-print("Raw delta dprime vs. full simulation,   r: {0}".format(ss.pearsonr(df.groupby(by='site').mean()['sim12'], 
-                                                                              df.groupby(by='site').mean()['state_diff'])))
+print("Raw delta dprime vs. full simulation,   p: {0}".format(ss.wilcoxon(df.groupby(by='site').mean()['sim12'], 
+                                                                           df.groupby(by='site').mean()['state_diff'])))
+
+# bootstrap test instead
+d = {s: df[df.site==s]['sim12'].values-df[df.site==s]['state_diff'].values for s in df.site.unique()}
+print("generating bootstrap stats for dprime models. Could be very slow...")
+#bootstat = stats.get_bootstrapped_sample(d, nboot=5000)
+#p = 1 - stats.get_direct_prob(np.zeros(len(bootstat)), bootstat)[0]
+#print("Raw delta dprime vs. full simulation, p={0}".format(p))
 
 # plot dprime per site for the pupil regress simulations
 if barplot:
@@ -285,6 +293,8 @@ dprax.set_xlim(dax.get_xlim())
 # plot the residual correlation with pupil
 raw_corr = []
 pr_corr = []
+pr_corr_by_site = {d: [] for d in sites}
+raw_corr_by_site = {d: [] for d in sites}
 for site in sites:
     print('Loading spike data for site {}'.format(site))
     batch = 289
@@ -307,6 +317,8 @@ for site in sites:
     for i in range(raw_residual.shape[0]):
         rc.append(np.corrcoef(raw_residual[i, :], pupil)[0, 1])
         prc.append(np.corrcoef(corr_residual[i, :], pupil)[0, 1])
+        pr_corr_by_site[site].append(np.corrcoef(corr_residual[i, :], pupil)[0, 1])
+        raw_corr_by_site[site].append(np.corrcoef(raw_residual[i, :], pupil)[0, 1])
     raw_corr.extend(rc)
     pr_corr.extend(prc)
 
@@ -331,6 +343,20 @@ prax.plot(x, p, 'k', linewidth=2, color=color.CORRECTED)
 prax.set_xlabel(r"Pearson's $r$")
 prax.set_ylabel(r"Neuron Density")
 prax.set_title('Residual spike count \n correlation with pupil')
+
+# do statistical test. 
+#Is corrected distriution's correlation with pupil diff than zero?
+pr_corr_by_site = {d: np.array(v) for (d, v) in pr_corr_by_site.items()}
+bootstat = stats.get_bootstrapped_sample(pr_corr_by_site, nboot=5000)
+p = 1 - stats.get_direct_prob(np.zeros(len(bootstat)), bootstat)[0]
+print("corrected correlation coef. diff from zero? pvalue: {0}".format(p))
+
+# is raw distribution diff from zero?
+raw_corr_by_site = {d: np.array(v) for (d, v) in raw_corr_by_site.items()}
+bootstat = stats.get_bootstrapped_sample(raw_corr_by_site, nboot=5000)
+p = 1 - stats.get_direct_prob(np.zeros(len(bootstat)), bootstat)[0]
+print("raw correlation coef. diff from zero? pvalue: {0}".format(p))
+
 
 # plot heatmaps
 hm = []
@@ -452,19 +478,25 @@ for s in df.site.unique():
 print("First order simualtion results: \n")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_cos), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_cos), 
                                                        np.std(beta_cos) / np.sqrt(len(beta_cos)), 
-                                                       ss.wilcoxon(beta_cos).pvalue))
+                                                       ss.wilcoxon(beta_cos).pvalue,
+                                                       ss.wilcoxon(beta_cos).statistic))
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_du), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_du), 
                                                             np.std(beta_du) / np.sqrt(len(beta_du)), 
-                                                            ss.wilcoxon(beta_du).pvalue))
+                                                            ss.wilcoxon(beta_du).pvalue,
+                                                            ss.wilcoxon(beta_du).statistic))
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_int), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_int), 
                                                     np.std(beta_int) / np.sqrt(len(beta_int)), 
-                                                    ss.wilcoxon(beta_int).pvalue))
+                                                    ss.wilcoxon(beta_int).pvalue,
+                                                    ss.wilcoxon(beta_int).statistic))
 print('\n \n')
 
 
@@ -494,17 +526,23 @@ for s in df.site.unique():
 print("Second order simualtion results: \n")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_cos), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_cos), 
                                                        np.std(beta_cos) / np.sqrt(len(beta_cos)), 
-                                                       ss.wilcoxon(beta_cos).pvalue))
+                                                       ss.wilcoxon(beta_cos).pvalue,
+                                                       ss.wilcoxon(beta_cos).statistic))
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_du), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_du), 
                                                             np.std(beta_du) / np.sqrt(len(beta_du)), 
-                                                            ss.wilcoxon(beta_du).pvalue))
+                                                            ss.wilcoxon(beta_du).pvalue,
+                                                            ss.wilcoxon(beta_du).statistic))
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
-      "                               pval:  {2} \n".format(np.mean(beta_int), 
+      "                               pval:  {2} \n"
+      "                               W stat: {3} \n".format(np.mean(beta_int), 
                                                     np.std(beta_int) / np.sqrt(len(beta_int)), 
-                                                    ss.wilcoxon(beta_int).pvalue))
+                                                    ss.wilcoxon(beta_int).pvalue,
+                                                    ss.wilcoxon(beta_int).statistic))
 print('\n \n')

@@ -34,7 +34,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
 fig_fn = PY_FIGURES_DIR + 'fig7_ncLV.svg'
 
 site = 'DRX006b.e65:128' #'BOL006b' #'DRX006b.e65:128'
@@ -403,7 +403,7 @@ print("mean low overlap: {0}, {1} \n mean high overlap: {2}, {3} \n pval: {4}".f
                                                                                       low.sem(),
                                                                                       high.mean(),
                                                                                       high.sem(),
-                                                                                      ss.wilcoxon(low, high).pvalue))
+                                                                                      ss.wilcoxon(low, high)))
 
 for l, h, s in zip(low.values, high.values, high.index):
     if s == ex_site:
