@@ -20,7 +20,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'supp_modeldprime.svg'
