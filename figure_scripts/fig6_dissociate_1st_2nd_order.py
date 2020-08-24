@@ -23,7 +23,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
-fig_fn = PY_FIGURES_DIR + '/fig6_dissociate_1st_2nd_order.svg'
+fig_fn = PY_FIGURES_DIR + 'fig6_dissociate_1st_2nd_order.svg'
 mi_max = 0.3
 mi_min = -0.2
 vmin = -0.15
@@ -177,7 +177,7 @@ heatmap_rsc = ss.binned_statistic_2d(x=rsc_df['m1'],
 
 im = rscax.imshow(heatmap_rsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
                             extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
-                            origin='lower', interpolation='none')
+                            origin='lower')
 divider = make_axes_locatable(rscax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
 f.colorbar(im, cax=cbarax, orientation='vertical')
@@ -194,7 +194,7 @@ heatmap_drsc = ss.binned_statistic_2d(x=rsc_df['m1'],
 
 im = drscax.imshow(heatmap_drsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
                             extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
-                            origin='lower', interpolation='none')
+                            origin='lower')
 divider = make_axes_locatable(drscax)
 cbarax = divider.append_axes('right', size='5%', pad=0.05)
 f.colorbar(im, cax=cbarax, orientation='vertical')
