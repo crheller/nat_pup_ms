@@ -22,12 +22,12 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
 val = 'dp_opt_test'
 estval = '_test'
 cmap = 'Greens'
@@ -44,7 +44,7 @@ per_site_heatmap = True # z-score dprime within site first, then sum over sites 
 nbins = 20
 vmin = None #0.1 #-.1
 vmax = None #0.3 #.1
-
+n_components = 3
 if all_sites:
     sites = ALL_SITES
 else:
@@ -88,8 +88,8 @@ for site in sites:
         pass
     else:
         _df = _df.loc[_df.index.get_level_values('combo').isin(stim)]
-        _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
-        _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
+        _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
+        _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
         _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
         _df['state_diff_abs'] = (_df['bp_dp'] - _df['sp_dp'])
         _df['state_MI'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])

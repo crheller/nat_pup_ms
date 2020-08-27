@@ -303,21 +303,24 @@ for stim_pair_idx, combo in enumerate(all_combos):
         # custom dim reduction onto plane defined by dU and first PC of noise covariance (+ additional noise axes)
         if sim_tdr_space:
             # simulate data *after* after projecting into TDR space.
-            _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
-                                            xtest,
-                                            nreps_train,
-                                            nreps_test,
-                                            tdr_data=raw_data,
-                                            n_additional_axes=n_noise_axes,
-                                            sim1=sim1,
-                                            sim2=sim2,
-                                            sim12=sim12,
-                                            beta1=beta1,
-                                            beta2=beta2,
-                                            tdr2_axis=tdr2_axis,
-                                            ptrain_mask=ptrain_mask,
-                                            ptest_mask=ptest_mask)
-
+            try:
+                _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
+                                                xtest,
+                                                nreps_train,
+                                                nreps_test,
+                                                tdr_data=raw_data,
+                                                n_additional_axes=n_noise_axes,
+                                                sim1=sim1,
+                                                sim2=sim2,
+                                                sim12=sim12,
+                                                beta1=beta1,
+                                                beta2=beta2,
+                                                tdr2_axis=tdr2_axis,
+                                                ptrain_mask=ptrain_mask,
+                                                ptest_mask=ptest_mask)
+            except:
+                log.info("Can't perform analysis for stimulus combo: {0}".format(combo))
+                _tdr_results = {}
         else:
             _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
                                                         xtest,
@@ -347,7 +350,7 @@ for stim_pair_idx, combo in enumerate(all_combos):
 
         else:
             temp_tdr_results = temp_tdr_results.append([_tdr_results])
-            tdr_results.loc[tdr_idx] = temp_tdr_results.iloc[0].values
+            tdr_results.loc[tdr_idx, temp_tdr_results.keys()] = temp_tdr_results.iloc[0].values
             temp_tdr_results = pd.DataFrame()
         tdr_idx += 1
 

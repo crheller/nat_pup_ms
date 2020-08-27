@@ -34,7 +34,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR + 'fig7_ncLV.svg'
 
 site = 'DRX006b.e65:128' #'BOL006b' #'DRX006b.e65:128'
