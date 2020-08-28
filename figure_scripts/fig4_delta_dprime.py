@@ -28,6 +28,7 @@ path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+n_components = 3
 val = 'dp_opt_test'
 estval = '_test'
 cmap = 'Greens'
@@ -35,16 +36,17 @@ mi_norm = True # compute MI to norm (instead of zscoring)
 high_var_only = False
 all_sites = True
 plot_individual = False # for line plots
+collapse_over_all_sites = True # mean across all sites, don't group first
 reds = False  # if individual lines are plotted, color code them, or not
 center = True
-nline_bins = 8
+nline_bins = 1000
 smooth = True
 sigma = 2
 per_site_heatmap = True # z-score dprime within site first, then sum over sites for heatmap
 nbins = 20
 vmin = None #0.1 #-.1
 vmax = None #0.3 #.1
-n_components = 3
+
 if all_sites:
     sites = ALL_SITES
 else:
@@ -250,10 +252,19 @@ if plot_individual:
     lax3.plot(du_bin, du_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
 
 elif collapse_over_all_sites:
-    cos_val_delt = ss.binned_statistic(df['cos_dU_evec_test'], df['state_diff'], statistic='mean', bins=cbins).statistic
-    du_val_delt = ss.binned_statistic(df['dU_mag_test'], df['state_diff'], statistic='mean', bins=dbins).statistic
-    lax1.plot(cos_bin, cos_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
-    lax3.plot(du_bin, du_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    cos_val_delt = ss.binned_statistic(df['cos_dU_evec_test'], df['state_MI'], statistic='mean', bins=cbins).statistic
+    cos_val_delt_sem = ss.binned_statistic(df['cos_dU_evec_test'], df['state_MI'], statistic='std', bins=cbins).statistic / \
+        np.sqrt(ss.binned_statistic(df['cos_dU_evec_test'], df['state_MI'], statistic='count', bins=cbins).statistic)
+    du_val_delt = ss.binned_statistic(df['dU_mag_test'], df['state_MI'], statistic='mean', bins=dbins).statistic
+    du_val_delt_sem = ss.binned_statistic(df['dU_mag_test'], df['state_MI'], statistic='std', bins=dbins).statistic / \
+        np.sqrt(ss.binned_statistic(df['dU_mag_test'], df['state_MI'], statistic='count', bins=dbins).statistic)
+    #lax1.errorbar(cos_bin, cos_val_delt, yerr=cos_val_delt_sem, marker='.', lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    #lax3.errorbar(du_bin, du_val_delt, yerr=du_val_delt_sem, marker='.', lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    lax1.errorbar(cos_bin, cos_val_delt, lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    lax1.fill_between(cos_bin, cos_val_delt-cos_val_delt_sem, cos_val_delt+cos_val_delt_sem, lw=0, alpha=0.3, color='k')
+    lax3.errorbar(du_bin, du_val_delt, lw=1, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    lax3.fill_between(du_bin, du_val_delt-du_val_delt_sem, du_val_delt+du_val_delt_sem, lw=0, alpha=0.3, color='k')
+    
 
 else:
     lax1.errorbar(cos_bin, cos_val_delt, yerr=cos_val_delt_sem, marker='.', lw=1, color='k', label=lab, zorder=4)
@@ -267,8 +278,8 @@ else:
             lax3.set_ylim((-0.3, 0.3))
 
 if collapse_over_all_sites:
-    lax1.set_ylim((0.2, 1))
-    lax3.set_ylim((0.2, 1))
+    lax1.set_ylim((0.05, 0.3))
+    lax3.set_ylim((0.05, 0.3))
 
 
 du_val = np.nanmean(np.stack(du_dp), axis=0)
@@ -290,6 +301,32 @@ cos_sp_val_sem = np.nanstd(np.stack(cos_sp_dp), axis=0) / np.sqrt((~np.isnan(np.
 if plot_individual:
     lax2.plot(cos_bin, cos_val, '-o', lw=3, color='k', label=r"$d'^{2}$", zorder=3)
     lax4.plot(du_bin, du_val, '-o', lw=3, color='k', label=r"$d'^{2}$", zorder=3)
+
+elif collapse_over_all_sites:
+    # big pupil
+    cos_val = ss.binned_statistic(df['cos_dU_evec_test'], df['bp_dp'], statistic='mean', bins=cbins).statistic
+    cos_val_sem = ss.binned_statistic(df['cos_dU_evec_test'], df['bp_dp'], statistic='std', bins=cbins).statistic / \
+        np.sqrt(ss.binned_statistic(df['cos_dU_evec_test'], df['state_MI'], statistic='count', bins=cbins).statistic)
+    du_val = ss.binned_statistic(df['dU_mag_test'], df['bp_dp'], statistic='mean', bins=dbins).statistic
+    du_val_sem = ss.binned_statistic(df['dU_mag_test'], df['bp_dp'], statistic='std', bins=dbins).statistic / \
+        np.sqrt(ss.binned_statistic(df['dU_mag_test'], df['state_MI'], statistic='count', bins=dbins).statistic)
+    lax2.errorbar(cos_bin, cos_val, lw=1, color='firebrick', label=r"$\Delta d'^{2}$", zorder=4)
+    lax2.fill_between(cos_bin, cos_val-cos_val_sem, cos_val+cos_val_sem, lw=0, alpha=0.3, color='firebrick')
+    lax4.errorbar(du_bin, du_val, lw=1, color='firebrick', label=r"$\Delta d'^{2}$", zorder=4)
+    lax4.fill_between(du_bin, du_val-du_val_sem, du_val+du_val_sem, lw=0, alpha=0.3, color='firebrick')
+
+    # small pupil
+    cos_val = ss.binned_statistic(df['cos_dU_evec_test'], df['sp_dp'], statistic='mean', bins=cbins).statistic
+    cos_val_sem = ss.binned_statistic(df['cos_dU_evec_test'], df['sp_dp'], statistic='std', bins=cbins).statistic / \
+        np.sqrt(ss.binned_statistic(df['cos_dU_evec_test'], df['state_MI'], statistic='count', bins=cbins).statistic)
+    du_val = ss.binned_statistic(df['dU_mag_test'], df['sp_dp'], statistic='mean', bins=dbins).statistic
+    du_val_sem = ss.binned_statistic(df['dU_mag_test'], df['sp_dp'], statistic='std', bins=dbins).statistic / \
+        np.sqrt(ss.binned_statistic(df['dU_mag_test'], df['state_MI'], statistic='count', bins=dbins).statistic)
+    lax2.errorbar(cos_bin, cos_val, lw=1, color='navy', label=r"$\Delta d'^{2}$", zorder=4)
+    lax2.fill_between(cos_bin, cos_val-cos_val_sem, cos_val+cos_val_sem, lw=0, alpha=0.3, color='navy')
+    lax4.errorbar(du_bin, du_val, lw=1, color='navy', label=r"$\Delta d'^{2}$", zorder=4)
+    lax4.fill_between(du_bin, du_val-du_val_sem, du_val+du_val_sem, lw=0, alpha=0.3, color='navy')
+
 else:
     #lax2.errorbar(cos_bin, cos_val, yerr=cos_val_sem, marker='.', lw=1, color='k', label=r"$d'^2$", zorder=4)
     #lax4.errorbar(du_bin, du_val, yerr=du_val_sem, marker='.', lw=1, color='k', label=r"$d'^2", zorder=4)
@@ -304,6 +341,11 @@ else:
         else:
             lax2.set_ylim((-1.1, 1.1))
             lax4.set_ylim((-1.1, 1.1))
+
+if collapse_over_all_sites:
+    lax2.set_ylim((0, 100))
+    lax4.set_ylim((0, 100))
+
 
 lax1.set_xlabel(alab.COSTHETA, color=color.COSTHETA)
 lax1.spines['bottom'].set_color(color.COSTHETA)

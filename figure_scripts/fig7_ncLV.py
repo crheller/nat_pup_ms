@@ -169,21 +169,23 @@ g = [g for g in g]
 
 # ======================================== Load dprime results ================================================
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
-sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
-sim2 = 'dprime_simInTDR_sim2_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2_noiseDim1'
 estval = '_test'
 cmap = 'PRGn'
 high_var_only = False
 all_sites = True
+n_components = 3
 
 # where to crop the data
 if estval == '_train':
     x_cut = (2, 9.5)
     y_cut = (0.05, .5) 
 elif estval == '_test':
-    x_cut = (1, 8)
-    y_cut = (0.2, 1) 
+    #x_cut = (1, 8)
+    #y_cut = (0.2, 1)
+    x_cut = (0.5, 7.2)
+    y_cut = (0, 1) 
 
 if all_sites:
     sites = ALL_SITES
@@ -192,7 +194,6 @@ else:
 
 df = []
 df_sim1 = []
-df_sim2 = []
 path = DPRIME_DIR
 for site in sites:
     if site in LOWR_SITES: mn = modelname.replace('_jk10', '_jk1_eev') 
@@ -207,12 +208,6 @@ for site in sites:
     results_sim1 = loader.load_results(fn)
     _df_sim1 = results_sim1.numeric_results
 
-    if site in LOWR_SITES: mn = sim2.replace('_jk10', '_jk1_eev') 
-    else: mn = sim2
-    fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results_sim2 = loader.load_results(fn)
-    _df_sim2 = results_sim2.numeric_results
-
     stim = results.evoked_stimulus_pairs
     high_var_pairs = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/dprime_new/high_pvar_stim_combos.csv', index_col=0)
     high_var_pairs = high_var_pairs[high_var_pairs.site==site].index.get_level_values('combo')
@@ -221,9 +216,9 @@ for site in sites:
     if len(stim) == 0:
         pass
     else:
-        _df = _df.loc[pd.IndexSlice[stim, 2], :]
-        _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
-        _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
+        _df = _df.loc[pd.IndexSlice[stim, n_components], :]
+        _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
+        _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
         if mi_norm:
             _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
         else:
@@ -231,7 +226,7 @@ for site in sites:
         _df['site'] = site
         df.append(_df)
 
-        _df_sim1 = _df_sim1.loc[pd.IndexSlice[stim, 2], :]
+        _df_sim1 = _df_sim1.loc[pd.IndexSlice[stim, n_components], :]
         if mi_norm:
             _df_sim1['state_diff'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / (_df_sim1['bp_dp'] + _df_sim1['sp_dp'])
         else:
@@ -239,28 +234,17 @@ for site in sites:
         _df_sim1['site'] = site
         df_sim1.append(_df_sim1)
 
-        _df_sim2 = _df_sim2.loc[pd.IndexSlice[stim, 2], :]
-        if mi_norm:
-            _df_sim2['state_diff'] = (_df_sim2['bp_dp'] - _df_sim2['sp_dp']) / (_df_sim2['bp_dp'] + _df_sim2['sp_dp'])
-        else:
-            _df_sim2['state_diff'] = (_df_sim2['bp_dp'] - _df_sim2['sp_dp']) / _df['dp_opt_test']
-        _df_sim2['site'] = site
-        df_sim2.append(_df_sim2)
-
 df_all = pd.concat(df)
 df_sim1_all = pd.concat(df_sim1)
-df_sim2_all = pd.concat(df_sim2)
 
 # filter based on x_cut / y_cut
 mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
 mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
 df = df_all[mask1 & mask2]
 df_sim1 = df_sim1_all[mask1 & mask2]
-df_sim2 = df_sim2_all[mask1 & mask2]
 
 # append the simulation results as columns in the raw dataframe
 df['sim1'] = df_sim1['state_diff']
-df['sim2'] = df_sim2['state_diff']
 df['2nd_residual'] = df['state_diff'] - df['sim1']
 
 # load LV results for all sites
@@ -377,8 +361,8 @@ df['high_mask'] = False
 df['low_mask'] = False
 for s in sig_beta2:
     qts = df[df.site==s].beta2_dot_dU.quantile([0.25, 0.5, 0.75])
-    upper = qts.iloc[2]
-    lower = qts.iloc[0]
+    upper = qts.iloc[1]
+    lower = qts.iloc[1]
     mh = (df.site==s) & (df['beta2_dot_dU'] >= upper)
     ml = (df.site==s) & (df['beta2_dot_dU'] <= lower)
     df.loc[mh, 'high_mask'] = True

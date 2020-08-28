@@ -31,18 +31,19 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = True
+savefig = False
 
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig5_simulations.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
-sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
-sim12 = 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'
-modelname_pr = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
-sim1_pr = 'dprime_simInTDR_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2'
-sim12_pr = 'dprime_simInTDR_sim12_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+sim12 = 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+modelname_pr = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+sim1_pr = 'dprime_simInTDR_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+sim12_pr = 'dprime_simInTDR_sim12_pr_rm2_jk10_zscore_nclvz_fixtdr2_noiseDim1'
 estval = '_test'
+n_components = 3
 
 all_sites = True
 barplot = False
@@ -63,6 +64,7 @@ elif estval == '_test':
     #x_cut = (1, 8)
     #y_cut = (0.2, 1) 
     x_cut = (1.5, 6)
+    x_cut = (0.5, 7.2)
     y_cut = (0, 1)
 
 if all_sites:
@@ -117,40 +119,40 @@ for site in sites:
 
     stim = results.evoked_stimulus_pairs
 
-    _df = _df.loc[pd.IndexSlice[stim, 2], :]
-    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
-    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
+    _df = _df.loc[pd.IndexSlice[stim, n_components], :]
+    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
+    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
     _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
     _df['state_MI'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df['site'] = site
     df.append(_df)
 
-    _df_sim1 = _df_sim1.loc[pd.IndexSlice[stim, 2], :]
+    _df_sim1 = _df_sim1.loc[pd.IndexSlice[stim, n_components], :]
     _df_sim1['state_diff'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / _df['dp_opt_test']
     _df_sim1['state_MI'] = (_df_sim1['bp_dp'] - _df_sim1['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim1['site'] = site
     df_sim1.append(_df_sim1)
 
-    _df_sim12 = _df_sim12.loc[pd.IndexSlice[stim, 2], :]
+    _df_sim12 = _df_sim12.loc[pd.IndexSlice[stim, n_components], :]
     _df_sim12['state_diff'] = (_df_sim12['bp_dp'] - _df_sim12['sp_dp']) / _df['dp_opt_test']
     _df_sim12['state_MI'] = (_df_sim12['bp_dp'] - _df_sim12['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim12['site'] = site
     df_sim12.append(_df_sim12)
 
     # pr results
-    _df_pr = _df_pr.loc[pd.IndexSlice[stim, 2], :]
+    _df_pr = _df_pr.loc[pd.IndexSlice[stim, n_components], :]
     _df_pr['state_diff'] = (_df_pr['bp_dp'] - _df_pr['sp_dp']) / _df['dp_opt_test']
     _df_pr['state_MI'] = (_df_pr['bp_dp'] - _df_pr['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_pr['site'] = site
     df_pr.append(_df_pr)
 
-    _df_sim1_pr = _df_sim1_pr.loc[pd.IndexSlice[stim, 2], :]
+    _df_sim1_pr = _df_sim1_pr.loc[pd.IndexSlice[stim, n_components], :]
     _df_sim1_pr['state_diff'] = (_df_sim1_pr['bp_dp'] - _df_sim1_pr['sp_dp']) / _df['dp_opt_test']
     _df_sim1_pr['state_MI'] = (_df_sim1_pr['bp_dp'] - _df_sim1_pr['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim1_pr['site'] = site
     df_sim1_pr.append(_df_sim1_pr)
 
-    _df_sim12_pr = _df_sim12_pr.loc[pd.IndexSlice[stim, 2], :]
+    _df_sim12_pr = _df_sim12_pr.loc[pd.IndexSlice[stim, n_components], :]
     _df_sim12_pr['state_diff'] = (_df_sim12_pr['bp_dp'] - _df_sim12_pr['sp_dp']) / _df['dp_opt_test']
     _df_sim12_pr['state_MI'] = (_df_sim12_pr['bp_dp'] - _df_sim12_pr['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
     _df_sim12_pr['site'] = site
