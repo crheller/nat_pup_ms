@@ -25,7 +25,7 @@ savefig = True
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'supp_modeldprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
 val = 'dp_opt_test'
 estval = '_test'
 high_var_only = False
@@ -33,6 +33,7 @@ all_sites = True
 pred_heatmap = False
 equi_density = False
 model_mi = True # use d' MI rather than "delta d'"
+n_components = 3
 
 # where to crop the data
 if estval == '_train':
@@ -42,6 +43,7 @@ elif estval == '_test':
     #x_cut = (1, 8)
     #y_cut = (0.2, 1) 
     x_cut = (1.5, 6)
+    x_cut = (0.5, 7.2)
     y_cut = (0, 1)
 
 # set up subplots
@@ -81,9 +83,9 @@ for site in sites:
     if len(stim) == 0:
         pass
     else:
-        _df = _df.loc[pd.IndexSlice[stim, 2], :]
-        _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
-        _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
+        _df = _df.loc[pd.IndexSlice[stim, n_components], :]
+        _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
+        _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
         _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
         _df['state_MI'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
         _df['site'] = site

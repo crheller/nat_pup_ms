@@ -57,7 +57,8 @@ if estval == '_train':
 elif estval == '_test':
     #x_cut = (1, 8)
     #y_cut = (0.2, 1) 
-    x_cut = (1.5, 6)
+    #x_cut = (1.5, 6)
+    x_cut = (0.5, 7.2)
     y_cut = (0, 1)
 
 # set up subplots
@@ -247,6 +248,13 @@ else:
 if plot_individual:
     lax1.plot(cos_bin, cos_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
     lax3.plot(du_bin, du_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+
+elif collapse_over_all_sites:
+    cos_val_delt = ss.binned_statistic(df['cos_dU_evec_test'], df['state_diff'], statistic='mean', bins=cbins).statistic
+    du_val_delt = ss.binned_statistic(df['dU_mag_test'], df['state_diff'], statistic='mean', bins=dbins).statistic
+    lax1.plot(cos_bin, cos_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+    lax3.plot(du_bin, du_val_delt, '-o', lw=3, color='k', label=r"$\Delta d'^{2}$", zorder=4)
+
 else:
     lax1.errorbar(cos_bin, cos_val_delt, yerr=cos_val_delt_sem, marker='.', lw=1, color='k', label=lab, zorder=4)
     lax3.errorbar(du_bin, du_val_delt, yerr=du_val_delt_sem, marker='.', lw=1, color='k', label=lab, zorder=4)
@@ -257,6 +265,11 @@ else:
         else:
             lax1.set_ylim((-0.3, 0.3))
             lax3.set_ylim((-0.3, 0.3))
+
+if collapse_over_all_sites:
+    lax1.set_ylim((0.2, 1))
+    lax3.set_ylim((0.2, 1))
+
 
 du_val = np.nanmean(np.stack(du_dp), axis=0)
 du_val_sem = np.nanstd(np.stack(du_dp), axis=0) / np.sqrt((~np.isnan(np.stack(du_dp))).sum(axis=0))

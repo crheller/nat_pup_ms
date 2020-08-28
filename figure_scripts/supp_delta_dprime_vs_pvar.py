@@ -19,7 +19,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 all_sites = True
 mi_norm = True
 loader = decoding.DecodingResults()
@@ -29,6 +29,7 @@ fig_fn = PY_FIGURES_DIR + 'supp_pvar_vs_delta_dprime.svg'
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 norm_state_diff = True
+raw_pvar = False  # if True, use raw pupil range per recording session
 
 x_cut = (1.5, 6)
 y_cut = (0, 1)
@@ -82,6 +83,8 @@ else:
 df['abs_diff'] = (df['bp_dp'] - df['sp_dp'])
 norm_pvar = df.groupby(by='site').mean()['p_range']
 pvar = df.groupby(by='site').mean()['p_var']
+if raw_pvar:
+    norm_pvar = pvar
 state_diff = df.groupby(by='site').mean()['state_diff']
 abs_diff = df.groupby(by='site').mean()['abs_diff']
 
