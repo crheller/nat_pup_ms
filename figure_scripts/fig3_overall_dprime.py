@@ -17,8 +17,8 @@ what the respective angles / vectors are (done inside plot fn)
 
 import colors as color
 import ax_labels as alab
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
@@ -30,8 +30,11 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
-
+savefig = True
+recache = False # recache dprime results locally
+ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
+                       # in this case, est = val so doesn't matter if you load _test results or _train results
+sites = HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR+'fig3_overall_dprime.svg'
 loader = decoding.DecodingResults()
@@ -40,9 +43,7 @@ val = 'dp_opt_test'
 estval = '_test'
 nbins = 20
 cmap = 'Greens'
-all_sites = True
-high_var_only = False
-vmax = None
+vmax = 50
 hexscale = 'log' # or 'log'
 
 # only crop the dprime value. Show count for everything
@@ -50,10 +51,8 @@ if estval == '_train':
     x_cut = (3, 8.5)
     y_cut = (0.1, .45) 
 elif estval == '_test':
-    #x_cut = (1, 8)
-    #y_cut = (0.2, 1) 
-    x_cut = (1.5, 6)
-    y_cut = (0, 1)
+    x_cut = DU_MAG_CUT
+    y_cut = NOISE_INTERFERENCE_CUT
 
 f = plt.figure(figsize=(9, 6))
 
@@ -64,40 +63,33 @@ q2ax = plt.subplot2grid((2, 3), (0, 1))
 q3ax = plt.subplot2grid((2, 3), (1, 1))
 q4ax = plt.subplot2grid((2, 3), (1, 2))
 
-if all_sites:
-    sites = ALL_SITES
-else:
-    sites = HIGHR_SITES
+
 df = []
 for site in sites:
-    if site in LOWR_SITES:
+    if (site in LOWR_SITES) | (ALL_TRAIN_DATA):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn)
+    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df = results.numeric_results
 
     stim = results.evoked_stimulus_pairs
-    high_var_pairs = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/dprime_new/high_pvar_stim_combos.csv', index_col=0)
-    high_var_pairs = high_var_pairs[high_var_pairs.site==site].index.get_level_values('combo')
-    if high_var_only:
-        stim = [s for s in stim if s in high_var_pairs]
-
-    if len(stim) == 0:
-        pass
-    else:
-        _df = _df.loc[pd.IndexSlice[stim, 2], :]
-        _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
-        _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
-        _df['site'] = site
-        df.append(_df)
+    _df = _df.loc[pd.IndexSlice[stim, 2], :]
+    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
+    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
+    _df['site'] = site
+    df.append(_df)
 
 df = pd.concat(df)
 
 # filter based on x_cut / y_cut
-mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
-mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cut[0])
+if (x_cut is not None) & (y_cut is not None):
+    mask1 = (df['dU_mag'+estval] < x_cut[1]) & (df['dU_mag'+estval] > x_cut[0])
+    mask2 = (df['cos_dU_evec'+estval] < y_cut[1]) & (df['cos_dU_evec'+estval] > y_cut[0])
+else:
+    mask1 = (True * np.ones(df.shape[0])).astype(bool)
+    mask2 = (True * np.ones(df.shape[0])).astype(bool)
 df_dp = df[mask1 & mask2]
 
 # plot dprime
@@ -154,7 +146,7 @@ decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
                             colors=[color.STIMA, color.STIMB],
-                            axlabs=[alab.DU + r" ($TDR_1$)", 'TDR 2'],
+                            axlabs=[alab.DU + r" ($TDR_1$)", r'$TDR_2$'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,
@@ -171,7 +163,7 @@ decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
                             colors=[color.STIMA, color.STIMB],
-                            axlabs=[alab.DU + r" ($TDR_1$)", 'TDR 2'],
+                            axlabs=[alab.DU + r" ($TDR_1$)", r'$TDR_2$'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,
@@ -188,7 +180,7 @@ decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
                             colors=[color.STIMA, color.STIMB],
-                            axlabs=[alab.DU + r" ($TDR_1$)", 'TDR 2'],
+                            axlabs=[alab.DU + r" ($TDR_1$)", r'$TDR_2$'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,
@@ -202,7 +194,7 @@ decoding.plot_stimulus_pair(site,
                             batch, 
                             pair,
                             colors=[color.STIMA, color.STIMB],
-                            axlabs=[alab.DU + r" ($TDR_1$)", 'TDR 2'],
+                            axlabs=[alab.DU + r" ($TDR_1$)", r'$TDR_2$'],
                             ylim=ylim,
                             xlim=xlim,
                             ellipse=True,

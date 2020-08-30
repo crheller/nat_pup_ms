@@ -19,8 +19,8 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
-all_sites = True
+savefig = True
+sites = HIGHR_SITES
 mi_norm = True
 loader = decoding.DecodingResults()
 path = DPRIME_DIR
@@ -31,14 +31,8 @@ n_components = 2
 norm_state_diff = True
 raw_pvar = False  # if True, use raw pupil range per recording session
 
-x_cut = (1.5, 6)
-y_cut = (0, 1)
-
-# list of sites with > 10 reps of each stimulus
-if all_sites:
-    sites = ALL_SITES
-else:
-    sites = HIGHR_SITES
+x_cut = None
+y_cut = None
 
 # for each site extract dprime and site. Concat into master df
 import timeit
@@ -72,8 +66,12 @@ print(end - start)
 df_all = pd.concat(dfs)
 
 # filter based on x_cut / y_cut
-mask1 = (df_all['dU_mag_test'] < x_cut[1]) & (df_all['dU_mag_test'] > x_cut[0])
-mask2 = (df_all['cos_dU_evec_test'] < y_cut[1]) & (df_all['cos_dU_evec_test'] > y_cut[0])
+if (x_cut is not None) & (y_cut is not None):
+    mask1 = (df_all['dU_mag_test'] < x_cut[1]) & (df_all['dU_mag_test'] > x_cut[0])
+    mask2 = (df_all['cos_dU_evec_test'] < y_cut[1]) & (df_all['cos_dU_evec_test'] > y_cut[0])
+else:
+    mask1 = (True * np.ones(df_all.shape[0])).astype(bool)
+    mask2 = (True * np.ones(df_all.shape[0])).astype(bool)
 df = df_all[mask1 & mask2]
 
 if mi_norm:
@@ -107,11 +105,15 @@ if norm_state_diff:
 
     pval = sum(abs(np.array(cc)) >= abs(true_cc)) / niters
     print("Permutation test pvalue: {0}, min pval: {1}".format(pval, 1/niters))
-
+    # add tiny bit of jitter for overlapping pvar sites (two shank recordings)
+    norm_pvar += np.random.normal(0, 0.01, norm_pvar.shape[0])
     ax.scatter(norm_pvar.loc[HIGHR_SITES], state_diff.loc[HIGHR_SITES], marker='o', edgecolor='white', color='k', s=50,
                     label=r"$r = %s, p = %s$" % (round(true_cc, 2), round(pval, 3)), zorder=3)
     ax.legend(frameon=False)
-    ax.scatter(norm_pvar.loc[LOWR_SITES], state_diff.loc[LOWR_SITES], marker='D', edgecolor='white', color='grey', s=30, zorder=2)
+    try:
+        ax.scatter(norm_pvar.loc[LOWR_SITES], state_diff.loc[LOWR_SITES], marker='D', edgecolor='white', color='grey', s=30, zorder=2)
+    except:
+        pass
 else:
     cc = ss.pearsonr(norm_pvar, abs_diff)
 
