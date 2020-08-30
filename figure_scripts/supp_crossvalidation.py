@@ -77,7 +77,7 @@ else:
 df_plot = df[mask1 & mask2]
 
 # ============================================== LAYOUT FIGURE ================================================
-f = plt.figure(figsize=(9.5, 6))
+f = plt.figure(figsize=(10, 6))
 
 histax = plt.subplot2grid((2, 3), (0, 0))
 dpax = plt.subplot2grid((2, 3), (0, 1))
