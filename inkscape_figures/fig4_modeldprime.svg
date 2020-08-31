@@ -16,7 +16,7 @@
    width="864pt"
    id="svg62968"
    sodipodi:docname="fig4_modeldprime.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
   <metadata
      id="metadata62972">
     <rdf:RDF>
@@ -38,15 +38,15 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1051"
+     inkscape:window-width="1848"
+     inkscape:window-height="1016"
      id="namedview62970"
      showgrid="false"
-     inkscape:zoom="0.75130095"
-     inkscape:cx="358.55798"
-     inkscape:cy="300.95958"
+     inkscape:zoom="1.0625"
+     inkscape:cx="556.71162"
+     inkscape:cy="274.33909"
      inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg62968" />
   <defs
@@ -7990,4 +7990,26 @@
        style="stroke-width:0.75;stroke-linecap:butt;stroke-linejoin:round"
        x="738.34656"
        y="391.58151">-0.1</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:10.49760056px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2460375;stroke-linecap:butt;stroke-linejoin:round"
+     x="784.07404"
+     y="199.80244"
+     id="text2073"><tspan
+       sodipodi:role="line"
+       id="tspan2071"
+       style="stroke-width:0.2460375;stroke-linecap:butt;stroke-linejoin:round"
+       x="784.07404"
+       y="199.80244">Regression weight</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:10.49760056px;line-height:1.25;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.24603748;stroke-linecap:butt;stroke-linejoin:round"
+     x="784.07404"
+     y="411.7692"
+     id="text2073-3"><tspan
+       sodipodi:role="line"
+       id="tspan2071-6"
+       style="stroke-width:0.24603748;stroke-linecap:butt;stroke-linejoin:round"
+       x="784.07404"
+       y="411.7692">Regression weight</tspan></text>
 </svg>
