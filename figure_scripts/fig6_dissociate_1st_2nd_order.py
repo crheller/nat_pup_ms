@@ -17,6 +17,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
+import seaborn as sns
 import scipy.stats as ss
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
@@ -24,19 +25,19 @@ mpl.rcParams['axes.spines.top'] = False
 
 savefig = True
 fig_fn = PY_FIGURES_DIR + 'fig6_dissociate_1st_2nd_order.svg'
-mi_max = 0.3
+mi_max = 0.3  # for plotting purposes only, not for models
 mi_min = -0.2
 vmin = -0.15
 vmax = 0.15
 # set up subplots
-f = plt.figure(figsize=(12, 7.5))
+f = plt.figure(figsize=(9, 6))
 
-ncax = plt.subplot2grid((4, 6), (0, 0), colspan=2, rowspan=2)
-bsax = plt.subplot2grid((4, 6), (0, 3), colspan=2, rowspan=2)
-mncax = plt.subplot2grid((4, 6), (2, 2), colspan=1, rowspan=2)
-mdncax = plt.subplot2grid((4, 6), (2, 5), colspan=1, rowspan=2)
-rscax = plt.subplot2grid((4, 6), (2, 0), colspan=2, rowspan=2)
-drscax = plt.subplot2grid((4, 6), (2, 3), colspan=2, rowspan=2)
+ncax = plt.subplot2grid((2, 3), (0, 0), colspan=1, rowspan=1)
+bsax = plt.subplot2grid((2, 3), (1, 0), colspan=1, rowspan=1)
+mncax = plt.subplot2grid((2, 3), (0, 2), colspan=1, rowspan=1)
+mdncax = plt.subplot2grid((2, 3), (1, 2), colspan=1, rowspan=1)
+rscax = plt.subplot2grid((2, 3), (0, 1), colspan=1, rowspan=1)
+drscax = plt.subplot2grid((2, 3), (1, 1), colspan=1, rowspan=1)
 
 # ============================= load and plot delta noise correlations across freq. bands =======================================
 boxcar = True
@@ -150,20 +151,40 @@ m2 = [MI.loc[p.split('_')[1]] for p in rsc_df.index]
 rsc_df['m1'] = m1
 rsc_df['m2'] = m2
 rsc_df['diff'] = rsc_df['sp'] - rsc_df['bp']
-mask = (rsc_df['m1'] < mi_max) & (rsc_df['m1'] > mi_min) & (rsc_df['m2'] < mi_max) & (rsc_df['m2'] > mi_min)
 
+mask = ~rsc_df['diff'].isna()
 # mask low bin count data (see supp figure for histogram)
 rsc_df = rsc_df[mask]
 
-# model results
+# model results per site
 rsc_df['m1*m2'] = rsc_df['m1'] * rsc_df['m2']
-X = sm.add_constant(rsc_df[['m1', 'm2', 'm1*m2']])
-y = rsc_df['diff']
-model_dnc = sm.OLS(y, X).fit()
 
-X = sm.add_constant(rsc_df[['m1', 'm2', 'm1*m2']])
-y = rsc_df['all']
-model_all = sm.OLS(y, X).fit()
+# lists to save model results
+dnc_beta = []
+overall_beta = []
+dnc_pvals = []
+overall_pvals = []
+for s in rsc_df.site.unique():
+    X = rsc_df[rsc_df.site==s][['m1', 'm2', 'm1*m2']]
+    X = X - X.mean(axis=0)
+    X = X / X.std(axis=0)
+    X = sm.add_constant(X)
+    y = rsc_df[rsc_df.site==s]['diff']
+    model_dnc = sm.OLS(y, X).fit()
+
+    dnc_beta.append(model_dnc.params.values)
+    dnc_pvals.append(model_dnc.pvalues.values)
+
+    y = rsc_df[rsc_df.site==s]['all']
+    model_all = sm.OLS(y, X).fit()
+
+    overall_beta.append(model_all.params.values)
+    overall_pvals.append(model_all.pvalues.values)
+
+dnc_beta = np.stack(dnc_beta)
+overall_beta = np.stack(overall_beta)
+dnc_pvals = np.stack(dnc_pvals)
+overall_pvals = np.stack(overall_pvals)
 
 # plot heatmaps of noise corr vs. mi
 # plot overall noise correlation
@@ -204,36 +225,88 @@ drscax.set_ylabel(r"$MI_i$")
 
 beta = [r'$MI_{i}$', r'$MI_{j}$', r'$MI_{i*j}$']
 
-# plot
-ci = abs(model_dnc.conf_int()[0] - model_dnc.conf_int()[1])
-#mdncax.errorbar([0, 1, 2], model_dnc.params.values[1:], yerr=ci.values[1:], 
-#                        color='k', marker='.', linestyle='none', lw=2, 
-#                        label=r'$R^{2} = %s$' % round(model_dnc.rsquared, 3))
-mdncax.errorbar(0, model_dnc.params.values[1], yerr=ci.values[1], marker='o', label=beta[0])
-mdncax.errorbar(1, model_dnc.params.values[2], yerr=ci.values[2], marker='o', label=beta[1])
-mdncax.errorbar(2, model_dnc.params.values[3], yerr=ci.values[3], marker='o', label=beta[2])
+# plot model coefficients
+coefs = pd.DataFrame(columns=[r"$rsc$", r"$rsc$", r"$rsc$", r"$\Delta rsc$", r"$\Delta rsc$", r"$\Delta rsc$"], 
+                    data=np.concatenate((overall_beta[:, [1,2,3]], dnc_beta[:, [1,2,3]]), axis=1))
+coefs = coefs.melt()
+coefs['regressor'] = np.concatenate([[r'$MI_i$']*dnc_beta.shape[0],
+                                [r'$MI_j$']*dnc_beta.shape[0],
+                               [r'$MI_{i*j}$']*dnc_beta.shape[0],
+                               [r'$MI_i$']*dnc_beta.shape[0],
+                               [r'$MI_j$']*dnc_beta.shape[0],
+                               [r'$MI_{i*j}$']*dnc_beta.shape[0]])
+mncax.axvline(0, linestyle='--', color='k', zorder=1)
+sns.stripplot(y='regressor', x='value', data=coefs[coefs['variable']==r"$rsc$"], ax=mncax, linewidth=1, edgecolor='white',
+                                                     color='lightgrey', zorder=1)
+sns.pointplot(y='regressor', x='value', data=coefs[coefs['variable']==r"$rsc$"], join=False, ci=95, ax=mncax, errwidth=1, scale=0.7, capsize=0.05,
+                                                     color='k', zorder=2)
 
-mdncax.axhline(0, linestyle='--', color='grey', lw=2)
-mdncax.set_ylabel(r"$\Delta$ Noise correlation per unit $MI$")
-mdncax.set_title(r"$R^2 = {}$".format(round(model_dnc.rsquared, 3)), fontsize=8)
-mdncax.set_xlim((-0.5, 3.5))
-mdncax.set_ylim((-0.2, 0.6))
+mdncax.axvline(0, linestyle='--', color='k', zorder=1)
+sns.stripplot(y='regressor', x='value', data=coefs[coefs['variable']==r"$\Delta rsc$"], ax=mdncax, linewidth=1, edgecolor='white',
+                                                     color='lightgrey', zorder=1)
+sns.pointplot(y='regressor', x='value', data=coefs[coefs['variable']==r"$\Delta rsc$"], join=False, ci=95, ax=mdncax, errwidth=1, scale=0.7, capsize=0.05,
+                                                     color='k', zorder=2)
 
-ci = abs(model_all.conf_int()[0] - model_all.conf_int()[1])
-#mncax.errorbar([0, 1, 2], model_all.params.values[1:], yerr=ci.values[1:], 
-#                        color=['k', 'g', 'b'], marker='.', linestyle='none', lw=2, 
-#                        label=r'$R^{2} = %s$' % round(model_all.rsquared, 3))
+mncax.set_xlim((-0.1, 0.1))
+mdncax.set_xlim((-0.1, 0.1))
 
-mncax.errorbar(0, model_all.params.values[1], yerr=ci.values[1], marker='o', label=beta[0])
-mncax.errorbar(1, model_all.params.values[2], yerr=ci.values[2], marker='o', label=beta[1])
-mncax.errorbar(2, model_all.params.values[3], yerr=ci.values[3], marker='o', label=beta[2])
 
-mncax.axhline(0, linestyle='--', color='grey', lw=2)
-mncax.set_ylabel(r"Noise correlation per unit $MI$")
-mncax.set_xlim((-0.5, 3.5))
-mncax.legend(frameon=False, fontsize=8)
-mncax.set_title(r"$R^2 = {}$".format(round(model_all.rsquared, 3)), fontsize=8)
-mncax.set_ylim((-0.2, 2))
+# PRINT STATS FOR REGRESSION MODELS (over the group)
+print("OVERALL rsc")
+print("Mi       mean:  {0} \n"
+      "         sem:   {1} \n"
+      "         pval:  {2} \n"
+      "         U stat: {3} \n".format(np.mean(overall_beta[:,1]), 
+                                       overall_beta[:,1].std() / np.sqrt(overall_beta.shape[0]), 
+                                       ss.ranksums(overall_beta[:, 1], np.zeros(dnc_beta.shape[0])).pvalue,
+                                       ss.ranksums(overall_beta[:, 1], np.zeros(dnc_beta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((overall_pvals[:, 1]<0.05).sum(), overall_pvals.shape[0]))
+
+print("Mj       mean:  {0} \n"
+      "         sem:   {1} \n"
+      "         pval:  {2} \n"
+      "         U stat: {3} \n".format(np.mean(overall_beta[:,2]), 
+                                       overall_beta[:,2].std() / np.sqrt(overall_beta.shape[0]), 
+                                       ss.ranksums(overall_beta[:, 2], np.zeros(dnc_beta.shape[0])).pvalue,
+                                       ss.ranksums(overall_beta[:, 2], np.zeros(dnc_beta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((overall_pvals[:, 2]<0.05).sum(), overall_pvals.shape[0]))
+
+print("Mij       mean:  {0} \n"
+      "         sem:   {1} \n"
+      "         pval:  {2} \n"
+      "         U stat: {3} \n".format(np.mean(overall_beta[:,3]), 
+                                       overall_beta[:,3].std() / np.sqrt(overall_beta.shape[0]), 
+                                       ss.ranksums(overall_beta[:, 3], np.zeros(dnc_beta.shape[0])).pvalue,
+                                       ss.ranksums(overall_beta[:, 3], np.zeros(dnc_beta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((overall_pvals[:, 3]<0.05).sum(), overall_pvals.shape[0]))
+
+print("DELTA rsc")
+print("Mi       mean:  {0} \n"
+      "         sem:   {1} \n"
+      "         pval:  {2} \n"
+      "         U stat: {3} \n".format(np.mean(dnc_beta[:,1]), 
+                                       dnc_beta[:,1].std() / np.sqrt(dnc_beta.shape[0]), 
+                                       ss.ranksums(dnc_beta[:, 1], np.zeros(dnc_beta.shape[0])).pvalue,
+                                       ss.ranksums(dnc_beta[:, 1], np.zeros(dnc_beta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((dnc_pvals[:, 1]<0.05).sum(), dnc_pvals.shape[0]))
+
+print("Mj       mean:  {0} \n"
+      "         sem:   {1} \n"
+      "         pval:  {2} \n"
+      "         U stat: {3} \n".format(np.mean(dnc_beta[:,2]), 
+                                       dnc_beta[:,2].std() / np.sqrt(dnc_beta.shape[0]), 
+                                       ss.ranksums(dnc_beta[:, 2], np.zeros(dnc_beta.shape[0])).pvalue,
+                                       ss.ranksums(dnc_beta[:, 2], np.zeros(dnc_beta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((dnc_pvals[:, 2]<0.05).sum(), dnc_pvals.shape[0]))
+
+print("Mij       mean:  {0} \n"
+      "         sem:   {1} \n"
+      "         pval:  {2} \n"
+      "         U stat: {3} \n".format(np.mean(dnc_beta[:,3]), 
+                                       dnc_beta[:,3].std() / np.sqrt(dnc_beta.shape[0]), 
+                                       ss.ranksums(dnc_beta[:, 3], np.zeros(dnc_beta.shape[0])).pvalue,
+                                       ss.ranksums(dnc_beta[:, 3], np.zeros(dnc_beta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((dnc_pvals[:, 3]<0.05).sum(), dnc_pvals.shape[0]))
 
 f.tight_layout()
 
