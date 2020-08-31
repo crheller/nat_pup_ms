@@ -355,13 +355,18 @@ pr_corr_by_site = {d: np.array(v) for (d, v) in pr_corr_by_site.items()}
 bootstat = stats.get_bootstrapped_sample(pr_corr_by_site, nboot=5000)
 p = 1 - stats.get_direct_prob(np.zeros(len(bootstat)), bootstat)[0]
 print("corrected correlation coef. diff from zero? pvalue: {0}".format(p))
-
+print("Mean corr.: {0}, sem: {1}".format(np.mean(pr_corr), np.std(bootstat)))
 # is raw distribution diff from zero?
 raw_corr_by_site = {d: np.array(v) for (d, v) in raw_corr_by_site.items()}
 bootstat = stats.get_bootstrapped_sample(raw_corr_by_site, nboot=5000)
 p = 1 - stats.get_direct_prob(np.zeros(len(bootstat)), bootstat)[0]
 print("raw correlation coef. diff from zero? pvalue: {0}".format(p))
+print("Mean corr.: {0}, sem: {1}".format(np.mean(raw_corr), np.std(bootstat)))
 
+# print mean / sem of n units per session
+mean_un = np.mean([len(v) for k, v in raw_corr_by_site.items()])
+sem_un = np.std([len(v) for k, v in raw_corr_by_site.items()]) / np.sqrt(len(sites))
+print("Mean n units per site: {0} +/- {1}".format(mean_un, sem_un))
 
 # plot heatmaps
 hm = []
