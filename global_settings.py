@@ -20,3 +20,7 @@ HIGHR_SITES = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
 
 # subset in which cross-validation not possible
 LOWR_SITES = [s for s in ALL_SITES if s not in HIGHR_SITES]
+
+# data cutoff settings (just for plotting -- all statisical tests use all the data)
+DU_MAG_CUT = (2, 8)
+NOISE_INTERFERENCE_CUT = (0.2, 1) 

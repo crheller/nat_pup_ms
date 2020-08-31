@@ -9,8 +9,8 @@ One big motivation for combining results here is to get rid of using the heatmap
 didn't seem all that helpful. Address the "where" of decoding improvements in figure 4
 and in the supplemental figures.
 """
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, DU_MAG_CUT, NOISE_INTERFERENCE_CUT
 import colors as color
 import ax_labels as alab
 
@@ -31,46 +31,45 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = False
+savefig = True
 
+recache = False
+ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
+                       # in this case, est = val so doesn't matter if you load _test results or _train results
+sites = HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig5_simulations.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
-sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2_noiseDim1'
-sim12 = 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2_noiseDim1'
-modelname_pr = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2_noiseDim1'
-sim1_pr = 'dprime_simInTDR_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2_noiseDim1'
-sim12_pr = 'dprime_simInTDR_sim12_pr_rm2_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
+sim12 = 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'
+modelname_pr = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+sim1_pr = 'dprime_simInTDR_sim1_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+sim12_pr = 'dprime_simInTDR_sim12_pr_rm2_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
-n_components = 3
+n_components = 2
 
-all_sites = True
 barplot = False
 smooth = True
+collapse_across_sites = True
 second_order_unique = True  #just for heatmap
 mi_norm = True
-sigma = 2
+sigma = 1.2
 nbins = 20
 cmap = 'Greens'
-vmin = None  #-0.05
-vmax = None   #0.05
+vmin = 0.05  #-0.05
+vmax = 0.25   #0.05
 
 # where to crop the data
 if estval == '_train':
     x_cut = (2.5, 9.5)
     y_cut = (0.05, .5) 
 elif estval == '_test':
-    #x_cut = (1, 8)
-    #y_cut = (0.2, 1) 
-    x_cut = (1.5, 6)
-    x_cut = (0.5, 7.2)
-    y_cut = (0, 1)
+    x_cut = None
+    y_cut = None
 
-if all_sites:
-    sites = ALL_SITES
-else:
-    sites = HIGHR_SITES
+x_cut_plot = DU_MAG_CUT
+y_cut_plot = NOISE_INTERFERENCE_CUT
 
 # ========================================= Load results ====================================================
 df = []
@@ -80,41 +79,41 @@ df_pr = []
 df_sim1_pr = []
 df_sim12_pr = []
 for site in sites:
-    if site in LOWR_SITES: mn = modelname.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = modelname.replace('_jk10', '_jk1_eev') 
     else: mn = modelname
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn)
+    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df = results.numeric_results
 
-    if site in LOWR_SITES: mn = sim1.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = sim1.replace('_jk10', '_jk1_eev') 
     else: mn = sim1
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results_sim1 = loader.load_results(fn)
+    results_sim1 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df_sim1 = results_sim1.numeric_results
 
-    if site in LOWR_SITES: mn = sim12.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = sim12.replace('_jk10', '_jk1_eev') 
     else: mn = sim12
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results_sim12 = loader.load_results(fn)
+    results_sim12 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df_sim12 = results_sim12.numeric_results
 
     # pr results
-    if site in LOWR_SITES: mn = modelname_pr.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = modelname_pr.replace('_jk10', '_jk1_eev') 
     else: mn = modelname_pr
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results_pr = loader.load_results(fn)
+    results_pr = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df_pr = results_pr.numeric_results
 
-    if site in LOWR_SITES: mn = sim1_pr.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = sim1_pr.replace('_jk10', '_jk1_eev') 
     else: mn = sim1_pr
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results_sim1 = loader.load_results(fn)
+    results_sim1 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df_sim1_pr = results_sim1.numeric_results
 
-    if site in LOWR_SITES: mn = sim12_pr.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = sim12_pr.replace('_jk10', '_jk1_eev') 
     else: mn = sim12_pr
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results_sim12 = loader.load_results(fn)
+    results_sim12 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df_sim12_pr = results_sim12.numeric_results
 
     stim = results.evoked_stimulus_pairs
@@ -166,8 +165,12 @@ df_sim1_pr_all = pd.concat(df_sim1_pr)
 df_sim12_pr_all = pd.concat(df_sim12_pr)
 
 # filter based on x_cut / y_cut
-mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
-mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+if (x_cut is not None) & (y_cut is not None):
+    mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
+    mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+else:
+    mask1 = (True * np.ones(df_all.shape[0])).astype(bool)
+    mask2 = (True * np.ones(df_all.shape[0])).astype(bool)
 df = df_all[mask1 & mask2]
 df_sim1 = df_sim1_all[mask1 & mask2]
 df_sim12 = df_sim12_all[mask1 & mask2]
@@ -362,8 +365,8 @@ print("raw correlation coef. diff from zero? pvalue: {0}".format(p))
 
 # plot heatmaps
 hm = []
-xbins = np.linspace(x_cut[0], x_cut[1], nbins)
-ybins = np.linspace(y_cut[0], y_cut[1], nbins)
+xbins = np.linspace(x_cut_plot[0], x_cut_plot[1], nbins)
+ybins = np.linspace(y_cut_plot[0], y_cut_plot[1], nbins)
 for s in df.site.unique():
         vals = df[df.site==s]['sim1']
         if not mi_norm:
@@ -376,6 +379,21 @@ for s in df.site.unique():
                                     bins=[xbins, ybins])
         hm.append(heatmap.statistic.T)# / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
+
+if collapse_across_sites:
+    #df.plot.hexbin(x='dU_mag'+estval, 
+    #              y='cos_dU_evec'+estval, 
+    #              C='sim1', 
+    #              gridsize=nbins, ax=s1ax, cmap=cmap, vmin=vmin, vmax=vmax) 
+    vals = df['sim1']
+    heatmap = ss.binned_statistic_2d(x=df['dU_mag'+estval], 
+                            y=df['cos_dU_evec'+estval],
+                            values=vals,
+                            statistic='mean',
+                            bins=[xbins, ybins])
+    hm = [heatmap.statistic.T] # / np.nanmax(heatmap.statistic))
+    t = np.nanmean(np.stack(hm), 0)
+
 if smooth:
     t = sf.gaussian_filter(t, sigma)
     im = s1ax.imshow(t, aspect='auto', origin='lower', cmap=cmap,
@@ -402,8 +420,8 @@ else:
 
 
 hm = []
-xbins = np.linspace(x_cut[0], x_cut[1], nbins)
-ybins = np.linspace(y_cut[0], y_cut[1], nbins)
+xbins = np.linspace(x_cut_plot[0], x_cut_plot[1], nbins)
+ybins = np.linspace(y_cut_plot[0], y_cut_plot[1], nbins)
 for s in df.site.unique():
         if second_order_unique:
             vals = df[df.site==s]['sim12'] - df[df.site==s]['sim1']
@@ -419,6 +437,21 @@ for s in df.site.unique():
                                     bins=[xbins, ybins])
         hm.append(heatmap.statistic.T)# / np.nanmax(heatmap.statistic))
 t = np.nanmean(np.stack(hm), 0)
+
+if collapse_across_sites:
+    #df['sim2'] = (df['sim12'] - df['sim1'])
+    #df.plot.hexbin(x='dU_mag'+estval, 
+    #              y='cos_dU_evec'+estval, 
+    #              C='sim2', 
+    #              gridsize=nbins, ax=s12ax, cmap=cmap, vmin=vmin, vmax=vmax) 
+    vals = df['sim12'] - df['sim1']
+    heatmap = ss.binned_statistic_2d(x=df['dU_mag'+estval], 
+                            y=df['cos_dU_evec'+estval],
+                            values=vals,
+                            statistic='mean',
+                            bins=[xbins, ybins])
+    hm = [heatmap.statistic.T] # / np.nanmax(heatmap.statistic))
+    t = np.nanmean(np.stack(hm), 0)
 
 if smooth:
     t = sf.gaussian_filter(t, sigma)
@@ -481,24 +514,24 @@ print("First order simualtion results: \n")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_cos), 
+      "                               U stat: {3} \n".format(np.mean(beta_cos), 
                                                        np.std(beta_cos) / np.sqrt(len(beta_cos)), 
-                                                       ss.wilcoxon(beta_cos).pvalue,
-                                                       ss.wilcoxon(beta_cos).statistic))
+                                                       ss.ranksums(beta_cos, np.zeros(len(beta_cos))).pvalue,
+                                                       ss.ranksums(beta_cos, np.zeros(len(beta_cos))).statistic))
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_du), 
+      "                               U stat: {3} \n".format(np.mean(beta_du), 
                                                             np.std(beta_du) / np.sqrt(len(beta_du)), 
-                                                            ss.wilcoxon(beta_du).pvalue,
-                                                            ss.wilcoxon(beta_du).statistic))
+                                                       ss.ranksums(beta_du, np.zeros(len(beta_cos))).pvalue,
+                                                       ss.ranksums(beta_du, np.zeros(len(beta_cos))).statistic))
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_int), 
+      "                               U stat: {3} \n".format(np.mean(beta_int), 
                                                     np.std(beta_int) / np.sqrt(len(beta_int)), 
-                                                    ss.wilcoxon(beta_int).pvalue,
-                                                    ss.wilcoxon(beta_int).statistic))
+                                                       ss.ranksums(beta_int, np.zeros(len(beta_cos))).pvalue,
+                                                       ss.ranksums(beta_int, np.zeros(len(beta_cos))).statistic))
 print('\n \n')
 
 
@@ -529,22 +562,22 @@ print("Second order simualtion results: \n")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_cos), 
+      "                               U stat: {3} \n".format(np.mean(beta_cos), 
                                                        np.std(beta_cos) / np.sqrt(len(beta_cos)), 
-                                                       ss.wilcoxon(beta_cos).pvalue,
-                                                       ss.wilcoxon(beta_cos).statistic))
+                                                       ss.ranksums(beta_cos, np.zeros(len(beta_cos))).pvalue,
+                                                       ss.ranksums(beta_cos, np.zeros(len(beta_cos))).statistic))
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_du), 
+      "                               U stat: {3} \n".format(np.mean(beta_du), 
                                                             np.std(beta_du) / np.sqrt(len(beta_du)), 
-                                                            ss.wilcoxon(beta_du).pvalue,
-                                                            ss.wilcoxon(beta_du).statistic))
+                                                       ss.ranksums(beta_du, np.zeros(len(beta_cos))).pvalue,
+                                                       ss.ranksums(beta_du, np.zeros(len(beta_cos))).statistic))
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_int), 
+      "                               U stat: {3} \n".format(np.mean(beta_int), 
                                                     np.std(beta_int) / np.sqrt(len(beta_int)), 
-                                                    ss.wilcoxon(beta_int).pvalue,
-                                                    ss.wilcoxon(beta_int).statistic))
+                                                       ss.ranksums(beta_int, np.zeros(len(beta_cos))).pvalue,
+                                                       ss.ranksums(beta_int, np.zeros(len(beta_cos))).statistic))
 print('\n \n')

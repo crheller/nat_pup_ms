@@ -4,8 +4,8 @@ Model the change in dprime for each site. Show consitency across sites.
 
 import colors as color
 import ax_labels as alab
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import os
@@ -20,31 +20,31 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 
+recache = False
+ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
+                       # in this case, est = val so doesn't matter if you load _test results or _train results
+sites = HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'supp_modeldprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
 estval = '_test'
 high_var_only = False
-all_sites = True
 pred_heatmap = False
 equi_density = False
 model_mi = True # use d' MI rather than "delta d'"
-n_components = 3
+n_components = 2
 
 # where to crop the data
 if estval == '_train':
     x_cut = (3, 8.5)
     y_cut = (0.1, .45) 
 elif estval == '_test':
-    #x_cut = (1, 8)
-    #y_cut = (0.2, 1) 
-    x_cut = (1.5, 6)
-    x_cut = (0.5, 7.2)
-    y_cut = (0, 1)
+    x_cut = None
+    y_cut = None
 
 # set up subplots
 if equi_density:
@@ -59,19 +59,14 @@ else:
     f = plt.figure(figsize=(4, 4))
     scax = plt.subplot2grid((1, 1), (0, 0))
 
-if all_sites:
-    sites = ALL_SITES
-else:
-    sites = HIGHR_SITES
-
 df = []
 for site in sites:
-    if site in LOWR_SITES:
+    if (site in LOWR_SITES) | (ALL_TRAIN_DATA):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn)
+    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df = results.numeric_results
 
     stim = results.evoked_stimulus_pairs
@@ -94,8 +89,12 @@ for site in sites:
 df_all = pd.concat(df)
 
 # filter based on x_cut / y_cut
-mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
-mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+if (x_cut is not None) & (y_cut is not None):
+    mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
+    mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+else:
+    mask1 = (True * np.ones(df_all.shape[0])).astype(bool)
+    mask2 = (True * np.ones(df_all.shape[0])).astype(bool)
 df = df_all[mask1 & mask2]
 
 # linear model to predict delta dprime and overall dprime
@@ -114,11 +113,13 @@ for s in df.site.unique():
         highr_mask.append(True)
     else:
         highr_mask.append(False)
-    X = df[df.site==s][['cos_dU_evec'+estval, 'dU_mag'+estval]]
+    X = df[df.site==s][['cos_dU_evec'+estval, 'dU_mag'+estval]]#, 'mean_pupil_range']]
     X['dU_mag'+estval] = X['dU_mag'+estval] - X['dU_mag'+estval].mean()
     X['dU_mag'+estval] /= X['dU_mag'+estval].std()
     X['cos_dU_evec'+estval] = X['cos_dU_evec'+estval] - X['cos_dU_evec'+estval].mean()
     X['cos_dU_evec'+estval] /= X['cos_dU_evec'+estval].std()
+    #X['mean_pupil_range'] = X['mean_pupil_range'] - X['mean_pupil_range'].mean()
+    #X['mean_pupil_range'] /= X['mean_pupil_range'].std()
     
     X = sm.add_constant(X)
     X['interaction'] = X['cos_dU_evec'+estval] * X['dU_mag'+estval]
@@ -160,30 +161,32 @@ print("OVERALL D'")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_overall[:,1]), 
+      "                               U stat: {3} \n".format(np.mean(beta_overall[:,1]), 
                                                        beta_overall[:,1].std() / np.sqrt(beta_overall.shape[0]), 
-                                                       ss.wilcoxon(beta_overall[:, 1]).pvalue,
-                                                       ss.wilcoxon(beta_overall[:, 1]).statistic))
-print("{0} / {1} sites significant \n".format((pvals_overall[:,1]<0.05).sum(), pvals_overall.shape[0]))
+                                                       ss.ranksums(beta_overall[:, 1], np.zeros(beta_delta.shape[0])).pvalue,
+                                                       ss.ranksums(beta_overall[:, 1], np.zeros(beta_delta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((pvals_overall[:, 1]<0.05).sum(), pvals_overall.shape[0]))
+
       
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_overall[:,2]), 
+      "                               U stat: {3} \n".format(np.mean(beta_overall[:,2]), 
                                                             beta_overall[:,2].std() / np.sqrt(beta_overall.shape[0]), 
-                                                            ss.wilcoxon(beta_overall[:, 2]).pvalue,
-                                                            ss.wilcoxon(beta_overall[:, 2]).statistic))
-print("{0} / {1} sites significant \n".format((pvals_overall[:,2]<0.05).sum(), pvals_overall.shape[0]))
+                                                       ss.ranksums(beta_overall[:, 2], np.zeros(beta_delta.shape[0])).pvalue,
+                                                       ss.ranksums(beta_overall[:, 2], np.zeros(beta_delta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((pvals_overall[:, 2]<0.05).sum(), pvals_overall.shape[0]))
+
 
       
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_overall[:,3]), 
-                                                    beta_overall[:,3].std() / np.sqrt(beta_overall.shape[0]), 
-                                                    ss.wilcoxon(beta_overall[:, 3]).pvalue,
-                                                    ss.wilcoxon(beta_overall[:, 3]).statistic))
-print("{0} / {1} sites significant \n".format((pvals_overall[:,3]<0.05).sum(), pvals_overall.shape[0]))
+      "                               U stat: {3} \n".format(np.mean(beta_overall[:, 3]), 
+                                                    beta_overall[:, 3].std() / np.sqrt(beta_overall.shape[0]), 
+                                                       ss.ranksums(beta_overall[:, 3], np.zeros(beta_delta.shape[0])).pvalue,
+                                                       ss.ranksums(beta_overall[:, 3], np.zeros(beta_delta.shape[0])).statistic))
+print("{0} / {1} sites significant \n".format((pvals_overall[:, 3]<0.05).sum(), pvals_overall.shape[0]))
 
       
       
@@ -192,29 +195,29 @@ print("DELTA D'")
 print("noise intereference beta       mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_delta[:,1]), 
+      "                               U stat: {3} \n".format(np.mean(beta_delta[:,1]), 
                                                        beta_delta[:,1].std() / np.sqrt(beta_delta.shape[0]), 
-                                                       ss.wilcoxon(beta_delta[:, 1]).pvalue,
-                                                       ss.wilcoxon(beta_delta[:, 1]).statistic))
+                                                       ss.ranksums(beta_delta[:, 1], np.zeros(beta_delta.shape[0])).pvalue,
+                                                       ss.ranksums(beta_delta[:, 1], np.zeros(beta_delta.shape[0])).statistic))
 print("{0} / {1} sites significant \n".format((pvals_delta[:,1]<0.05).sum(), pvals_overall.shape[0]))
 
 print("discrimination magnitude beta  mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_delta[:,2]), 
+      "                               U stat: {3} \n".format(np.mean(beta_delta[:,2]), 
                                                             beta_delta[:,2].std() / np.sqrt(beta_delta.shape[0]), 
-                                                            ss.wilcoxon(beta_delta[:, 2]).pvalue,
-                                                            ss.wilcoxon(beta_delta[:, 2]).statistic))
+                                                       ss.ranksums(beta_delta[:, 2], np.zeros(beta_delta.shape[0])).pvalue,
+                                                       ss.ranksums(beta_delta[:, 2], np.zeros(beta_delta.shape[0])).statistic))
 print("{0} / {1} sites significant \n".format((pvals_delta[:,2]<0.05).sum(), pvals_overall.shape[0]))
 
       
 print("interaction term beta          mean:  {0} \n"
       "                               sem:   {1} \n"
       "                               pval:  {2} \n"
-      "                               W stat: {3} \n".format(np.mean(beta_delta[:,3]), 
+      "                               U stat: {3} \n".format(np.mean(beta_delta[:,3]), 
                                                     beta_delta[:,3].std() / np.sqrt(beta_delta.shape[0]), 
-                                                    ss.wilcoxon(beta_delta[:, 3]).pvalue,
-                                                    ss.wilcoxon(beta_delta[:, 3]).statistic))
+                                                       ss.ranksums(beta_delta[:, 3], np.zeros(beta_delta.shape[0])).pvalue,
+                                                       ss.ranksums(beta_delta[:, 3], np.zeros(beta_delta.shape[0])).statistic))
 print("{0} / {1} sites significant \n".format((pvals_delta[:,3]<0.05).sum(), pvals_overall.shape[0]))
 
 # plot beta weights

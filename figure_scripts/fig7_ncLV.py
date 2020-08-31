@@ -8,8 +8,8 @@ Over all sites show:
     delta dprime depends on beta2 vs. dU
     lack of correlation between first order effects and second order effects
 """
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,10 +34,14 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
+recache = False  # for local dprime results
+ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
+                       # in this case, est = val so doesn't matter if you load _test results or _train results
+sites = HIGHR_SITES
 fig_fn = PY_FIGURES_DIR + 'fig7_ncLV.svg'
 
-site = 'DRX006b.e65:128' #'BOL006b' #'DRX006b.e65:128'
+site = 'TAR010c' #'BOL006b' #'DRX006b.e65:128'
 batch = 289
 mi_norm = True # use "MI" to define delta dprime
 
@@ -169,43 +173,35 @@ g = [g for g in g]
 
 # ======================================== Load dprime results ================================================
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim1'
-sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2_noiseDim1'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
 cmap = 'PRGn'
 high_var_only = False
-all_sites = True
-n_components = 3
+n_components = 2
 
 # where to crop the data
 if estval == '_train':
     x_cut = (2, 9.5)
     y_cut = (0.05, .5) 
 elif estval == '_test':
-    #x_cut = (1, 8)
-    #y_cut = (0.2, 1)
-    x_cut = (0.5, 7.2)
-    y_cut = (0, 1) 
-
-if all_sites:
-    sites = ALL_SITES
-else:
-    sites = HIGHR_SITES
+    x_cut = None
+    y_cut = None
 
 df = []
 df_sim1 = []
 path = DPRIME_DIR
 for site in sites:
-    if site in LOWR_SITES: mn = modelname.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = modelname.replace('_jk10', '_jk1_eev') 
     else: mn = modelname
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn)
+    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df = results.numeric_results
 
-    if site in LOWR_SITES: mn = sim1.replace('_jk10', '_jk1_eev') 
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = sim1.replace('_jk10', '_jk1_eev') 
     else: mn = sim1
     fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results_sim1 = loader.load_results(fn)
+    results_sim1 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df_sim1 = results_sim1.numeric_results
 
     stim = results.evoked_stimulus_pairs
@@ -238,8 +234,12 @@ df_all = pd.concat(df)
 df_sim1_all = pd.concat(df_sim1)
 
 # filter based on x_cut / y_cut
-mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
-mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+if (x_cut is not None) & (y_cut is not None):
+    mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
+    mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+else:
+    mask1 = (True * np.ones(df_all.shape[0])).astype(bool)
+    mask2 = (True * np.ones(df_all.shape[0])).astype(bool)
 df = df_all[mask1 & mask2]
 df_sim1 = df_sim1_all[mask1 & mask2]
 
