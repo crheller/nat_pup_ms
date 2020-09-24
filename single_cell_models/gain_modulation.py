@@ -9,6 +9,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as ss
+import matplotlib as mpl
+mpl.rcParams['axes.spines.right'] = False
+mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['font.size'] = 14
 
 sig_only = True
 recache = False
@@ -46,17 +51,19 @@ sig = (df.loc[:, pd.IndexSlice['r', 'st.pup']] - df.loc[:, pd.IndexSlice['r', 's
 nsig = sig.sum()
 ntot = gain.shape[0]
 # plot gain vs. dc
-f, ax = plt.subplots(1, 2, figsize=(8, 4))
+f, ax = plt.subplots(1, 1, figsize=(4, 4))
 
-ax[0].scatter(dc, gain, color='k', edgecolor='white', s=25)
+ax.scatter(dc, gain, color='k', edgecolor='white', s=25)
 
-ax[0].axhline(0, linestyle='--', color='grey')
-ax[0].axvline(0, linestyle='--', color='grey')
+ax.axhline(0, linestyle='--', color='grey')
+ax.axvline(0, linestyle='--', color='grey')
 
-ax[0].set_xlabel('DC')
-ax[0].set_ylabel('gain')
-ax[0].set_title('All units')
+ax.set_xlabel('DC')
+ax.set_ylabel('gain')
+ax.set_title('All units')
 
+
+f, ax = plt.subplots(1, 1, figsize=(6, 6))
 
 celltypes = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/celltypes.csv')
 bs_cells = celltypes[celltypes.type==0].cellid
@@ -65,15 +72,15 @@ if sig_only:
     bs_cells = [c for c in bs_cells if c in df[sig].index]
     ns_cells = [c for c in ns_cells if c in df[sig].index]
 
-ax[1].scatter(dc.loc[bs_cells], gain.loc[bs_cells], color='b', edgecolor='white', s=25, label='BS')
-ax[1].scatter(dc.loc[ns_cells], gain.loc[ns_cells], color='r', edgecolor='white', s=25, label='NS')
+ax.scatter(dc.loc[bs_cells], gain.loc[bs_cells], color='b', edgecolor='white', s=35, label='BS')
+ax.scatter(dc.loc[ns_cells], gain.loc[ns_cells], color='r', edgecolor='white', s=35, label='NS')
 
-ax[1].axhline(0, linestyle='--', color='grey')
-ax[1].axvline(0, linestyle='--', color='grey')
+ax.axhline(0, linestyle='--', color='grey')
+ax.axvline(0, linestyle='--', color='grey')
 
-ax[1].set_xlabel('DC')
-ax[1].set_ylabel('gain')
-ax[1].legend(frameon=False)
+ax.set_xlabel('DC', fontsize=14)
+ax.set_ylabel('gain', fontsize=14)
+ax.legend(frameon=False, fontsize=14)
 
 m1 = np.round(gain.loc[bs_cells].mean(), 3)
 m2 = np.round(gain.loc[ns_cells].mean(), 3)
@@ -83,13 +90,15 @@ m1d = np.round(dc.loc[bs_cells].mean(), 3)
 m2d = np.round(dc.loc[ns_cells].mean(), 3)
 pvald = np.round(ss.ranksums(dc.loc[bs_cells], dc.loc[ns_cells]).pvalue, 3)
 
-ax[1].set_title('SU only \n'
+ax.set_title('SU only \n'
                     r"$\mu_{BS, g} = %s, \mu_{NS, g} = %s, pval = %s$"
                     "\n"
                     r"$\mu_{BS, DC} = %s, \mu_{NS, DC} = %s, pval = %s$"  % \
-                        (m1, m2, pval, m1d, m2d, pvald), fontsize=10)
+                        (m1, m2, pval, m1d, m2d, pvald), fontsize=14)
 
 f.tight_layout()
+
+f.savefig('/home/charlie/Desktop/lbhb/tmp_figures/NAT_dc_gain.pdf')
 
 # histogram of gain modulation
 bins = np.arange(-0.2, 1, 0.05)

@@ -304,36 +304,42 @@ for stim_pair_idx, combo in enumerate(all_combos):
         if sim_tdr_space:
             # simulate data *after* after projecting into TDR space.
             try:
-                _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
-                                                xtest,
-                                                nreps_train,
-                                                nreps_test,
-                                                tdr_data=raw_data,
-                                                n_additional_axes=n_noise_axes,
-                                                sim1=sim1,
-                                                sim2=sim2,
-                                                sim12=sim12,
-                                                beta1=beta1,
-                                                beta2=beta2,
-                                                tdr2_axis=tdr2_axis,
-                                                ptrain_mask=ptrain_mask,
-                                                ptest_mask=ptest_mask)
+                if not loocv:
+                    _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
+                                                    xtest,
+                                                    nreps_train,
+                                                    nreps_test,
+                                                    tdr_data=raw_data,
+                                                    n_additional_axes=n_noise_axes,
+                                                    sim1=sim1,
+                                                    sim2=sim2,
+                                                    sim12=sim12,
+                                                    beta1=beta1,
+                                                    beta2=beta2,
+                                                    tdr2_axis=tdr2_axis,
+                                                    ptrain_mask=ptrain_mask,
+                                                    ptest_mask=ptest_mask)
+                else:
+                    raise NotImplementedError("WIP -- loocv for simulations")
             except:
                 log.info("Can't perform analysis for stimulus combo: {0}".format(combo))
                 _tdr_results = {}
         else:
-            _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
-                                                        xtest,
-                                                        nreps_train,
-                                                        nreps_test,
-                                                        tdr_data=raw_data,
-                                                        n_additional_axes=n_noise_axes,
-                                                        beta1=beta1,
-                                                        beta2=beta2,
-                                                        tdr2_axis=tdr2_axis,
-                                                        ptrain_mask=ptrain_mask,
-                                                        ptest_mask=ptest_mask)
-        
+            if not loocv:
+                _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
+                                                            xtest,
+                                                            nreps_train,
+                                                            nreps_test,
+                                                            tdr_data=raw_data,
+                                                            n_additional_axes=n_noise_axes,
+                                                            beta1=beta1,
+                                                            beta2=beta2,
+                                                            tdr2_axis=tdr2_axis,
+                                                            ptrain_mask=ptrain_mask,
+                                                            ptest_mask=ptest_mask)
+            else:
+                # use leave-one-out cross validation
+            
         _tdr_results.update({
             'n_components': 2+n_noise_axes,
             'jack_idx': ev_set,
