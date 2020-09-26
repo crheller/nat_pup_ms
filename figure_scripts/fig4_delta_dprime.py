@@ -27,7 +27,7 @@ mpl.rcParams['axes.spines.top'] = False
 
 np.random.seed(123)  # for reproducible bootstrap standard error generation
 
-savefig = True
+savefig = False
 
 recache = False
 ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
@@ -38,7 +38,9 @@ fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
-val = 'dp_opt_test'
+#val = 'dp_opt_test'
+bp_dp = 'bp_dp'
+sp_dp = 'sp_dp'
 estval = '_test'
 cmap = 'Greens'
 nline_bins = 6
@@ -76,9 +78,9 @@ for site in sites:
     _df = _df.loc[_df.index.get_level_values('combo').isin(stim)]
     _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
     _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
-    _df['state_diff'] = (_df['bp_dp'] - _df['sp_dp']) / _df['dp_opt_test']
-    _df['state_diff_abs'] = (_df['bp_dp'] - _df['sp_dp'])
-    _df['state_MI'] = (_df['bp_dp'] - _df['sp_dp']) / (_df['bp_dp'] + _df['sp_dp'])
+    _df['state_diff'] = (_df[bp_dp] - _df[sp_dp]) / _df['dp_opt_test']
+    _df['state_diff_abs'] = (_df[bp_dp] - _df[sp_dp])
+    _df['state_MI'] = (_df[bp_dp] - _df[sp_dp]) / (_df[bp_dp] + _df[sp_dp])
     _df['site'] = site
     df.append(_df)
 
@@ -95,13 +97,13 @@ df = df_all[mask1 & mask2]
 
 # plot large vs. small dprime per site
 dfg = df_all.groupby(by='site').mean()
-mi = np.min([dfg['sp_dp'].min(), dfg['bp_dp'].min()])
-ma = np.max([dfg['sp_dp'].max(), dfg['bp_dp'].max()])
+mi = np.min([dfg[sp_dp].min(), dfg[bp_dp].min()])
+ma = np.max([dfg[sp_dp].max(), dfg[bp_dp].max()])
 try:
-    dpax.scatter(dfg.loc[LOWR_SITES]['sp_dp'], dfg.loc[LOWR_SITES]['bp_dp'], marker="D", color='grey', s=30, edgecolor='white')
+    dpax.scatter(dfg.loc[LOWR_SITES][sp_dp], dfg.loc[LOWR_SITES][bp_dp], marker="D", color='grey', s=30, edgecolor='white')
 except:
     pass
-dpax.scatter(dfg.loc[HIGHR_SITES]['sp_dp'], dfg.loc[HIGHR_SITES]['bp_dp'], color='k', s=50, edgecolor='white')
+dpax.scatter(dfg.loc[HIGHR_SITES][sp_dp], dfg.loc[HIGHR_SITES][bp_dp], color='k', s=50, edgecolor='white')
 dpax.plot([mi, ma], [mi, ma], color='grey', linestyle='--')
 dpax.set_xlabel('Small pupil')
 dpax.set_ylabel('Large pupil')
@@ -110,7 +112,7 @@ dpax.set_title(r"$d'^{2}$")
 # print significance of group effect of scatter plot
 print("Large vs. small pupil dprime       pval: {0} \n"
       "                                   n:    {1} \n"
-      "                                   W stat: {2} \n".format(ss.wilcoxon(dfg['sp_dp'], dfg['bp_dp']).pvalue, dfg.shape[0], ss.wilcoxon(dfg['sp_dp'], dfg['bp_dp']).statistic))
+      "                                   W stat: {2} \n".format(ss.wilcoxon(dfg[sp_dp], dfg[bp_dp]).pvalue, dfg.shape[0], ss.wilcoxon(dfg[sp_dp], dfg[bp_dp]).statistic))
 
 # plot delta dprime
 # make heatmap irrespective of site ID
@@ -179,10 +181,10 @@ for i, g in enumerate(grouped):
     du_dp.append(du_val)
     cos_dp.append(cos_val)
 
-    cos_bp = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['bp_dp'], statistic='mean', bins=cbins)
-    cos_sp = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1]['sp_dp'], statistic='mean', bins=cbins)
-    du_bp = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['bp_dp'], statistic='mean', bins=dbins)
-    du_sp = ss.binned_statistic(g[1]['dU_mag_test'], g[1]['sp_dp'], statistic='mean', bins=dbins)
+    cos_bp = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1][bp_dp], statistic='mean', bins=cbins)
+    cos_sp = ss.binned_statistic(g[1]['cos_dU_evec_test'], g[1][sp_dp], statistic='mean', bins=cbins)
+    du_bp = ss.binned_statistic(g[1]['dU_mag_test'], g[1][bp_dp], statistic='mean', bins=dbins)
+    du_sp = ss.binned_statistic(g[1]['dU_mag_test'], g[1][sp_dp], statistic='mean', bins=dbins)
     cos_bp_dp.append(cos_bp.statistic)
     cos_sp_dp.append(cos_sp.statistic)
     du_bp_dp.append(du_bp.statistic)
@@ -240,24 +242,24 @@ cos_sp_val_sem = np.nanstd(np.stack(cos_sp_dp), axis=0) / np.sqrt((~np.isnan(np.
 
 # big pupil
 print("generating bootstrapped SE")
-cos_val = ss.binned_statistic(df['cos_dU_evec_test'], df['bp_dp'], statistic='mean', bins=cbins).statistic
-ds = [{s: df[(df.site==s) & (df['cos_dU_evec_test']>cbins[i]) & (df['cos_dU_evec_test']<cbins[i+1])]['bp_dp'].values for s in df.site.unique()} for i in range(len(cbins)-1)]
+cos_val = ss.binned_statistic(df['cos_dU_evec_test'], df[bp_dp], statistic='mean', bins=cbins).statistic
+ds = [{s: df[(df.site==s) & (df['cos_dU_evec_test']>cbins[i]) & (df['cos_dU_evec_test']<cbins[i+1])][bp_dp].values for s in df.site.unique()} for i in range(len(cbins)-1)]
 cos_val_se = np.stack([np.std(stats.get_bootstrapped_sample(ds[i], nboot=100)) for i in range(len(ds))])
 
-du_val = ss.binned_statistic(df['dU_mag_test'], df['bp_dp'], statistic='mean', bins=dbins).statistic
-ds = [{s: df[(df.site==s) & (df['dU_mag_test']>dbins[i]) & (df['dU_mag_test']<dbins[i+1])]['bp_dp'].values for s in df.site.unique()} for i in range(len(cbins)-1)]
+du_val = ss.binned_statistic(df['dU_mag_test'], df[bp_dp], statistic='mean', bins=dbins).statistic
+ds = [{s: df[(df.site==s) & (df['dU_mag_test']>dbins[i]) & (df['dU_mag_test']<dbins[i+1])][bp_dp].values for s in df.site.unique()} for i in range(len(cbins)-1)]
 du_val_se = np.stack([np.std(stats.get_bootstrapped_sample(ds[i], nboot=100)) for i in range(len(ds))])
 
 lax2.errorbar(cos_bin, cos_val, yerr=cos_val_se, marker='.', lw=1, color='firebrick', label=r"$\Delta d'^{2}$", zorder=4)
 lax4.errorbar(du_bin, du_val, lw=1,yerr=du_val_se, marker='.', color='firebrick', label=r"$\Delta d'^{2}$", zorder=4)
 
 # small pupil
-cos_val = ss.binned_statistic(df['cos_dU_evec_test'], df['sp_dp'], statistic='mean', bins=cbins).statistic
-ds = [{s: df[(df.site==s) & (df['cos_dU_evec_test']>cbins[i]) & (df['cos_dU_evec_test']<cbins[i+1])]['sp_dp'].values for s in df.site.unique()} for i in range(len(cbins)-1)]
+cos_val = ss.binned_statistic(df['cos_dU_evec_test'], df[sp_dp], statistic='mean', bins=cbins).statistic
+ds = [{s: df[(df.site==s) & (df['cos_dU_evec_test']>cbins[i]) & (df['cos_dU_evec_test']<cbins[i+1])][sp_dp].values for s in df.site.unique()} for i in range(len(cbins)-1)]
 cos_val_se = np.stack([np.std(stats.get_bootstrapped_sample(ds[i], nboot=100)) for i in range(len(ds))])
 
-du_val = ss.binned_statistic(df['dU_mag_test'], df['sp_dp'], statistic='mean', bins=dbins).statistic
-ds = [{s: df[(df.site==s) & (df['dU_mag_test']>dbins[i]) & (df['dU_mag_test']<dbins[i+1])]['sp_dp'].values for s in df.site.unique()} for i in range(len(cbins)-1)]
+du_val = ss.binned_statistic(df['dU_mag_test'], df[sp_dp], statistic='mean', bins=dbins).statistic
+ds = [{s: df[(df.site==s) & (df['dU_mag_test']>dbins[i]) & (df['dU_mag_test']<dbins[i+1])][sp_dp].values for s in df.site.unique()} for i in range(len(cbins)-1)]
 du_val_se = np.stack([np.std(stats.get_bootstrapped_sample(ds[i], nboot=100)) for i in range(len(ds))])
 
 lax2.errorbar(cos_bin, cos_val, lw=1, yerr=cos_val_se, marker='.', color='navy', label=r"$\Delta d'^{2}$", zorder=4)
@@ -321,8 +323,8 @@ for s in df.site.unique():
     
     X = sm.add_constant(X)
     X['interaction'] = X['cos_dU_evec_test'] * X['dU_mag_test']
-    y = (df_all[df_all.site==s]['bp_dp'].values.copy() - df_all[df_all.site==s]['sp_dp'].values.copy()) / \
-        (df_all[df_all.site==s]['bp_dp'].values.copy() + df_all[df_all.site==s]['sp_dp'].values.copy())
+    y = (df_all[df_all.site==s][bp_dp].values.copy() - df_all[df_all.site==s][sp_dp].values.copy()) / \
+        (df_all[df_all.site==s][bp_dp].values.copy() + df_all[df_all.site==s][sp_dp].values.copy())
     y -= y.mean()
     y /= y.std()
 
