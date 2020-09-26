@@ -74,6 +74,7 @@ gain_only = False
 dc_only = False
 est_equal_val = False  # for low rep sites where can't perform cross-validation
 n_noise_axes = 0    # whether or not to go beyond TDR = 2 dimensions. e.g. if this is 2, Will compute a 4D TDR space (2 more noise dimensions)
+loocv = False    # leave-one-out cross validation
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -114,6 +115,9 @@ for op in options:
         fix_tdr2 = True
     if op == 'eev':
         est_equal_val = True
+    if op == 'loocv':
+        est_equal_val = True  # do the "jacknifing within the function in this case"
+        loocv = True
     if 'noiseDim' in op:
         n_noise_axes = int(op[8:])
 if do_pls:
@@ -339,6 +343,14 @@ for stim_pair_idx, combo in enumerate(all_combos):
                                                             ptest_mask=ptest_mask)
             else:
                 # use leave-one-out cross validation
+                _tdr_results = decoding.do_tdr_dprime_analysis_loocv(xtrain,
+                                                                     nreps_train,
+                                                                     tdr_data=raw_data,
+                                                                     n_additional_axes=n_noise_axes,
+                                                                     beta1=beta1,
+                                                                     beta2=beta2,
+                                                                     tdr2_axis=tdr2_axis,
+                                                                     pmask=ptrain_mask)
             
         _tdr_results.update({
             'n_components': 2+n_noise_axes,
