@@ -3,13 +3,19 @@ import numpy as np
 
 batch = 289
 force_rerun = True
-subset_289 = True  # only high rep sites (so that we can do cross validation)
+subset_289 = False  # only high rep sites (so that we can do cross validation)
 temp_subset = False # for exculding subset of models for faster run time on jobs
 nc_lv = True        # beta defined using nc LV method
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
-no_crossval = True  # for no cross validation (on the larger 289 set )
+no_crossval = False  # for no cross validation (on the larger 289 set )
+loocv = True         # leave-one-out cross validation
 n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+
+if no_crossval & loocv:
+    raise ValueError("loocv implies no_crossval (eev). Only set one or the other true")
+
+NOSIM = True   # If true, don't run simulations
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
@@ -42,6 +48,9 @@ modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
 if no_crossval:
     modellist = [m.replace('_jk10', '_jk1_eev') for m in modellist]
 
+if loocv:
+    modellist = [m.replace('_jk10', '_jk1_loocv') for m in modellist]
+
 if sim_in_tdr:
     modellist = [m.replace('_sim', '_simInTDR_sim') for m in modellist]
 
@@ -59,6 +68,12 @@ if n_additional_noise_dims > 0:
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
+
+
+if NOSIM:
+    # remove simulation models
+    modellist = [m for m in modellist if ('_sim1' not in m) & ('_sim2' not in m) & ('_sim12' not in m)]
+
 
 nd.enqueue_models(celllist=sites,
                   batch=batch,
