@@ -38,7 +38,8 @@ sites = HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_pr_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 #val = 'dp_opt_test'
 bp_dp = 'bp_dp'
@@ -150,6 +151,11 @@ ax[3].set_ylabel(r"Big pupil")
 
 f.tight_layout()
 
+
+# bar plots of relevant stats
+
+
+
 # decompose the SNR measure into the relevant parts:
 # noise/signal alignement (interaction), noise magnitude (second-order), signal magnitude (first-order)
 # model changes in dprime as function of these elements
@@ -220,24 +226,25 @@ coefs['reg'] = np.concatenate([['Signal']*len(r2_all),
                                ['Interference']*len(r2_all)])
 coefs = coefs.rename(columns={'value': 'Coefficient', 'variable': 'Regressor'})
 
-f, ax = plt.subplots(1, 1, figsize=(4, 4))
+f, ax = plt.subplots(1, 2, figsize=(8, 4))
 
-#sns.stripplot(y=r"$R^2$ unique", x='Regressor', data=r2, dodge=True, ax=ax[0], alpha=0.6,
-#                    palette={'Full': 'tab:blue', 'Signal': 'tab:orange', 'Noise': 'tab:green', 'Interference': 'tab:red'})
-#sns.pointplot(y=r"$R^2$ unique", x='Regressor', data=r2, dodge=0.4, join=False, ci=95, ax=ax[0], errwidth=1, scale=0.7, capsize=0.05,
-#                    palette={'Full': 'tab:blue', 'Signal': 'tab:orange', 'Noise': 'tab:green', 'Interference': 'tab:red'})
+sns.stripplot(y=r"$R^2$ unique", x='Regressor', data=r2, dodge=True, ax=ax[0], alpha=0.3,
+                    palette={'Full': 'tab:blue', 'Signal': 'tab:orange', 'Noise': 'tab:green', 'Interference': 'tab:red'})
+sns.pointplot(y=r"$R^2$ unique", x='Regressor', data=r2, dodge=0.4, join=False, ci=95, ax=ax[0], errwidth=1, scale=0.7, capsize=0.05,
+                    palette={'Full': 'tab:blue', 'Signal': 'tab:orange', 'Noise': 'tab:green', 'Interference': 'tab:red'})
 
-sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax, alpha=0.3,
+sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax[1], alpha=0.3,
                     palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
                     r"$\Delta$ Noise variance": 'tab:green', 
                     r"$\Delta$ Noise interference": 'tab:red'})
-sns.pointplot(y="Regressor", x='Coefficient', data=coefs, dodge=0.4, join=False, ci=95, ax=ax, errwidth=1, scale=0.7, capsize=0.05,
+sns.pointplot(y="Regressor", x='Coefficient', data=coefs, dodge=0.4, join=False, ci=95, ax=ax[1], errwidth=1, scale=0.7, capsize=0.05,
                     palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
                              r"$\Delta$ Noise variance": 'tab:green', 
                              r"$\Delta$ Noise interference": 'tab:red'})
 
-ax.axvline(0, linestyle='--', color='grey')
-ax.set_title(r"$\Delta d'^2$"+"\nRegression coefficients")
+ax[1].axvline(0, linestyle='--', color='grey')
+ax[0].axhline(0, linestyle='--', color='grey')
+ax[1].set_title(r"$\Delta d'^2$"+"\nRegression coefficients")
 
 f.tight_layout()
 
@@ -265,7 +272,7 @@ ax[0].set_title(r"$\Delta$ Signal Magnitude ($|\Delta \mathbf{\mu}|$)")
 df_cut.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
                   C='lambda_diff', 
-                  gridsize=nbins, ax=ax[1], cmap=cmap_second, vmin=-8, vmax=8) 
+                  gridsize=nbins, ax=ax[1], cmap=cmap_second, vmin=-4, vmax=4) 
 ax[1].set_xlabel(alab.SIGNAL, color=color.SIGNAL)
 ax[1].set_ylabel(alab.COSTHETA, color=color.COSTHETA)
 ax[1].spines['bottom'].set_color(color.SIGNAL)
@@ -278,26 +285,22 @@ ax[1].set_title(r"$\Delta$ Noise Variance ($\lambda_1$)")
 
 f.tight_layout()
 
-# relationship between the change in the dot product and the change in variance
-df_cut['dot_diff'] = df_cut['bp_dU_dot_evec_sq']-df_cut['sp_dU_dot_evec_sq']
+# summary of signal vs. noise variance changes
+ndf1 = df_cut[['bp_lambda', 'bp_dU_dot_evec_sq']].rename(columns={'bp_lambda': 'noise', 'bp_dU_dot_evec_sq': 'signal'})
+ndf1['state'] = 'big'
+ndf2 = df_cut[['sp_lambda', 'sp_dU_dot_evec_sq']].rename(columns={'sp_lambda': 'noise', 'sp_dU_dot_evec_sq': 'signal'})
+ndf2['state'] = 'small'
+ndf = pd.concat([ndf1, ndf2])
 
-f, ax = plt.subplots(1, 1, figsize=(5, 5))
+ndf = ndf[ndf['noise']<15]
 
-x = df_cut['dot_diff'].values
-y = df_cut['lambda_diff'].values
-xy = np.vstack((x, y))
-ma = np.max(xy)
-mi = np.min(xy)
-z = ss.gaussian_kde(xy)(xy)
-ax.scatter(x, y, c=z, s=10)
-ax.plot([mi, ma], [mi, ma], 'grey', linestyle='--')
-ax.axhline(0, linestyle='--', color='grey')
-ax.axvline(0, linestyle='--', color='grey')
-ax.set_xlabel(r"$(\Delta \mathbf{\mu}\cdot\mathbf{e}_1)^2_{large} - (\Delta \mathbf{\mu}\cdot\mathbf{e}_1)^2_{small}$")
-ax.set_ylabel(r"$\lambda_{1, large} - \lambda_{1, small}$")
+g = sns.jointplot(data=ndf, x="noise", y="signal", hue="state", s=10, alpha=0.5)
 
-ax.axis('equal')
-
-f.tight_layout()
+# state_MI as fn of predictors
+dd = df_cut[df_cut['lambda_diff']<15]
+dd.plot.hexbin(x='mag_diff',  
+                   y='lambda_diff',  
+                   C='state_MI',  
+                   gridsize=nbins, cmap=cmap_second, vmin=-1, vmax=1)    
 
 plt.show()
