@@ -1,7 +1,8 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
+batch = 294
+njack = 1
 force_rerun = True
 subset_289 = False  # only high rep sites (so that we can do cross validation)
 temp_subset = False # for exculding subset of models for faster run time on jobs
@@ -35,11 +36,11 @@ elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
 
 #modellist = ['dprime_jk10']
-modellist = ['dprime_jk10_zscore', 'dprime_pr_jk10_zscore',
-            'dprime_sim1_jk10_zscore', 'dprime_sim12_jk10_zscore',
-            'dprime_sim1_pr_jk10_zscore', 'dprime_sim12_pr_jk10_zscore',
-            'dprime_pr_rm2_jk10_zscore', 
-            'dprime_sim1_pr_rm2_jk10_zscore', 'dprime_sim12_pr_rm2_jk10_zscore']
+modellist = [f'dprime_jk{njack}_zscore', f'dprime_pr_jk{njack}_zscore',
+            f'dprime_sim1_jk{njack}_zscore', f'dprime_sim12_jk{njack}_zscore',
+            f'dprime_sim1_pr_jk{njack}_zscore', f'dprime_sim12_pr_jk{njack}_zscore',
+            f'dprime_pr_rm2_jk{njack}_zscore', 
+            f'dprime_sim1_pr_rm2_jk{njack}_zscore', f'dprime_sim12_pr_rm2_jk{njack}_zscore']
 
 # NOTE: as of 06.04.2020: tried regressing out only baseline or only gain (prd / prg models). Didn't see much of 
 # a difference. Still an option though. May want to look into a bug at some point.
@@ -65,6 +66,9 @@ if temp_subset:
 
 if n_additional_noise_dims > 0:
     modellist = [m+'_noiseDim{0}'.format(n_additional_noise_dims) for m in modellist]
+
+if NO_SIM:
+    modellist = [m for m in modellist if ('_sim1' not in m) & ('_sim2' not in m) & ('_sim12' not in m)]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'

@@ -30,7 +30,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 recache = False # recache dprime results locally
 ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
                        # in this case, est = val so doesn't matter if you load _test results or _train results
@@ -38,7 +38,7 @@ sites = HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR+'fig3_overall_dprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_jk1_loocv_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
 estval = '_test'
 nbins = 20
@@ -76,8 +76,8 @@ for site in sites:
 
     stim = results.evoked_stimulus_pairs
     _df = _df.loc[pd.IndexSlice[stim, 2], :]
-    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0, 0])[0]
-    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0, 0])[0]
+    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, 2, idx=[0])[0]
+    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, 2, idx=[0])[0]
     _df['site'] = site
     df.append(_df)
 
