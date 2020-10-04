@@ -106,6 +106,7 @@ df = df_all[mask1 & mask2]
 
 # plot large vs. small dprime per site
 dfg = df_all.groupby(by='site').mean()
+dfe = df_all.groupby(by='site').sem()
 mi = np.min([dfg[sp_dp].min(), dfg[bp_dp].min()])
 ma = np.max([dfg[sp_dp].max(), dfg[bp_dp].max()])
 try:
@@ -113,6 +114,9 @@ try:
 except:
     pass
 dpax.scatter(dfg.loc[HIGHR_SITES][sp_dp], dfg.loc[HIGHR_SITES][bp_dp], color='k', s=50, edgecolor='white')
+#dpax.errorbar(dfg.loc[HIGHR_SITES][sp_dp], dfg.loc[HIGHR_SITES][bp_dp], 
+#              xerr=dfe.loc[HIGHR_SITES][sp_dp], yerr=dfe.loc[HIGHR_SITES][bp_dp], 
+#                color='k', fmt='.')
 dpax.plot([mi, ma], [mi, ma], color='grey', linestyle='--')
 dpax.set_xlabel('Small pupil')
 dpax.set_ylabel('Large pupil')

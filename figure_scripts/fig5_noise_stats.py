@@ -38,7 +38,7 @@ sites = HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 #val = 'dp_opt_test'
 bp_dp = 'bp_dp'
@@ -88,7 +88,14 @@ df_all['lambda_diff'] = df_all['bp_lambda'] - df_all['sp_lambda']
 df_all['mag_diff'] = df_all['bp_dU_mag'] - df_all['sp_dU_mag']
 df_all['cos_dU_evec_diff'] = df_all['bp_cos_dU_evec'] - df_all['sp_cos_dU_evec']
 
-df_cut = df_all[df_all['dp_opt_test'] > 5]
+# filter based on x_cut / y_cut
+if (x_cut is not None) & (y_cut is not None):
+    mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
+    mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
+else:
+    mask1 = True * np.ones(df_all.shape[0])
+    mask2 = True * np.ones(df_all.shape[0])
+df_cut = df_all[mask1 & mask2]
 
 # KDE plot of signal to noise ratio along principal noise dimension for each stim pair
 f, ax = plt.subplots(1, 4, figsize=(12, 3))
@@ -152,7 +159,7 @@ r2_noise_unique = []
 r2_interference_unique = []
 coefs = np.zeros((len(df_all.site.unique()), 4))
 for i, s in enumerate(df_all.site.unique()):
-    df = df_cut[df_cut.site==s]
+    df = df_all[df_all.site==s]
     y = copy.deepcopy(df['state_MI'])
     #y -= y.mean()
     #y /= y.std()
@@ -204,22 +211,92 @@ r2['reg'] = np.concatenate([['Full Model']*len(r2_all),
                                ['Interference']*len(r2_all)])
 r2 = r2.rename(columns={'value': r"$R^2$ unique", 'variable': 'Regressor'})
 
-coefs = pd.DataFrame(columns=['Signal', 'Noise', 'Interference'], data=coefs[:, :-1]) 
+coefs = pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", 
+                                r"$\Delta$ Noise variance", 
+                                r"$\Delta$ Noise interference"], data=coefs[:, :-1]) 
 coefs = coefs.melt()
 coefs['reg'] = np.concatenate([['Signal']*len(r2_all),
                                ['Noise']*len(r2_all),
                                ['Interference']*len(r2_all)])
 coefs = coefs.rename(columns={'value': 'Coefficient', 'variable': 'Regressor'})
 
-f, ax = plt.subplots(1, 2, figsize=(8, 4))
+f, ax = plt.subplots(1, 1, figsize=(4, 4))
 
-sns.stripplot(y=r"$R^2$ unique", x='Regressor', data=r2, dodge=True, ax=ax[0], alpha=0.6)
+#sns.stripplot(y=r"$R^2$ unique", x='Regressor', data=r2, dodge=True, ax=ax[0], alpha=0.6,
+#                    palette={'Full': 'tab:blue', 'Signal': 'tab:orange', 'Noise': 'tab:green', 'Interference': 'tab:red'})
+#sns.pointplot(y=r"$R^2$ unique", x='Regressor', data=r2, dodge=0.4, join=False, ci=95, ax=ax[0], errwidth=1, scale=0.7, capsize=0.05,
+#                    palette={'Full': 'tab:blue', 'Signal': 'tab:orange', 'Noise': 'tab:green', 'Interference': 'tab:red'})
 
-sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax[1], alpha=0.6,
-                    palette={'Signal': 'tab:orange', 'Noise': 'tab:green', 'Interference': 'tab:red'})
+sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax, alpha=0.3,
+                    palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
+                    r"$\Delta$ Noise variance": 'tab:green', 
+                    r"$\Delta$ Noise interference": 'tab:red'})
+sns.pointplot(y="Regressor", x='Coefficient', data=coefs, dodge=0.4, join=False, ci=95, ax=ax, errwidth=1, scale=0.7, capsize=0.05,
+                    palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
+                             r"$\Delta$ Noise variance": 'tab:green', 
+                             r"$\Delta$ Noise interference": 'tab:red'})
 
-ax[0].axhline(0, linestyle='--', color='k')
-ax[1].axvline(0, linestyle='--', color='k')
+ax.axvline(0, linestyle='--', color='grey')
+ax.set_title(r"$\Delta d'^2$"+"\nRegression coefficients")
+
+f.tight_layout()
+
+# plot the change in stats on the same axis as before
+nbins = 20
+cmap_first = 'PuOr'
+cmap_second = 'PuOr'
+vmax = None
+f, ax = plt.subplots(1, 2, figsize=(9, 4))
+
+df_cut.plot.hexbin(x='dU_mag'+estval, 
+                  y='cos_dU_evec'+estval, 
+                  C='mag_diff', 
+                  gridsize=nbins, ax=ax[0], cmap=cmap_first, vmin=-3, vmax=3) 
+ax[0].set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+ax[0].set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+ax[0].spines['bottom'].set_color(color.SIGNAL)
+ax[0].xaxis.label.set_color(color.SIGNAL)
+ax[0].tick_params(axis='x', colors=color.SIGNAL)
+ax[0].spines['left'].set_color(color.COSTHETA)
+ax[0].yaxis.label.set_color(color.COSTHETA)
+ax[0].tick_params(axis='y', colors=color.COSTHETA)
+ax[0].set_title(r"$\Delta$ Signal Magnitude ($|\Delta \mathbf{\mu}|$)")
+
+df_cut.plot.hexbin(x='dU_mag'+estval, 
+                  y='cos_dU_evec'+estval, 
+                  C='lambda_diff', 
+                  gridsize=nbins, ax=ax[1], cmap=cmap_second, vmin=-8, vmax=8) 
+ax[1].set_xlabel(alab.SIGNAL, color=color.SIGNAL)
+ax[1].set_ylabel(alab.COSTHETA, color=color.COSTHETA)
+ax[1].spines['bottom'].set_color(color.SIGNAL)
+ax[1].xaxis.label.set_color(color.SIGNAL)
+ax[1].tick_params(axis='x', colors=color.SIGNAL)
+ax[1].spines['left'].set_color(color.COSTHETA)
+ax[1].yaxis.label.set_color(color.COSTHETA)
+ax[1].tick_params(axis='y', colors=color.COSTHETA)
+ax[1].set_title(r"$\Delta$ Noise Variance ($\lambda_1$)")
+
+f.tight_layout()
+
+# relationship between the change in the dot product and the change in variance
+df_cut['dot_diff'] = df_cut['bp_dU_dot_evec_sq']-df_cut['sp_dU_dot_evec_sq']
+
+f, ax = plt.subplots(1, 1, figsize=(5, 5))
+
+x = df_cut['dot_diff'].values
+y = df_cut['lambda_diff'].values
+xy = np.vstack((x, y))
+ma = np.max(xy)
+mi = np.min(xy)
+z = ss.gaussian_kde(xy)(xy)
+ax.scatter(x, y, c=z, s=10)
+ax.plot([mi, ma], [mi, ma], 'grey', linestyle='--')
+ax.axhline(0, linestyle='--', color='grey')
+ax.axvline(0, linestyle='--', color='grey')
+ax.set_xlabel(r"$(\Delta \mathbf{\mu}\cdot\mathbf{e}_1)^2_{large} - (\Delta \mathbf{\mu}\cdot\mathbf{e}_1)^2_{small}$")
+ax.set_ylabel(r"$\lambda_{1, large} - \lambda_{1, small}$")
+
+ax.axis('equal')
 
 f.tight_layout()
 
