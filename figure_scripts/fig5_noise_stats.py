@@ -36,29 +36,22 @@ ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep c
                        # in this case, est = val so doesn't matter if you load _test results or _train results
 sites = HIGHR_SITES
 path = DPRIME_DIR
-fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
+fig_fn = PY_FIGURES_DIR + 'fig5_something.svg' 
 loader = decoding.DecodingResults()
-modelname = 'dprime_pr_jk10_zscore_nclvz_fixtdr2'
-#modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+modelname_pr = 'dprime_pr_jk10_zscore_nclvz_fixtdr2'   # rm2 doesn't seem to work well for this analysis
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
-#val = 'dp_opt_test'
+evals_idx = None # None (total variance)
 bp_dp = 'bp_dp'
 sp_dp = 'sp_dp'
 estval = '_test'
-cmap = 'Greens'
-nline_bins = 6
-smooth = True
-sigma = 1.2
-nbins = 20
-cmap = 'Greens'
-vmin = None #0.1 #-.1
-vmax = None #0.3 #.1
 
 # where to crop the data
 x_cut = None #DU_MAG_CUT
 y_cut = None #NOISE_INTERFERENCE_CUT
 
 df = []
+df_pr = []
 for site in sites:
     if (site in LOWR_SITES) | (ALL_TRAIN_DATA): mn = modelname.replace('_jk10', '_jk1_eev') 
     else: mn = modelname
@@ -76,18 +69,48 @@ for site in sites:
     _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
     _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=[0, 0])[0]
     _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=[0, 0])[0]
-    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=None)[0]
-    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=None)[0]
+    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=evals_idx)[0]
+    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=evals_idx)[0]
     _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
     _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
     _df['snr_diff'] = _df['bp_evec_snr'] - _df['sp_evec_snr']
     _df['site'] = site
     df.append(_df)
 
+    # pupil-corrected results:
+    if (site in LOWR_SITES) | (ALL_TRAIN_DATA): mn = modelname_pr.replace('_jk10', '_jk1_eev') 
+    else: mn = modelname_pr
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
+    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+    _df = results.numeric_results
+    stim = results.evoked_stimulus_pairs
+    _df = _df.loc[_df.index.get_level_values('combo').isin(stim)]
+    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
+    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
+    _df['state_diff'] = (_df[bp_dp] - _df[sp_dp]) / _df['dp_opt_test']
+    _df['state_diff_abs'] = (_df[bp_dp] - _df[sp_dp])
+    _df['state_MI'] = (_df[bp_dp] - _df[sp_dp]) / (_df[bp_dp] + _df[sp_dp])
+    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
+    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
+    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=[0, 0])[0]
+    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=[0, 0])[0]
+    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=evals_idx)[0]
+    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=evals_idx)[0]
+    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
+    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
+    _df['snr_diff'] = _df['bp_evec_snr'] - _df['sp_evec_snr']
+    _df['site'] = site
+    df_pr.append(_df)
+
 df_all = pd.concat(df)
 df_all['lambda_diff'] = df_all['bp_lambda'] - df_all['sp_lambda']
 df_all['mag_diff'] = df_all['bp_dU_mag'] - df_all['sp_dU_mag']
 df_all['cos_dU_evec_diff'] = df_all['bp_cos_dU_evec'] - df_all['sp_cos_dU_evec']
+
+df_all_pr = pd.concat(df_pr)
+df_all_pr['lambda_diff'] = df_all_pr['bp_lambda'] - df_all_pr['sp_lambda']
+df_all_pr['mag_diff'] = df_all_pr['bp_dU_mag'] - df_all_pr['sp_dU_mag']
+df_all_pr['cos_dU_evec_diff'] = df_all_pr['bp_cos_dU_evec'] - df_all_pr['sp_cos_dU_evec']
 
 # filter based on x_cut / y_cut
 if (x_cut is not None) & (y_cut is not None):
@@ -97,10 +120,16 @@ else:
     mask1 = (True * np.ones(df_all.shape[0])).astype(np.bool)
     mask2 = (True * np.ones(df_all.shape[0])).astype(np.bool)
 df_cut = df_all[mask1 & mask2]
+df_cut_pr = df_all_pr[mask1 & mask2]
 
-df_cut['bp_lambda'] = df_cut['bp_lambda'].apply(lambda x: x.sum())
-df_cut['sp_lambda'] = df_cut['sp_lambda'].apply(lambda x: x.sum())
-df_cut['lambda_diff'] = df_cut['bp_lambda'] - df_cut['sp_lambda']
+if evals_idx is None:
+    df_cut['bp_lambda'] = df_cut['bp_lambda'].apply(lambda x: x.sum())
+    df_cut['sp_lambda'] = df_cut['sp_lambda'].apply(lambda x: x.sum())
+    df_cut['lambda_diff'] = df_cut['bp_lambda'] - df_cut['sp_lambda']
+
+    df_cut_pr['bp_lambda'] = df_cut_pr['bp_lambda'].apply(lambda x: x.sum())
+    df_cut_pr['sp_lambda'] = df_cut_pr['sp_lambda'].apply(lambda x: x.sum())
+    df_cut_pr['lambda_diff'] = df_cut_pr['bp_lambda'] - df_cut_pr['sp_lambda']
 
 # KDE plot of signal to noise ratio along principal noise dimension for each stim pair
 f, ax = plt.subplots(1, 4, figsize=(12, 3))
@@ -298,7 +327,7 @@ ndf = pd.concat([ndf1, ndf2])
 
 ndf = ndf[ndf['noise']<15]
 
-g = sns.jointplot(data=ndf, x="noise", y="signal", hue="state", s=10, alpha=0.5)
+g = sns.jointplot(data=ndf, x="noise", y="signal", hue="state", s=10, alpha=0.2)
 
 # state_MI as fn of predictors
 dd = df_cut[df_cut['lambda_diff']<15]
@@ -329,7 +358,165 @@ ds_boot = stats.get_bootstrapped_sample(ds, nboot=nboots)
 
 p = 1 - stats.get_direct_prob(np.zeros(nboots), ds_boot)[0]
 
-print("big pupil dU change vs. small pupil dU change: \n" + \
+print("big pupil dU vs. small pupil dU change: \n" + \
+                f"p = {p}\n" + \
+                f"mean = {np.mean(ds_boot)}\n" + \
+                f"sem  = {np.std(ds_boot)/np.sqrt(nboots)}\n")
+
+nboots = 1000
+ds = {s: df_cut[(df_cut.site==s)]['cos_dU_evec_diff'].values for s in df_cut.site.unique()}
+ds_boot = stats.get_bootstrapped_sample(ds, nboot=nboots)
+
+p = 1 - stats.get_direct_prob(np.zeros(nboots), ds_boot)[0]
+
+print("big pupil cos(dU, e) vs. small pupil cos(dU, e) change: \n" + \
                 f"p = {p}\n" + \
                 f"mean = {np.mean(ds_boot)}\n" + \
                 f"sem  = {np.std(ds_boot)/np.sqrt(nboots)}")
+
+
+# Final summary. Show that signal / noise / alignment all change (but alignment is negligible)
+# Show that for pupil corrected, lamdba diff still has predictive power for delta dprime
+# but mag diff does not. Suggests that first order, not variance stuff can be accounted for by single pupil dim
+
+# seaborn jointplot is a massive pain in the ass, and creates new figure every time, so can't put all on the same plot
+
+# jointplot summaries
+
+# raw data
+ndf1 = pd.concat([np.sqrt(df_cut['bp_lambda']), df_cut['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"$\lambda$", 'bp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf1['state'] = 'Big'
+ndf2 = pd.concat([np.sqrt(df_cut['sp_lambda']), df_cut['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"$\lambda$", 'sp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf2['state'] = 'Small'
+ndf = pd.concat([ndf1, ndf2])
+
+g1 = sns.jointplot(data=ndf, x=r"$\lambda$", 
+                    y=r"$|\Delta \mathbf{\mu}|$", hue="state", s=10, alpha=0.2,
+                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6))
+g1.fig.canvas.set_window_title("Raw data")
+g1.fig.set_size_inches(4, 4)
+g1.fig.tight_layout()
+
+# pupil corrected data
+ndf1 = pd.concat([np.sqrt(df_cut_pr['bp_lambda']), df_cut_pr['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"$\lambda$", 'bp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf1['state'] = 'Big'
+ndf2 = pd.concat([np.sqrt(df_cut_pr['sp_lambda']), df_cut_pr['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"$\lambda$", 'sp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf2['state'] = 'Small'
+ndf = pd.concat([ndf1, ndf2])
+g2 = sns.jointplot(data=ndf, x=r"$\lambda$", 
+                    y=r"$|\Delta \mathbf{\mu}|$", hue="state", s=10, alpha=0.2,
+                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6))
+g2.fig.canvas.set_window_title("Pupil-corrected data")
+g2.fig.set_size_inches(4, 4)
+g2.fig.tight_layout()
+
+
+# regression model results
+r2_all = []
+r2_sig = []
+r2_sig_pr = []
+r2_noise = []
+r2_noise_pr = []
+r2_interference = []
+r2_interference_pr = []
+coefs = np.zeros((len(df_cut.site.unique()), 4))
+for i, s in enumerate(df_cut.site.unique()):
+    df = df_cut[df_cut.site==s]
+    df_pr = df_cut_pr[df_cut_pr.site==s]
+    y = copy.deepcopy(df['state_MI'])
+
+    # full model
+    X = copy.deepcopy(df[['cos_dU_evec_diff', 'lambda_diff', 'mag_diff']]) 
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+    full_model = sm.OLS(y, X).fit() 
+    r2_all.append(full_model.rsquared)
+    coefs[i, :] = full_model.params.values[::-1]
+
+    # signal only
+    X = copy.deepcopy(df[['mag_diff']])
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+    model1 = sm.OLS(y, X).fit() 
+    r2_sig.append(model1.rsquared)
+
+    X = copy.deepcopy(df_pr[['mag_diff']])
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+    model1 = sm.OLS(y, X).fit() 
+    r2_sig_pr.append(model1.rsquared)
+
+    # noise only
+    X = copy.deepcopy(df[['lambda_diff']])
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+    model2 = sm.OLS(y, X).fit() 
+    r2_noise.append(model2.rsquared)
+
+    X = copy.deepcopy(df_pr[['lambda_diff']])
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+    model2 = sm.OLS(y, X).fit() 
+    r2_noise_pr.append(model2.rsquared)
+
+    # interaction only
+    X = copy.deepcopy(df[['cos_dU_evec_diff']])
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+    model3 = sm.OLS(y, X).fit() 
+    r2_interference.append(model3.rsquared)
+
+    X = copy.deepcopy(df_pr[['cos_dU_evec_diff']])
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+    model3 = sm.OLS(y, X).fit() 
+    r2_interference_pr.append(model3.rsquared)
+
+# R2 values for each model
+r2 = pd.concat([pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ Noise variance", r"$\Delta$ Noise interference"], 
+                             data=np.stack([r2_sig, r2_noise, r2_interference]).T),
+                pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ Noise variance", r"$\Delta$ Noise interference"], 
+                             data=np.stack([r2_sig_pr, r2_noise_pr, r2_interference_pr]).T)])
+r2 = r2.melt()
+r2['corrected'] = np.tile(np.concatenate(((False * np.ones(len(r2_sig)).astype(bool), (True * np.ones(len(r2_sig)).astype(bool))))), [3])
+r2 = r2.rename(columns={'value': r'$R^2$', 'variable': 'Regressor'})
+
+# model coefficients
+coefs = pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", 
+                                r"$\Delta$ Noise variance", 
+                                r"$\Delta$ Noise interference"], data=coefs[:, :-1]) 
+coefs = coefs.melt()
+coefs = coefs.rename(columns={'value': 'Coefficient', 'variable': 'Regressor'})
+
+f, ax = plt.subplots(1, 2, figsize=(8, 4))
+
+sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax[0], alpha=0.3, color='k')
+#                    palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
+#                    r"$\Delta$ Noise variance": 'tab:green', 
+#                    r"$\Delta$ Noise interference": 'tab:red'})
+sns.pointplot(y="Regressor", x='Coefficient', data=coefs, dodge=0.4, join=False, ci=95, ax=ax[0], errwidth=1, scale=0.7, capsize=0.05, color='k')
+#                    palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
+#                             r"$\Delta$ Noise variance": 'tab:green', 
+#                             r"$\Delta$ Noise interference": 'tab:red'})
+
+g = sns.stripplot(x="Regressor", y=r'$R^2$', data=r2, dodge=True, ax=ax[1], alpha=0.3, hue='corrected')
+sns.pointplot(x="Regressor", y=r'$R^2$', data=r2, dodge=0.4, join=False, ci=95, errwidth=1, scale=0.7, capsize=0.05,
+                    ax=ax[1], alpha=0.3, hue='corrected')
+g.axes.legend([], frameon=False)
+g.axes.set_xticks(range(3))
+g.axes.set_xticklabels([r"$\Delta$ Signal"+"\nmagnitude", r"$\Delta$ Noise"+"\nvariance", r"$\Delta$ Noise"+"\ninterference"], rotation=45)
+g.axes.set_title(r"$\Delta d'^2$"+"\nRegression predictions")
+ax[0].axvline(0, linestyle='--', color='grey')
+ax[1].axhline(0, linestyle='--', color='grey')
+ax[0].set_title(r"$\Delta d'^2$"+"\nRegression coefficients")
+
+f.tight_layout()
+
+plt.show()
