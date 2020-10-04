@@ -81,6 +81,15 @@ for site in sites:
     _df['state_diff'] = (_df[bp_dp] - _df[sp_dp]) / _df['dp_opt_test']
     _df['state_diff_abs'] = (_df[bp_dp] - _df[sp_dp])
     _df['state_MI'] = (_df[bp_dp] - _df[sp_dp]) / (_df[bp_dp] + _df[sp_dp])
+    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
+    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
+    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=[0, 0])[0]
+    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=[0, 0])[0]
+    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=[0])[0]
+    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=[0])[0]
+    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
+    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
+    _df['snr_diff'] = _df['bp_evec_snr'] - _df['sp_evec_snr']
     _df['site'] = site
     df.append(_df)
 
