@@ -39,7 +39,7 @@ path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_pr_jk10_zscore_nclvz_fixtdr2'
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+#modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 #val = 'dp_opt_test'
 bp_dp = 'bp_dp'
@@ -55,8 +55,8 @@ vmin = None #0.1 #-.1
 vmax = None #0.3 #.1
 
 # where to crop the data
-x_cut = DU_MAG_CUT
-y_cut = NOISE_INTERFERENCE_CUT
+x_cut = None #DU_MAG_CUT
+y_cut = None #NOISE_INTERFERENCE_CUT
 
 df = []
 for site in sites:
@@ -76,8 +76,8 @@ for site in sites:
     _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
     _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=[0, 0])[0]
     _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=[0, 0])[0]
-    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=[0])[0]
-    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=[0])[0]
+    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=None)[0]
+    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=None)[0]
     _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
     _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
     _df['snr_diff'] = _df['bp_evec_snr'] - _df['sp_evec_snr']
@@ -94,16 +94,20 @@ if (x_cut is not None) & (y_cut is not None):
     mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
     mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
 else:
-    mask1 = True * np.ones(df_all.shape[0])
-    mask2 = True * np.ones(df_all.shape[0])
+    mask1 = (True * np.ones(df_all.shape[0])).astype(np.bool)
+    mask2 = (True * np.ones(df_all.shape[0])).astype(np.bool)
 df_cut = df_all[mask1 & mask2]
+
+df_cut['bp_lambda'] = df_cut['bp_lambda'].apply(lambda x: x.sum())
+df_cut['sp_lambda'] = df_cut['sp_lambda'].apply(lambda x: x.sum())
+df_cut['lambda_diff'] = df_cut['bp_lambda'] - df_cut['sp_lambda']
 
 # KDE plot of signal to noise ratio along principal noise dimension for each stim pair
 f, ax = plt.subplots(1, 4, figsize=(12, 3))
 
 # SNR
-x = df_all['sp_evec_snr'].values
-y = df_all['bp_evec_snr'].values
+x = df_cut['sp_evec_snr'].values
+y = df_cut['bp_evec_snr'].values
 xy = np.vstack((x, y))
 m = np.max(xy)
 z = ss.gaussian_kde(xy)(xy)
@@ -114,8 +118,8 @@ ax[0].set_xlabel(r"Small Pupil")
 ax[0].set_ylabel(r"Big pupil")
 
 # dU mag
-x = df_all['sp_dU_mag'].values
-y = df_all['bp_dU_mag'].values
+x = df_cut['sp_dU_mag'].values
+y = df_cut['bp_dU_mag'].values
 xy = np.vstack((x, y))
 m = np.max(xy)
 z = ss.gaussian_kde(xy)(xy)
@@ -126,8 +130,8 @@ ax[1].set_xlabel(r"Small Pupil")
 ax[1].set_ylabel(r"Big pupil")
 
 # noise mag
-x = df_all['sp_lambda'].values
-y = df_all['bp_lambda'].values
+x = df_cut['sp_lambda'].values
+y = df_cut['bp_lambda'].values
 xy = np.vstack((x, y))
 m = np.max(xy)
 z = ss.gaussian_kde(xy)(xy)
@@ -138,8 +142,8 @@ ax[2].set_xlabel(r"Small Pupil")
 ax[2].set_ylabel(r"Big pupil")
 
 # noise signal alignment
-x = df_all['sp_cos_dU_evec'].values
-y = df_all['bp_cos_dU_evec'].values
+x = df_cut['sp_cos_dU_evec'].values
+y = df_cut['bp_cos_dU_evec'].values
 xy = np.vstack((x, y))
 m = np.max(xy)
 z = ss.gaussian_kde(xy)(xy)
@@ -163,9 +167,9 @@ r2_all = []
 r2_sig_unique = []
 r2_noise_unique = []
 r2_interference_unique = []
-coefs = np.zeros((len(df_all.site.unique()), 4))
-for i, s in enumerate(df_all.site.unique()):
-    df = df_all[df_all.site==s]
+coefs = np.zeros((len(df_cut.site.unique()), 4))
+for i, s in enumerate(df_cut.site.unique()):
+    df = df_cut[df_cut.site==s]
     y = copy.deepcopy(df['state_MI'])
     #y -= y.mean()
     #y /= y.std()
@@ -286,9 +290,9 @@ ax[1].set_title(r"$\Delta$ Noise Variance ($\lambda_1$)")
 f.tight_layout()
 
 # summary of signal vs. noise variance changes
-ndf1 = df_cut[['bp_lambda', 'bp_dU_dot_evec_sq']].rename(columns={'bp_lambda': 'noise', 'bp_dU_dot_evec_sq': 'signal'})
+ndf1 = df_cut[['bp_lambda', 'bp_dU_mag']].rename(columns={'bp_lambda': 'noise', 'bp_dU_mag': 'signal'})
 ndf1['state'] = 'big'
-ndf2 = df_cut[['sp_lambda', 'sp_dU_dot_evec_sq']].rename(columns={'sp_lambda': 'noise', 'sp_dU_dot_evec_sq': 'signal'})
+ndf2 = df_cut[['sp_lambda', 'sp_dU_mag']].rename(columns={'sp_lambda': 'noise', 'sp_dU_mag': 'signal'})
 ndf2['state'] = 'small'
 ndf = pd.concat([ndf1, ndf2])
 
@@ -304,3 +308,28 @@ dd.plot.hexbin(x='mag_diff',
                    gridsize=nbins, cmap=cmap_second, vmin=-1, vmax=1)    
 
 plt.show()
+
+# stats tests
+# noise variance change
+np.random.seed(123)
+nboots = 1000
+ds = {s: df_cut[(df_cut.site==s)]['lambda_diff'].values for s in df_cut.site.unique()}
+ds_boot = stats.get_bootstrapped_sample(ds, nboot=nboots)
+
+p = 1 - stats.get_direct_prob(ds_boot, np.zeros(nboots))[0]
+
+print("big pupil variance vs. small pupil variance: \n" + \
+                f"p = {p}\n" + \
+                f"mean = {np.mean(ds_boot)}\n" + \
+                f"sem  = {np.std(ds_boot)/np.sqrt(nboots)}\n")
+
+nboots = 1000
+ds = {s: df_cut[(df_cut.site==s)]['mag_diff'].values for s in df_cut.site.unique()}
+ds_boot = stats.get_bootstrapped_sample(ds, nboot=nboots)
+
+p = 1 - stats.get_direct_prob(np.zeros(nboots), ds_boot)[0]
+
+print("big pupil dU change vs. small pupil dU change: \n" + \
+                f"p = {p}\n" + \
+                f"mean = {np.mean(ds_boot)}\n" + \
+                f"sem  = {np.std(ds_boot)/np.sqrt(nboots)}")
