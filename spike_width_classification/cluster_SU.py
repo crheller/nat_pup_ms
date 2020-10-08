@@ -11,18 +11,12 @@ from sklearn.cluster import KMeans
 path = '/auto/users/hellerc/results/nat_pupil_ms/'
 cellids_cache = path + 'celltypes.csv'
 
-cellid_289 = pd.DataFrame(nd.get_batch_cells(289).cellid)
-isolation_289 = [nd.get_isolation(cellid=c, batch=289).values[0][0] for c in cellid_289['cellid']]
-cellid_289['isolation'] = isolation_289
-
-cellid_294 = pd.DataFrame(nd.get_batch_cells(294, cellid='BOL').cellid)
-isolation_294 = [nd.get_isolation(cellid=c, batch=294).values[0][0] for c in cellid_294['cellid']]
-cellid_294['isolation'] = isolation_294
-
-cellids = pd.concat([cellid_289, cellid_294])
+cellids = pd.DataFrame(pd.concat([nd.get_batch_cells(289), nd.get_batch_cells(294)]).cellid)
+iso_query = f"SELECT cellid, isolation from gSingleRaw WHERE cellid in {tuple([x for x in cellids.cellid])}"
+isolation = nd.pd_query(iso_query)
+cellids = pd.DataFrame(data=isolation[isolation.isolation>=95].cellid.unique(), columns=['cellid'])
 
 # keep only SU
-cellids = cellids[cellids.isolation>=95]
 sw = [nd.get_gSingleCell_meta(cellid=c, fields='wft_spike_width') for c in cellids.cellid] 
 cellids['spike_width'] = sw
 
@@ -43,7 +37,8 @@ plt.tight_layout()
 
 
 # cluster using endsplope and spike width
-km = KMeans(n_clusters=2).fit(cellids[['spike_width', 'end_slope']])
+#km = KMeans(n_clusters=2).fit(cellids[['spike_width', 'end_slope']])
+km = KMeans(n_clusters=2).fit(cellids[['spike_width']])
 cellids['type'] = km.labels_
 
 # looks like endslope and spike width most effect for clustering... focus in on them
@@ -59,4 +54,4 @@ plt.tight_layout()
 plt.show()
 
 # cache cell type results dataframe
-cellid.to_csv(cellids_cache)
+cellids.to_csv(cellids_cache)

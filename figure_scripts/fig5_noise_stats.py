@@ -29,7 +29,10 @@ mpl.rcParams['axes.spines.top'] = False
 
 np.random.seed(123)  # for reproducible bootstrap standard error generation
 
-savefig = False
+savefig = True
+fig_fn1 = PY_FIGURES_DIR + 'fig5_noise_stats1.svg'
+fig_fn2 = PY_FIGURES_DIR + 'fig5_noise_stats2.svg'
+fig_fn3 = PY_FIGURES_DIR + 'fig5_regression.svg'
 
 recache = False
 ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
@@ -183,10 +186,6 @@ ax[3].set_xlabel(r"Small Pupil")
 ax[3].set_ylabel(r"Big pupil")
 
 f.tight_layout()
-
-
-# bar plots of relevant stats
-
 
 
 # decompose the SNR measure into the relevant parts:
@@ -375,6 +374,8 @@ print("big pupil cos(dU, e) vs. small pupil cos(dU, e) change: \n" + \
                 f"sem  = {np.std(ds_boot)/np.sqrt(nboots)}")
 
 
+# =============================================== FINAL SUMMARY FIGURES ================================================
+
 # Final summary. Show that signal / noise / alignment all change (but alignment is negligible)
 # Show that for pupil corrected, lamdba diff still has predictive power for delta dprime
 # but mag diff does not. Suggests that first order, not variance stuff can be accounted for by single pupil dim
@@ -384,31 +385,39 @@ print("big pupil cos(dU, e) vs. small pupil cos(dU, e) change: \n" + \
 # jointplot summaries
 
 # raw data
-ndf1 = pd.concat([np.sqrt(df_cut['bp_lambda']), df_cut['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"$\lambda$", 'bp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf1 = pd.concat([np.sqrt(df_cut['bp_lambda']), df_cut['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"Shared noise variance ($\lambda$)", 
+                    'bp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf1['state'] = 'Big'
-ndf2 = pd.concat([np.sqrt(df_cut['sp_lambda']), df_cut['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"$\lambda$", 'sp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf2 = pd.concat([np.sqrt(df_cut['sp_lambda']), df_cut['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"Shared noise variance ($\lambda$)", 
+                    'sp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf2['state'] = 'Small'
 ndf = pd.concat([ndf1, ndf2])
 
-g1 = sns.jointplot(data=ndf, x=r"$\lambda$", 
-                    y=r"$|\Delta \mathbf{\mu}|$", hue="state", s=10, alpha=0.2,
+g1 = sns.jointplot(data=ndf, x=r"Shared noise variance ($\lambda$)", 
+                    y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=0.2,
                     palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6))
 g1.fig.canvas.set_window_title("Raw data")
 g1.fig.set_size_inches(4, 4)
 g1.fig.tight_layout()
 
 # pupil corrected data
-ndf1 = pd.concat([np.sqrt(df_cut_pr['bp_lambda']), df_cut_pr['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"$\lambda$", 'bp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf1 = pd.concat([np.sqrt(df_cut_pr['bp_lambda']), df_cut_pr['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"Shared noise variance ($\lambda$)", 
+                'bp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf1['state'] = 'Big'
-ndf2 = pd.concat([np.sqrt(df_cut_pr['sp_lambda']), df_cut_pr['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"$\lambda$", 'sp_dU_mag': r"$|\Delta \mathbf{\mu}|$"})
+ndf2 = pd.concat([np.sqrt(df_cut_pr['sp_lambda']), df_cut_pr['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"Shared noise variance ($\lambda$)",
+                'sp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf2['state'] = 'Small'
 ndf = pd.concat([ndf1, ndf2])
-g2 = sns.jointplot(data=ndf, x=r"$\lambda$", 
-                    y=r"$|\Delta \mathbf{\mu}|$", hue="state", s=10, alpha=0.2,
+g2 = sns.jointplot(data=ndf, x=r"Shared noise variance ($\lambda$)", 
+                    y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=0.2,
                     palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6))
 g2.fig.canvas.set_window_title("Pupil-corrected data")
 g2.fig.set_size_inches(4, 4)
 g2.fig.tight_layout()
+
+if savefig:
+    g1.ax_joint.figure.savefig(fig_fn1)
+    g2.ax_joint.figure.savefig(fig_fn2)
 
 
 # regression model results
@@ -480,43 +489,86 @@ for i, s in enumerate(df_cut.site.unique()):
     r2_interference_pr.append(model3.rsquared)
 
 # R2 values for each model
-r2 = pd.concat([pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ Noise variance", r"$\Delta$ Noise interference"], 
+r2 = pd.concat([pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ Shared noise variance", r"$\Delta$ Noise interference"], 
                              data=np.stack([r2_sig, r2_noise, r2_interference]).T),
-                pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ Noise variance", r"$\Delta$ Noise interference"], 
+                pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ Shared noise variance", r"$\Delta$ Noise interference"], 
                              data=np.stack([r2_sig_pr, r2_noise_pr, r2_interference_pr]).T)])
 r2 = r2.melt()
 r2['corrected'] = np.tile(np.concatenate(((False * np.ones(len(r2_sig)).astype(bool), (True * np.ones(len(r2_sig)).astype(bool))))), [3])
 r2 = r2.rename(columns={'value': r'$R^2$', 'variable': 'Regressor'})
 
 # model coefficients
-coefs = pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", 
-                                r"$\Delta$ Noise variance", 
-                                r"$\Delta$ Noise interference"], data=coefs[:, :-1]) 
+coefs = pd.DataFrame(columns=[r"$\Delta$ Signal"+"\nmagnitude", 
+                                r"$\Delta$ Shared"+"\nnoise variance", 
+                                r"$\Delta$ Noise" +"\ninterference"], data=coefs[:, :-1]) 
 coefs = coefs.melt()
 coefs = coefs.rename(columns={'value': 'Coefficient', 'variable': 'Regressor'})
 
-f, ax = plt.subplots(1, 2, figsize=(8, 4))
+f, ax = plt.subplots(2, 2, figsize=(8, 8))
 
-sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax[0], alpha=0.3, color='k')
-#                    palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
-#                    r"$\Delta$ Noise variance": 'tab:green', 
-#                    r"$\Delta$ Noise interference": 'tab:red'})
-sns.pointplot(y="Regressor", x='Coefficient', data=coefs, dodge=0.4, join=False, ci=95, ax=ax[0], errwidth=1, scale=0.7, capsize=0.05, color='k')
-#                    palette={r"$\Delta$ Signal magnitude": 'tab:orange', 
-#                             r"$\Delta$ Noise variance": 'tab:green', 
-#                             r"$\Delta$ Noise interference": 'tab:red'})
+sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax[1, 0], alpha=0.3, color='k')
+sns.pointplot(y="Regressor", x='Coefficient', data=coefs, dodge=0.4, join=False, ci=95, ax=ax[1, 0], errwidth=1, scale=0.7, capsize=0.05, color='k')
 
-g = sns.stripplot(x="Regressor", y=r'$R^2$', data=r2, dodge=True, ax=ax[1], alpha=0.3, hue='corrected')
+g = sns.stripplot(x="Regressor", y=r'$R^2$', data=r2, dodge=True, ax=ax[1, 1], alpha=0.3, hue='corrected', palette={False: color.RAW, True: color.CORRECTED})
 sns.pointplot(x="Regressor", y=r'$R^2$', data=r2, dodge=0.4, join=False, ci=95, errwidth=1, scale=0.7, capsize=0.05,
-                    ax=ax[1], alpha=0.3, hue='corrected')
+                    ax=ax[1, 1], alpha=0.3, hue='corrected', palette={False: color.RAW, True: color.CORRECTED})
 g.axes.legend([], frameon=False)
 g.axes.set_xticks(range(3))
-g.axes.set_xticklabels([r"$\Delta$ Signal"+"\nmagnitude", r"$\Delta$ Noise"+"\nvariance", r"$\Delta$ Noise"+"\ninterference"], rotation=45)
-g.axes.set_title(r"$\Delta d'^2$"+"\nRegression predictions")
-ax[0].axvline(0, linestyle='--', color='grey')
-ax[1].axhline(0, linestyle='--', color='grey')
-ax[0].set_title(r"$\Delta d'^2$"+"\nRegression coefficients")
+g.axes.set_xticklabels([r"$\Delta$ Signal"+"\nmagnitude", r"$\Delta$ Shared noise"+"\nvariance", r"$\Delta$ Noise"+"\ninterference"], rotation=45)
+g.axes.set_title(r"$\Delta d'^2$"+"\nExplained variance")
+ax[1, 0].axvline(0, linestyle='--', color='grey')
+ax[1, 1].axhline(0, linestyle='--', color='grey')
+ax[1, 0].set_title(r"$\Delta d'^2$"+"\nRegression coefficients")
+
+# plot simulated data for large / small pupil to illustrate changes in dU and lambda
+
+# small pupil
+np.random.seed(123)
+u1 = [-1, .1]
+u2 = [1, -.2]
+cov = np.array([[1, 0.5], [0.5, 1]])
+A = np.random.multivariate_normal(u1, cov, (200,))
+B = np.random.multivariate_normal(u2, cov, (200,))
+Ael = cplt.compute_ellipse(A[:, 0], A[:, 1])
+Bel = cplt.compute_ellipse(B[:, 0], B[:, 1])
+
+ax[0, 0].scatter(B[:, 0].mean(), B[:, 1].mean(), edgecolor='k', s=50, color='tab:orange')
+ax[0, 0].scatter(A[:, 0].mean(), A[:, 1].mean(), edgecolor='k', s=50, color='tab:blue')
+ax[0, 0].plot(Ael[0], Ael[1], color='tab:blue', lw=2)
+ax[0, 0].plot(Bel[0], Bel[1], color='tab:orange', lw=2)
+ax[0, 0].set_title("Small Pupil", color=color.SMALL)
+ax[0, 0].set_xlabel(r"$\Delta \mathbf{\mu} (TDR_1)$")
+ax[0, 0].set_ylabel(r"$TDR_2$")
+
+u1 = [-2, -.1]
+u2 = [2, .2]
+cov = np.array([[.8, 0.2], [0.2, .8]]) 
+A = np.random.multivariate_normal(u1, cov, (200,))
+B = np.random.multivariate_normal(u2, cov, (200,))
+Ael = cplt.compute_ellipse(A[:, 0], A[:, 1])
+Bel = cplt.compute_ellipse(B[:, 0], B[:, 1])
+
+ax[0, 1].scatter(B[:, 0].mean(), B[:, 1].mean(), edgecolor='k', s=50, color='tab:orange')
+ax[0, 1].scatter(A[:, 0].mean(), A[:, 1].mean(), edgecolor='k', s=50, color='tab:blue')
+ax[0, 1].plot(Bel[0], Bel[1], color='tab:orange', lw=2)
+ax[0, 1].plot(Ael[0], Ael[1], color='tab:blue', lw=2)
+ax[0, 1].set_title("Large Pupil", color=color.LARGE)
+ax[0, 1].set_xlabel(r"$\Delta \mathbf{\mu} (TDR_1)$")
+ax[0, 1].set_ylabel(r"$TDR_2$")
+
+ax[0, 1].axis('equal')
+ax[0, 0].axis('equal')
+
+ylims = (np.min([ax[0, 0].get_ylim()[0], ax[0, 1].get_ylim()[0]]), np.max([ax[0, 0].get_ylim()[1], ax[0, 1].get_ylim()[1]]))
+xlims = (np.min([ax[0, 0].get_xlim()[0], ax[0, 1].get_xlim()[0]]), np.max([ax[0, 0].get_xlim()[1], ax[0, 1].get_xlim()[1]]))
+ax[0, 0].set_xlim(xlims)
+ax[0, 0].set_ylim(ylims)
+ax[0, 1].set_xlim(xlims)
+ax[0, 1].set_ylim(ylims)
 
 f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn3)
 
 plt.show()

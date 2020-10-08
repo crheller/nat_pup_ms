@@ -3,8 +3,10 @@ List of colors settings for figure scripts
 """
 
 # raw vs. pupil corrected
-RAW = 'tab:blue'
-CORRECTED = 'tab:orange'
+#RAW = 'tab:blue'
+#CORRECTED = 'tab:orange'
+CORRECTED = 'darkgray'
+RAW = 'mediumseagreen'
 
 # large vs. small pupil
 LARGE = 'firebrick'
