@@ -395,7 +395,7 @@ ndf = pd.concat([ndf1, ndf2])
 
 g1 = sns.jointplot(data=ndf, x=r"Shared noise variance ($\lambda$)", 
                     y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=0.2,
-                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6))
+                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6), rasterized=True)
 g1.fig.canvas.set_window_title("Raw data")
 g1.fig.set_size_inches(4, 4)
 g1.fig.tight_layout()
@@ -410,7 +410,7 @@ ndf2['state'] = 'Small'
 ndf = pd.concat([ndf1, ndf2])
 g2 = sns.jointplot(data=ndf, x=r"Shared noise variance ($\lambda$)", 
                     y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=0.2,
-                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6))
+                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6), rasterized=True)
 g2.fig.canvas.set_window_title("Pupil-corrected data")
 g2.fig.set_size_inches(4, 4)
 g2.fig.tight_layout()
