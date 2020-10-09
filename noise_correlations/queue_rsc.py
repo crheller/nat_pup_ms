@@ -5,11 +5,26 @@ force_rerun = True
 boxcar = True
 evoked = True
 slow = False
-custom = False  # run a subset of jobs
+custom = True  # run a subset of jobs
 for batch in batches:
 
     if custom:
-        modelnames = ['rsc_nrem'] # testing w/o rem
+        modelnames = ['rsc_pr_rm1', 
+                    'rsc_pr_rm1_fft0-0.05',
+                    'rsc_pr_rm1_fft0.05-0.1',
+                    'rsc_pr_rm1_fft0.1-0.25',
+                    'rsc_pr_rm1_fft0.25-0.5',
+                    'rsc_pr_rm1_fft0-0.1',
+                    'rsc_pr_rm1_fft0-0.25',
+                    'rsc_pr_rm1_fft0-0.5',
+                    'rsc_pr_rm1_fft0.5-2',
+                    'rsc_pr_rm1_fft2-4',
+                    'rsc_pr_rm1_fft0.1-4',
+                    'rsc_pr_rm1_fft0.25-4',
+                    'rsc_pr_rm1_fft0.5-4',
+                    'rsc_pr_rm1_fft4-10',
+                    'rsc_pr_rm1_fft10-25',
+                    'rsc_pr_rm1_fft25-50']
     else:
 
         modelnames = ['rsc', 'rsc_pr_rm2', 

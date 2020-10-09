@@ -115,12 +115,31 @@ rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modeln
                                         siteid=site,
                                         cache_path=rec_path, recache=False)
 
+if not regression_method2:
+    # only load model fit if using for regression
+    options = {'cellid': site, 'rasterfs': fs, 'batch': batch, 'pupil': True, 'stim': False}
+    if batch == 294:
+        options['runclass'] = 'VOC'
+    rec = nb.baphy_load_recording_file(**options)
+    rec['resp'] = rec['resp'].rasterize()
+    if 'cells_to_extract' in rec.meta.keys():
+        if rec.meta['cells_to_extract'] is not None:
+            log.info("Extracting cellids: {0}".format(rec.meta['cells_to_extract']))
+            rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
+    if batch == 294:
+        epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_' in epoch]
+    else:
+        epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
+    rec = rec.and_mask(epochs)
+    rec = rec.apply_mask(reset_epochs=True)
+
 # filtering / pupil regression must always go first!
 if pupil_regress & lv_regress:
 
     if regression_method1:
         log.info('Regress first and second order pupil using brute force method')
-        rec = preproc.regress_state(rec, state_sigs=['pupil', 'lv'], regress=['pupil', 'lv'])
+        #rec = preproc.regress_state(rec, state_sigs=['pupil', 'lv'], regress=['pupil', 'lv'])
+        rec = preproc.regress_state(rec, state_sigs=['pupil'], regress=['pupil'])
     elif regression_method2:
         log.info('Regress first and second order pupil by subtracting model pred')
         mod_data = rec['resp']._data - rec['pred']._data + rec['psth_sp']._data
@@ -154,6 +173,8 @@ if filt:
 # also mask evoked periods only ?
 if evoked:
     # double check that mask is cast to bool
+    if 'mask' not in rec.signals:
+        rec = rec.create_mask(True)
     rec['mask'] = rec['mask']._modified_copy(rec['mask']._data.astype(bool))
     rec = rec.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
 

@@ -23,7 +23,7 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR + 'fig6_dissociate_1st_2nd_order.svg'
 mi_max = 0.3  # for plotting purposes only, not for models
 mi_min = -0.2
@@ -44,16 +44,16 @@ boxcar = True
 evoked = True
 fs4 = False
 
-modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
-              'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2',
-              'rsc_fft2-4', 'rsc_pr_rm2_fft2-4',
-              'rsc_fft4-10', 'rsc_pr_rm2_fft4-10',
-              'rsc_fft10-25', 'rsc_pr_rm2_fft10-25',
-              'rsc_fft25-50', 'rsc_pr_rm2_fft25-50'
+modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm1_fft0-0.5',
+              'rsc_fft0.5-2', 'rsc_pr_rm1_fft0.5-2',
+              'rsc_fft2-4', 'rsc_pr_rm1_fft2-4',
+              'rsc_fft4-10', 'rsc_pr_rm1_fft4-10',
+              'rsc_fft10-25', 'rsc_pr_rm1_fft10-25',
+              'rsc_fft25-50', 'rsc_pr_rm1_fft25-50'
               ]
 if fs4:
-    modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm2_fft0-0.5',
-                'rsc_fft0.5-2', 'rsc_pr_rm2_fft0.5-2']
+    modelnames = ['rsc_fft0-0.5', 'rsc_pr_rm1_fft0-0.5',
+                'rsc_fft0.5-2', 'rsc_pr_rm1_fft0.5-2']
 if evoked:
     modelnames = [m.replace('rsc', 'rsc_ev') for m in modelnames]
 if boxcar:

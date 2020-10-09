@@ -13,6 +13,7 @@ import ax_labels as alab
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.statistics as stats
+import charlieTools.plotting as cplt
 import os
 import copy
 import seaborn as sns
@@ -326,7 +327,7 @@ ndf = pd.concat([ndf1, ndf2])
 
 ndf = ndf[ndf['noise']<15]
 
-g = sns.jointplot(data=ndf, x="noise", y="signal", hue="state", s=10, alpha=0.2)
+g = sns.jointplot(data=ndf, x="noise", y="signal", hue="state", s=10, alpha=0.5)
 
 # state_MI as fn of predictors
 dd = df_cut[df_cut['lambda_diff']<15]
@@ -382,35 +383,37 @@ print("big pupil cos(dU, e) vs. small pupil cos(dU, e) change: \n" + \
 
 # seaborn jointplot is a massive pain in the ass, and creates new figure every time, so can't put all on the same plot
 
-# jointplot summaries
+# jointplot summaries. Subsample for these, so that we can see structure. (1000 pts?)
+np.random.seed(123)
+ssidx = np.random.choice(np.arange(0, df_cut.shape[0]), 200)
 
 # raw data
-ndf1 = pd.concat([np.sqrt(df_cut['bp_lambda']), df_cut['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"Shared noise variance ($\lambda$)", 
+ndf1 = pd.concat([np.sqrt(df_cut['bp_lambda'].iloc[ssidx]), df_cut['bp_dU_mag'].iloc[ssidx]], axis=1).rename(columns={'bp_lambda': r"Shared noise variance ($\lambda$)", 
                     'bp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf1['state'] = 'Big'
-ndf2 = pd.concat([np.sqrt(df_cut['sp_lambda']), df_cut['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"Shared noise variance ($\lambda$)", 
+ndf2 = pd.concat([np.sqrt(df_cut['sp_lambda'].iloc[ssidx]), df_cut['sp_dU_mag'].iloc[ssidx]], axis=1).rename(columns={'sp_lambda': r"Shared noise variance ($\lambda$)", 
                     'sp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf2['state'] = 'Small'
-ndf = pd.concat([ndf1, ndf2])
+ndf = pd.concat([ndf2, ndf1])
 
 g1 = sns.jointplot(data=ndf, x=r"Shared noise variance ($\lambda$)", 
-                    y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=0.2,
-                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6), rasterized=True)
+                    y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=1,
+                    palette={'Small': color.SMALL, 'Big': color.LARGE, }, ylim=(0, 12), xlim=(0, 4), rasterized=True, ratio=3, marginal_kws=dict(fill=False))
 g1.fig.canvas.set_window_title("Raw data")
 g1.fig.set_size_inches(4, 4)
 g1.fig.tight_layout()
 
 # pupil corrected data
-ndf1 = pd.concat([np.sqrt(df_cut_pr['bp_lambda']), df_cut_pr['bp_dU_mag']], axis=1).rename(columns={'bp_lambda': r"Shared noise variance ($\lambda$)", 
+ndf1 = pd.concat([np.sqrt(df_cut_pr['bp_lambda'].iloc[ssidx]), df_cut_pr['bp_dU_mag'].iloc[ssidx]], axis=1).rename(columns={'bp_lambda': r"Shared noise variance ($\lambda$)", 
                 'bp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf1['state'] = 'Big'
-ndf2 = pd.concat([np.sqrt(df_cut_pr['sp_lambda']), df_cut_pr['sp_dU_mag']], axis=1).rename(columns={'sp_lambda': r"Shared noise variance ($\lambda$)",
+ndf2 = pd.concat([np.sqrt(df_cut_pr['sp_lambda'].iloc[ssidx]), df_cut_pr['sp_dU_mag'].iloc[ssidx]], axis=1).rename(columns={'sp_lambda': r"Shared noise variance ($\lambda$)",
                 'sp_dU_mag': r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)"})
 ndf2['state'] = 'Small'
-ndf = pd.concat([ndf1, ndf2])
+ndf = pd.concat([ndf2, ndf1])
 g2 = sns.jointplot(data=ndf, x=r"Shared noise variance ($\lambda$)", 
-                    y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=0.2,
-                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 16), xlim=(0, 6), rasterized=True)
+                    y=r"Signal Magnitude ($|\Delta \mathbf{\mu}|$)", hue="state", s=10, alpha=1,
+                    palette={'Big': color.LARGE, 'Small': color.SMALL}, ylim=(0, 12), xlim=(0, 4), rasterized=True, ratio=3, marginal_kws=dict(fill=False))
 g2.fig.canvas.set_window_title("Pupil-corrected data")
 g2.fig.set_size_inches(4, 4)
 g2.fig.tight_layout()
@@ -537,8 +540,8 @@ ax[0, 0].scatter(A[:, 0].mean(), A[:, 1].mean(), edgecolor='k', s=50, color='tab
 ax[0, 0].plot(Ael[0], Ael[1], color='tab:blue', lw=2)
 ax[0, 0].plot(Bel[0], Bel[1], color='tab:orange', lw=2)
 ax[0, 0].set_title("Small Pupil", color=color.SMALL)
-ax[0, 0].set_xlabel(r"$\Delta \mathbf{\mu} (TDR_1)$")
-ax[0, 0].set_ylabel(r"$TDR_2$")
+ax[0, 0].set_xlabel(r"$\Delta \mathbf{\mu} (DDR_1)$")
+ax[0, 0].set_ylabel(r"$DDR_2$")
 
 u1 = [-2, -.1]
 u2 = [2, .2]
@@ -553,8 +556,8 @@ ax[0, 1].scatter(A[:, 0].mean(), A[:, 1].mean(), edgecolor='k', s=50, color='tab
 ax[0, 1].plot(Bel[0], Bel[1], color='tab:orange', lw=2)
 ax[0, 1].plot(Ael[0], Ael[1], color='tab:blue', lw=2)
 ax[0, 1].set_title("Large Pupil", color=color.LARGE)
-ax[0, 1].set_xlabel(r"$\Delta \mathbf{\mu} (TDR_1)$")
-ax[0, 1].set_ylabel(r"$TDR_2$")
+ax[0, 1].set_xlabel(r"$\Delta \mathbf{\mu} (DDR_1)$")
+ax[0, 1].set_ylabel(r"$DDR_2$")
 
 ax[0, 1].axis('equal')
 ax[0, 0].axis('equal')
