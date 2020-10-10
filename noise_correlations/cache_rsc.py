@@ -107,13 +107,7 @@ else:
 if batch == 294:
     xforms_modelname = xforms_modelname.replace('pup-ld', 'pup.voc-ld')
 
-log.info("Load recording from xforms model {}".format(xforms_modelname))
-rec_path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
-
 cellid, _ = nb.parse_cellid({'batch': batch, 'cellid': site})
-rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modelname, cellids=cellid, 
-                                        siteid=site,
-                                        cache_path=rec_path, recache=False)
 
 if not regression_method2:
     # only load model fit if using for regression
@@ -132,6 +126,13 @@ if not regression_method2:
         epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
     rec = rec.and_mask(epochs)
     rec = rec.apply_mask(reset_epochs=True)
+
+else:
+    log.info("Load recording from xforms model {}".format(xforms_modelname))
+    rec_path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
+    rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modelname, cellids=cellid, 
+                                        siteid=site,
+                                        cache_path=rec_path, recache=False)
 
 # filtering / pupil regression must always go first!
 if pupil_regress & lv_regress:

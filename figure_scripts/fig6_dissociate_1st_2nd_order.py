@@ -23,12 +23,13 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = False
+savefig = True
 fig_fn = PY_FIGURES_DIR + 'fig6_dissociate_1st_2nd_order.svg'
 mi_max = 0.3  # for plotting purposes only, not for models
 mi_min = -0.2
 vmin = -0.15
 vmax = 0.15
+cmap = 'PiYG'
 # set up subplots
 f = plt.figure(figsize=(9, 6))
 
@@ -196,7 +197,7 @@ heatmap_rsc = ss.binned_statistic_2d(x=rsc_df['m1'],
                             statistic='mean',
                             bins=[xbins, ybins])
 
-im = rscax.imshow(heatmap_rsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
+im = rscax.imshow(heatmap_rsc[0], cmap=cmap, aspect='auto', vmin=vmin, vmax=vmax,
                             extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
                             origin='lower')
 divider = make_axes_locatable(rscax)
@@ -213,7 +214,7 @@ heatmap_drsc = ss.binned_statistic_2d(x=rsc_df['m1'],
                             statistic='mean',
                             bins=[xbins, ybins])
 
-im = drscax.imshow(heatmap_drsc[0], cmap='bwr', aspect='auto', vmin=vmin, vmax=vmax,
+im = drscax.imshow(heatmap_drsc[0], cmap=cmap, aspect='auto', vmin=vmin, vmax=vmax,
                             extent=[xbins[0], xbins[-1], ybins[0], ybins[-1]],
                             origin='lower')
 divider = make_axes_locatable(drscax)
