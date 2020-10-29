@@ -41,7 +41,7 @@ ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep c
 sites = HIGHR_SITES
 fig_fn = PY_FIGURES_DIR + 'fig7_ncLV.svg'
 
-site = 'TAR010c' #'BOL006b' #'DRX006b.e65:128'
+site = 'TAR010c' #'BOL006b' #'DRX006b.e65:128'  #'TAR010c'  #'DRX008b.e65:128'
 batch = 289
 mi_norm = True # use "MI" to define delta dprime
 
@@ -175,8 +175,12 @@ g = [g for g in g]
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 sim1 = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
+pr = 'dprime_pr_jk10_zscore_nclvz_fixtdr2'
 estval = '_test'
 cmap = 'PRGn'
+cmap = 'PiYG'
+vmin = -0.3
+vmax = 0.3
 high_var_only = False
 n_components = 2
 
@@ -190,6 +194,7 @@ elif estval == '_test':
 
 df = []
 df_sim1 = []
+df_pr = []
 path = DPRIME_DIR
 for site in sites:
     if (site in LOWR_SITES) | ALL_TRAIN_DATA: mn = modelname.replace('_jk10', '_jk1_eev') 
@@ -203,6 +208,12 @@ for site in sites:
     fn = os.path.join(path, site, mn+'_TDR.pickle')
     results_sim1 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     _df_sim1 = results_sim1.numeric_results
+
+    if (site in LOWR_SITES) | ALL_TRAIN_DATA: pr = sim1.replace('_jk10', '_jk1_eev') 
+    else: mn = pr
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
+    results_pr = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+    _df_pr = results_pr.numeric_results
 
     stim = results.evoked_stimulus_pairs
     high_var_pairs = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/dprime_new/high_pvar_stim_combos.csv', index_col=0)
@@ -230,8 +241,17 @@ for site in sites:
         _df_sim1['site'] = site
         df_sim1.append(_df_sim1)
 
+        _df_pr = _df_pr.loc[pd.IndexSlice[stim, n_components], :]
+        if mi_norm:
+            _df_pr['state_diff'] = (_df_pr['bp_dp'] - _df_pr['sp_dp']) / (_df_pr['bp_dp'] + _df_pr['sp_dp'])
+        else:
+            _df_pr['state_diff'] = (_df_pr['bp_dp'] - _df_pr['sp_dp']) / _df['dp_opt_test']
+        _df_pr['site'] = site
+        df_pr.append(_df_pr)
+
 df_all = pd.concat(df)
 df_sim1_all = pd.concat(df_sim1)
+df_pr_all = pd.concat(df_pr)
 
 # filter based on x_cut / y_cut
 if (x_cut is not None) & (y_cut is not None):
@@ -242,10 +262,12 @@ else:
     mask2 = (True * np.ones(df_all.shape[0])).astype(bool)
 df = df_all[mask1 & mask2]
 df_sim1 = df_sim1_all[mask1 & mask2]
+df_pr = df_pr_all[mask1 & mask2]
 
 # append the simulation results as columns in the raw dataframe
-df['sim1'] = df_sim1['state_diff']
-df['2nd_residual'] = df['state_diff'] - df['sim1']
+#df['sim1'] = df_sim1['state_diff']
+#df['2nd_residual'] = df['state_diff'] - df['sim1']
+df['2nd_residual'] = df_pr['state_diff']  # 10.21.2020 - try to use pupil-regression model to illustrate 2nd order effects
 
 # load LV results for all sites
 fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
@@ -281,23 +303,21 @@ varpc = plt.subplot2grid((2, 4), (0, 3))
 #b2dU = plt.subplot2grid((2, 5), (1, 3))
 dpax = plt.subplot2grid((2, 4), (1, 3))
 
-vmin = -0.5
-vmax = 0.5
-lrgax.imshow(big, aspect='auto', cmap='bwr', vmin=vmin, vmax=vmax)
+lrgax.imshow(big, aspect='auto', cmap=cmap, vmin=vmin, vmax=vmax)
 lrgax.set_title(r"$\Sigma_{large}$")
 lrgax.set_xticks([], [])
 lrgax.set_yticks([], [])
 lrgax.set_xlabel('Units (sorted by depth)')
 lrgax.set_ylabel('Units (sorted by depth)')
 
-smax.imshow(small, aspect='auto', cmap='bwr', vmin=vmin, vmax=vmax)
+smax.imshow(small, aspect='auto', cmap=cmap, vmin=vmin, vmax=vmax)
 smax.set_title(r"$\Sigma_{small}$")
 smax.set_xticks([], [])
 smax.set_yticks([], [])
 smax.set_xlabel('Units (sorted by depth)')
 smax.set_ylabel('Units (sorted by depth)')
 
-difax.imshow(diff, aspect='auto', cmap='bwr', vmin=vmin, vmax=vmax)
+difax.imshow(diff, aspect='auto', cmap=cmap, vmin=vmin, vmax=vmax)
 difax.set_title(r"$\Sigma_{small} - \Sigma_{large}$")
 difax.set_xticks([], [])
 difax.set_yticks([], [])
@@ -363,24 +383,13 @@ for s in sig_beta2:
     qts = df[df.site==s].beta2_dot_dU.quantile([0.25, 0.5, 0.75])
     upper = qts.iloc[1]
     lower = qts.iloc[1]
-    mh = (df.site==s) & (df['beta2_dot_dU'] >= upper)
-    ml = (df.site==s) & (df['beta2_dot_dU'] <= lower)
+    mh = (df.site==s) & (df_pr['beta2_dot_dU'] >= upper)
+    #mh = (df.site==s) & (df_pr['beta2_dot_dU'] > 0.5)
+    ml = (df.site==s) & (df_pr['beta2_dot_dU'] <= lower)
     df.loc[mh, 'high_mask'] = True
     df.loc[ml, 'low_mask'] = True
 low = df[df.low_mask].groupby(by='site').mean()['2nd_residual']
 high = df[df.high_mask].groupby(by='site').mean()['2nd_residual']
-
-try:
-    dpax.scatter([np.zeros(low.loc[low.index.isin(LOWR_SITES)].shape[0]), 
-            np.ones(low.loc[low.index.isin(LOWR_SITES)].shape[0])],
-          [low.loc[low.index.isin(LOWR_SITES)], high.loc[high.index.isin(LOWR_SITES)]], marker='D', color='grey', s=30, edgecolor='white', zorder=2)
-except:
-    pass
-dpax.scatter([np.zeros(low.loc[low.index.isin(HIGHR_SITES)].shape[0]), 
-            np.ones(low.loc[low.index.isin(HIGHR_SITES)].shape[0])],
-          [low.loc[low.index.isin(HIGHR_SITES)], high.loc[high.index.isin(HIGHR_SITES)]], marker='o', color='k', s=50, edgecolor='white', zorder=3)
-
-dpax.scatter([0, 1], [low.loc[ex_site], high.loc[ex_site]], marker='o', color='tab:orange', edgecolor='white', zorder=4)
 
 # print stats to compare high vs. low overlap
 print("mean low overlap: {0}, {1} \n mean high overlap: {2}, {3} \n pval: {4}".format(low.mean(),
@@ -389,20 +398,38 @@ print("mean low overlap: {0}, {1} \n mean high overlap: {2}, {3} \n pval: {4}".f
                                                                                       high.sem(),
                                                                                       ss.wilcoxon(low, high)))
 
+# replacing the commented code with a simple bar plot
+#dpax.bar([0, 1], [low.mean(), high.mean()], yerr=[low.sem(), high.sem()], edgecolor='k',
+#                lw=2, color='lightgrey', error_kw=dict(capsize=3, elinewidth=2, capthick=2))
+
+try:
+    dpax.scatter([np.zeros(low.loc[low.index.isin(LOWR_SITES)].shape[0]), 
+            np.ones(low.loc[low.index.isin(LOWR_SITES)].shape[0])],
+          [low.loc[low.index.isin(LOWR_SITES)], high.loc[high.index.isin(LOWR_SITES)]], marker='D', color='grey', s=30, edgecolor='white', zorder=2)
+except:
+    pass
+#dpax.scatter([np.zeros(low.loc[low.index.isin(HIGHR_SITES)].shape[0]), 
+#            np.ones(low.loc[low.index.isin(HIGHR_SITES)].shape[0])],
+#          [low.loc[low.index.isin(HIGHR_SITES)], high.loc[high.index.isin(HIGHR_SITES)]], marker='o', color='k', s=50, edgecolor='white', zorder=3)
+
+#dpax.scatter([0, 1], [low.loc[ex_site], high.loc[ex_site]], marker='o', color='tab:orange', edgecolor='white', zorder=4)
+
 for l, h, s in zip(low.values, high.values, high.index):
     if s == ex_site:
-        dpax.plot([0, 1], [l, h], 'tab:orange', zorder=3, lw=2)
+        dpax.plot([0, 1], [l, h], 'tab:orange', zorder=3, lw=1)
     elif s in LOWR_SITES:
         dpax.plot([0, 1], [l, h], 'grey', zorder=1)
     else:
-        dpax.plot([0, 1], [l, h], 'k', zorder=2)
-    
+        dpax.plot([0, 1], [l, h], 'k', zorder=2, lw=1)
+
+
+
 dpax.axhline(0, linestyle='--', color='k')
 dpax.set_xticks([0, 1])
 dpax.set_xticklabels(['Low', 'High'])
 dpax.set_xlabel(r"$\beta_2$ vs. $\Delta \mu$ similarity")
-dpax.set_ylabel(r"$\Delta d'^2$ (2nd-order)")
-dpax.set_xlim((-1, 2))
+dpax.set_ylabel(r"$\Delta d'^2$ (Pupil-corrected)")
+dpax.set_xlim((-1.5, 2.5))
 
 f.tight_layout()
 
