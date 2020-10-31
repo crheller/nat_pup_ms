@@ -11,11 +11,8 @@ from charlieTools.plotting import compute_ellipse
 
 np.random.seed(123)
 
-Ndim = 30
-Ntrials= 50
-step = 5
-RandSubsets = 30
-njacks = 10
+Ndim = 10
+Ntrials= 5000
 var_ratio = 1.2 # pc1 has X times the variance as pc2
 
 # simulated data
