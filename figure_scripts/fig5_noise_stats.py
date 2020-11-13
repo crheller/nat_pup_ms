@@ -385,7 +385,9 @@ print("big pupil cos(dU, e) vs. small pupil cos(dU, e) change: \n" + \
 
 # jointplot summaries. Subsample for these, so that we can see structure. (1000 pts?)
 np.random.seed(123)
-ssidx = np.random.choice(np.arange(0, df_cut.shape[0]), 200)
+nsamps = 200
+ssidx = np.random.choice(np.arange(0, df_cut.shape[0]), nsamps)
+print(f"subsampling {nsamps}/{df_cut.shape[0]} total stimulus pairs")
 
 # raw data
 ndf1 = pd.concat([np.sqrt(df_cut['bp_lambda'].iloc[ssidx]), df_cut['bp_dU_mag'].iloc[ssidx]], axis=1).rename(columns={'bp_lambda': r"Shared noise variance ($\lambda$)", 

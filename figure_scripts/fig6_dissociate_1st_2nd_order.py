@@ -23,7 +23,7 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR + 'fig6_dissociate_1st_2nd_order.svg'
 mi_max = 0.3  # for plotting purposes only, not for models
 mi_min = -0.2
