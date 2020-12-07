@@ -26,7 +26,7 @@ mpl.rcParams['axes.spines.top'] = False
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
 savefig = True
-fig_fn = PY_FIGURES_DIR + '/fig2_1st_2nd_order_stats.svg'
+fig_fn = PY_FIGURES_DIR + '/supp_1st_2nd_order_stats.svg'
 
 recache = False
 path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
