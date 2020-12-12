@@ -15,7 +15,7 @@
    viewBox="0 0 127 147.32"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="fig3_final.svg">
   <defs
      id="defs2"
@@ -2732,15 +2732,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="317.10929"
-     inkscape:cy="231.30677"
+     inkscape:cx="243.36815"
+     inkscape:cy="332.32202"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="in"
      inkscape:window-width="1920"
-     inkscape:window-height="1051"
-     inkscape:window-x="0"
+     inkscape:window-height="1043"
+     inkscape:window-x="1920"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      showguides="true"
@@ -16830,9 +16830,9 @@
          style="text-align:start;text-anchor:start;stroke-width:0.16214195;stroke-linecap:butt;stroke-linejoin:round"
          x="4.9316316"
          y="203.52718"
-         id="tspan60655">into <tspan
+         id="tspan60655">into d<tspan
    style="font-style:italic;text-align:start;text-anchor:start;stroke-width:0.16214195;stroke-linecap:butt;stroke-linejoin:round"
-   id="tspan60653">TDR</tspan> space</tspan></text>
+   id="tspan60653">DR</tspan> space</tspan></text>
     <path
        inkscape:connector-curvature="0"
        clip-path="url(#pe11c5a2f14)"
