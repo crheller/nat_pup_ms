@@ -533,15 +533,35 @@ coefs = coefs.rename(columns={'value': 'Coefficient', 'variable': 'Regressor'})
 r2_raw = r2[r2.corrected==False]
 x = r2_raw[r2_raw.Regressor==r"$\Delta$ Signal magnitude"][r"$cvR^2$"]
 U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
-print(f"R2 for signal magnitude, pval: {pval}, U: {U}\n")
+m = x.mean()
+print(f"R2 for signal magnitude, pval: {pval}, U: {U}, mean: {m}\n")
 
 x = r2_raw[r2_raw.Regressor==r"$\Delta$ Shared noise variance"][r"$cvR^2$"]
 U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
-print(f"R2 for shared noise variance, pval: {pval}, U: {U}\n")
+m = x.mean()
+print(f"R2 for shared noise variance, pval: {pval}, U: {U}, mean: {m}\n")
 
 x = r2_raw[r2_raw.Regressor==r"$\Delta$ Noise interference"][r"$cvR^2$"]
 U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
-print(f"R2 for noise interference, pval: {pval}, U: {U}\n")
+m = x.mean()
+print(f"R2 for noise interference, pval: {pval}, U: {U}, mean: {m}\n")
+
+# same for corrected 
+r2_raw = r2[r2.corrected==True]
+x = r2_raw[r2_raw.Regressor==r"$\Delta$ Signal magnitude"][r"$cvR^2$"]
+U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
+m = x.mean()
+print(f"R2 for signal magnitude corrected, pval: {pval}, U: {U}, mean: {m}\n")
+
+x = r2_raw[r2_raw.Regressor==r"$\Delta$ Shared noise variance"][r"$cvR^2$"]
+U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
+m = x.mean()
+print(f"R2 for shared noise variance corrected, pval: {pval}, U: {U}, mean: {m}\n")
+
+x = r2_raw[r2_raw.Regressor==r"$\Delta$ Noise interference"][r"$cvR^2$"]
+U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
+m = x.mean()
+print(f"R2 for noise interference corrected, pval: {pval}, U: {U}, mean: {m}\n")
 
 f, ax = plt.subplots(2, 2, figsize=(8, 8))
 
