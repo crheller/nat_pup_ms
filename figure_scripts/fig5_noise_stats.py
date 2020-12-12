@@ -11,6 +11,7 @@ from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFEREN
 import colors as color
 import ax_labels as alab
 
+from regression_helper import fit_OLS_model
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.statistics as stats
 import charlieTools.plotting as cplt
@@ -30,7 +31,7 @@ mpl.rcParams['axes.spines.top'] = False
 
 np.random.seed(123)  # for reproducible bootstrap standard error generation
 
-savefig = True
+savefig = False
 fig_fn1 = PY_FIGURES_DIR + 'fig5_noise_stats1.svg'
 fig_fn2 = PY_FIGURES_DIR + 'fig5_noise_stats2.svg'
 fig_fn3 = PY_FIGURES_DIR + 'fig5_regression.svg'
@@ -453,45 +454,64 @@ for i, s in enumerate(df_cut.site.unique()):
     X -= X.mean(axis=0)
     X /= X.std(axis=0)
     X = sm.add_constant(X)
-    model1 = sm.OLS(y, X).fit() 
-    r2_sig.append(model1.rsquared)
+    #model1 = sm.OLS(y, X).fit() 
+    #r2_sig.append(model1.rsquared)
+    cv_results = fit_OLS_model(X, y, replace=True, nboot=10, njacks=10)
+    r2 = cv_results['r2']['full']
+    r2_sig.append(r2)
 
     X = copy.deepcopy(df_pr[['mag_diff']])
     X -= X.mean(axis=0)
     X /= X.std(axis=0)
     X = sm.add_constant(X)
-    model1 = sm.OLS(y, X).fit() 
-    r2_sig_pr.append(model1.rsquared)
+    #model1 = sm.OLS(y, X).fit() 
+    #r2_sig_pr.append(model1.rsquared)
+    cv_results = fit_OLS_model(X, y, replace=True, nboot=10, njacks=10)
+    r2 = cv_results['r2']['full']
+    r2_sig_pr.append(r2)
 
     # noise only
     X = copy.deepcopy(df[['lambda_diff']])
     X -= X.mean(axis=0)
     X /= X.std(axis=0)
     X = sm.add_constant(X)
-    model2 = sm.OLS(y, X).fit() 
-    r2_noise.append(model2.rsquared)
+    #model2 = sm.OLS(y, X).fit() 
+    #r2_noise.append(model2.rsquared)
+    cv_results = fit_OLS_model(X, y, replace=True, nboot=10, njacks=10)
+    r2 = cv_results['r2']['full']
+    r2_noise.append(r2)
+
 
     X = copy.deepcopy(df_pr[['lambda_diff']])
     X -= X.mean(axis=0)
     X /= X.std(axis=0)
     X = sm.add_constant(X)
-    model2 = sm.OLS(y, X).fit() 
-    r2_noise_pr.append(model2.rsquared)
+    #model2 = sm.OLS(y, X).fit() 
+    #r2_noise_pr.append(model2.rsquared)
+    cv_results = fit_OLS_model(X, y, replace=True, nboot=10, njacks=10)
+    r2 = cv_results['r2']['full']
+    r2_noise_pr.append(r2)
 
     # interaction only
     X = copy.deepcopy(df[['cos_dU_evec_diff']])
     X -= X.mean(axis=0)
     X /= X.std(axis=0)
     X = sm.add_constant(X)
-    model3 = sm.OLS(y, X).fit() 
-    r2_interference.append(model3.rsquared)
+    #model3 = sm.OLS(y, X).fit() 
+    #r2_interference.append(model3.rsquared)
+    cv_results = fit_OLS_model(X, y, replace=True, nboot=10, njacks=10)
+    r2 = cv_results['r2']['full']
+    r2_interference.append(r2)
 
     X = copy.deepcopy(df_pr[['cos_dU_evec_diff']])
     X -= X.mean(axis=0)
     X /= X.std(axis=0)
     X = sm.add_constant(X)
-    model3 = sm.OLS(y, X).fit() 
-    r2_interference_pr.append(model3.rsquared)
+    #model3 = sm.OLS(y, X).fit() 
+    #r2_interference_pr.append(model3.rsquared)
+    cv_results = fit_OLS_model(X, y, replace=True, nboot=10, njacks=10)
+    r2 = cv_results['r2']['full']
+    r2_interference_pr.append(r2)
 
 # R2 values for each model
 r2 = pd.concat([pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ Shared noise variance", r"$\Delta$ Noise interference"], 
@@ -500,7 +520,7 @@ r2 = pd.concat([pd.DataFrame(columns=[r"$\Delta$ Signal magnitude", r"$\Delta$ S
                              data=np.stack([r2_sig_pr, r2_noise_pr, r2_interference_pr]).T)])
 r2 = r2.melt()
 r2['corrected'] = np.tile(np.concatenate(((False * np.ones(len(r2_sig)).astype(bool), (True * np.ones(len(r2_sig)).astype(bool))))), [3])
-r2 = r2.rename(columns={'value': r'$R^2$', 'variable': 'Regressor'})
+r2 = r2.rename(columns={'value': r'$cvR^2$', 'variable': 'Regressor'})
 
 # model coefficients
 coefs = pd.DataFrame(columns=[r"$\Delta$ Signal"+"\nmagnitude", 
@@ -509,13 +529,27 @@ coefs = pd.DataFrame(columns=[r"$\Delta$ Signal"+"\nmagnitude",
 coefs = coefs.melt()
 coefs = coefs.rename(columns={'value': 'Coefficient', 'variable': 'Regressor'})
 
+# stats for r2 for each predictor across sites. Is significant?
+r2_raw = r2[r2.corrected==False]
+x = r2_raw[r2_raw.Regressor==r"$\Delta$ Signal magnitude"][r"$cvR^2$"]
+U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
+print(f"R2 for signal magnitude, pval: {pval}, U: {U}\n")
+
+x = r2_raw[r2_raw.Regressor==r"$\Delta$ Shared noise variance"][r"$cvR^2$"]
+U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
+print(f"R2 for shared noise variance, pval: {pval}, U: {U}\n")
+
+x = r2_raw[r2_raw.Regressor==r"$\Delta$ Noise interference"][r"$cvR^2$"]
+U, pval = ss.ranksums(x, np.zeros(x.shape[0]))
+print(f"R2 for noise interference, pval: {pval}, U: {U}\n")
+
 f, ax = plt.subplots(2, 2, figsize=(8, 8))
 
 sns.stripplot(y="Regressor", x='Coefficient', data=coefs, dodge=True, ax=ax[1, 0], alpha=0.3, color='k')
 sns.pointplot(y="Regressor", x='Coefficient', data=coefs, dodge=0.4, join=False, ci=95, ax=ax[1, 0], errwidth=1, scale=0.7, capsize=0.05, color='k')
 
-g = sns.stripplot(x="Regressor", y=r'$R^2$', data=r2, dodge=True, ax=ax[1, 1], alpha=0.3, hue='corrected', palette={False: color.RAW, True: color.CORRECTED})
-sns.pointplot(x="Regressor", y=r'$R^2$', data=r2, dodge=0.4, join=False, ci=95, errwidth=1, scale=0.7, capsize=0.05,
+g = sns.stripplot(x="Regressor", y=r'$cvR^2$', data=r2, dodge=True, ax=ax[1, 1], alpha=0.3, hue='corrected', palette={False: color.RAW, True: color.CORRECTED})
+sns.pointplot(x="Regressor", y=r'$cvR^2$', data=r2, dodge=0.4, join=False, ci=95, errwidth=1, scale=0.7, capsize=0.05,
                     ax=ax[1, 1], alpha=0.3, hue='corrected', palette={False: color.RAW, True: color.CORRECTED})
 g.axes.legend([], frameon=False)
 g.axes.set_xticks(range(3))
