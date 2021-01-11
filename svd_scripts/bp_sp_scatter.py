@@ -10,6 +10,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import matplotlib as mpl
+mpl.rcParams['axes.spines.right'] = False
+mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams['pdf.fonttype'] = 42
+
+savefig = True
+fig_fn = PY_FIGURES_DIR.split('/py_figures/')[0] + '/svd_scripts/bp_sp_scatter.pdf'
 
 # subsample results
 nSamples = 500
@@ -54,5 +61,8 @@ ax.set_ylabel('Large Pupil')
 ax.set_title(r"$d'^2$")
 
 f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
 
 plt.show()

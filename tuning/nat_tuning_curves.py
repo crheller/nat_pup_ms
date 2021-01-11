@@ -13,6 +13,7 @@ import pickle
 import sys
 import matplotlib.pyplot as plt
 import scipy.stats as ss
+import statsmodels.api as sm
 
 import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
@@ -103,10 +104,10 @@ f.tight_layout()
 
 # single trials projected onto PC1
 if type(pc) is list:
-    Xpc1 = X.T.dot(pca.components_[pc[0]:pc[-1]+1, :].T).squeeze()
+    Xpc1 = (X - spont).T.dot(pca.components_[pc[0]:pc[-1]+1, :].T).squeeze()
     Xpc1 = np.sqrt(np.sum(Xpc1**2, axis=-1))
 else:
-    Xpc1 = X.T.dot(pca.components_[pc, :].T).squeeze()
+    Xpc1 = (X - spont).T.dot(pca.components_[pc, :].T).squeeze()
 
 Xpc1u = Xpc1.mean(axis=1)
 
@@ -123,11 +124,56 @@ df.at[:, 'pc1_c2'] = [Xpc1u[int(c.split('_')[1])] for c in df.index.get_level_va
 df.at[:, 'spec1'] = [pwr[int(c.split('_')[0])] for c in df.index.get_level_values('combo')]
 df.at[:, 'spec2'] = [pwr[int(c.split('_')[1])] for c in df.index.get_level_values('combo')]
 
-# multiple linear regression stim1/2 power and resp1/2 power vs. dprime stats
+# ==========================================================================
+# multiple linear regression stim1/2 power and resp1/2 strength / variance(?) vs. dprime stats
+X = df[['pc1_c1', 'pc1_c2', 'spec1', 'spec2']]
+X = X.rename(columns={'pc1_c1': 'r1', 
+                           'pc1_c2': 'r2', 
+                           'spec1': 's1',
+                           'spec2': 's2'})
+X['r1*r2'] = X['r1'] * X['r2']
+X['s1*s2'] = X['s1'] * X['s2']
+X = sm.add_constant(X)
 
+y = df['bp_dp'] - df['sp_dp']
+
+reg = sm.OLS(y, X).fit()
+
+# crude approach, splitting based on resp alone (top 25 vs. bottom 25)
+R = pd.concat([X['r1'], X['r2']])
+r1Big = X['r1'] > np.quantile(R, 0.75)
+r2Big = X['r2'] > np.quantile(R, 0.75)
+r1Small = X['r1'] < np.quantile(R, 0.25)
+r2Small = X['r2'] < np.quantile(R, 0.25)
+
+f, ax = plt.subplots(1, 3, figsize=(9, 3), sharey=True)
+
+ax[0].bar([0, 1], [df[r1Big&r2Big]['bp_dp'].mean(),
+                    df[r1Big&r2Big]['sp_dp'].mean()], 
+                    yerr=[df[r1Big&r2Big]['bp_dp'].sem(),
+                    df[r1Big&r2Big]['sp_dp'].sem()],
+                    edgecolor='k', width=0.5)
+ax[0].set_title('good / good')
+
+ax[1].bar([0, 1], [df[(r1Big&~r2Big) | (~r1Big&r2Big)]['bp_dp'].mean(),
+                    df[(r1Big&~r2Big) | (~r1Big&r2Big)]['sp_dp'].mean()],
+                    yerr=[df[(r1Big&~r2Big) | (~r1Big&r2Big)]['bp_dp'].sem(),
+                    df[(r1Big&~r2Big) | (~r1Big&r2Big)]['sp_dp'].sem()], 
+                    edgecolor='k', width=0.5)
+ax[1].set_title('good / bad')
+
+ax[2].bar([0, 1], [df[~r1Big&~r2Big]['bp_dp'].mean(),
+                    df[~r1Big&~r2Big]['sp_dp'].mean()], 
+                    yerr=[df[~r1Big&~r2Big]['bp_dp'].sem(),
+                    df[~r1Big&~r2Big]['sp_dp'].sem()],
+                    edgecolor='k', width=0.5)
+ax[2].set_title('bad / bad')
+
+f.tight_layout()
+
+plt.show()
 
 # ==========================================================================
-
 cc = np.corrcoef(np.abs(df['pc1_c1'].values - df['pc1_c2'].values), df['dp_opt_test'].values)[0, 1]
 
 
