@@ -3,6 +3,7 @@ Regress delta dprime against first order stimulus / response characteristics
     Do certain sounds / responsiveness lead to bigger / smaller pupil changes?
 """
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH
+from regression_helper import fit_OLS_model
 
 import numpy as np
 from itertools import combinations
@@ -36,14 +37,23 @@ mpl.rcParams['pdf.fonttype'] = 42
 recache = False # decoding results
 pc = [0, 1, 2] #[0, 1] # 0, 1, 2, [0, 1] (which PC to project on for resp characterization)
 collapse = True
+combine_combinations = True
 norm = True # normalize the delta dprime
 savefig = True
 fig_fn = PY_FIGURES_DIR.split('/py_figures/')[0] + '/svd_scripts/regression.pdf'
 
-# if list, combine them (sum of squares)
-cols = ['rsq', 'r1', 'r2', 'r1_sd', 'r2_sd', 's1', 's2', 'r1*r2', 'r1_sd*r2_sd', 's1*s2', 'site']
+# save full model / coefficients, unique R2, independent R2
+cols = ['rsq', 'mean_r', 'diff_r', 'mean_rSD', 'diff_rSD', 'cos_r1r2', 'mean_s', 'diff_s'] 
+
+# hold parameter values
 dp = pd.DataFrame(columns=cols)
 delta = pd.DataFrame(columns=cols)
+# hold unique r2
+dp_ur2 = pd.DataFrame(columns=cols)
+delta_ur2 = pd.DataFrame(columns=cols)
+# hold independent r2
+dp_ir2 = pd.DataFrame(columns=cols)
+delta_ir2 = pd.DataFrame(columns=cols)
 
 df_all = pd.DataFrame()
 sk = 0
@@ -105,13 +115,14 @@ for batch in [289, 294]:
 
         spont = X[:, :, spont_bins.squeeze()].mean(axis=(1,2), keepdims=True)
         if type(pc) is list:
-            Xpc1 = (X - spont).T.dot(pca.components_[pc[0]:pc[-1]+1, :].T).squeeze()
+            Xpc1_full = (X - spont).T.dot(pca.components_[pc[0]:pc[-1]+1, :].T)
             if collapse:
-                Xpc1 = np.sqrt(np.sum(Xpc1**2, axis=-1))
+                Xpc1 = np.sqrt(np.sum(Xpc1_full**2, axis=-1))
             else:
-                pass
+                Xpc1 = Xpc1_full.squeeze()
         else:
-            Xpc1 = (X - spont).T.dot(pca.components_[pc, :].T).squeeze()
+            Xpc1_full = (X - spont).T.dot(pca.components_[pc, :].T)
+            Xpc1 = Xpc1_full.squeeze()
 
         # resp mag
         Xpc1u = Xpc1.mean(axis=1)
@@ -126,6 +137,16 @@ for batch in [289, 294]:
         df = results.numeric_results.loc[results.evoked_stimulus_pairs]
         df['noiseAlign'] = results.slice_array_results('cos_dU_evec_test', results.evoked_stimulus_pairs, 2, [None,0])[0].apply(lambda x: x[0])
 
+        # get alignment of r1/r2 in resp space (if resp space dim=1), set to constant
+        if Xpc1_full.shape[-1] == 1:
+            df.at[:, 'cos_r1r2'] = 0
+        else:
+            Xpc1u_full = Xpc1_full.mean(axis=1)
+            r1 = [Xpc1u_full[int(c.split('_')[0])] / np.linalg.norm(Xpc1u_full[int(c.split('_')[0])]) for c in df.index.get_level_values('combo')]
+            r2 = [Xpc1u_full[int(c.split('_')[1])] / np.linalg.norm(Xpc1u_full[int(c.split('_')[1])]) for c in df.index.get_level_values('combo')]
+            cos = [abs(_r1.dot(_r2.T)) for _r1, _r2 in zip(r1, r2)]
+            df.at[:, 'cos_r1r2'] = cos
+
         # Run regression model -- predict delta dprime / dprime from resp stats / spectrogram stats
         df.at[:, 'r1'] = [Xpc1u[int(c.split('_')[0])] for c in df.index.get_level_values('combo')]
         df.at[:, 'r2'] = [Xpc1u[int(c.split('_')[1])] for c in df.index.get_level_values('combo')]
@@ -137,23 +158,29 @@ for batch in [289, 294]:
         df.at[:, 'site_key'] = sk
         sk += 1
 
-        # flip combos things for symmetry
-        df2 = df.copy()
-        df2['r1'] = df['r2'].copy()
-        df2['r2'] = df['r1'].copy()
-        df2['r1_sd'] = df['r2_sd'].copy()
-        df2['r2_sd'] = df['r1_sd'].copy()
-        df2['s1'] = df['s2'].copy()
-        df2['s2'] = df['s1'].copy()
+        #if not combine_combinations:
+        #    # flip combos things for symmetry
+        #    df2 = df.copy()
+        #    df2['r1'] = df['r2'].copy()
+        #    df2['r2'] = df['r1'].copy()
+        #    df2['r1_sd'] = df['r2_sd'].copy()
+        #    df2['r2_sd'] = df['r1_sd'].copy()
+        #    df2['s1'] = df['s2'].copy()
+        #    df2['s2'] = df['s1'].copy()
 
-        df = pd.concat([df, df2])
+        #    df = pd.concat([df, df2])
+
+        # combine r1/r2 and s1/s2 stats into single columns
+        df['mean_r'] = df[['r1', 'r2']].mean(axis=1)
+        df['diff_r'] = abs(df['r1'] - df['r2'])
+        df['mean_s'] = df[['s1', 's2']].mean(axis=1)
+        df['diff_s'] = abs(df['s1'] - df['s2'])
+        df['mean_rSD'] = df[['r1_sd', 'r2_sd']].mean(axis=1)
+        df['diff_rSD'] = abs(df['r1_sd'] - df['r2_sd'])
 
         df_all = df_all.append(df)
 
-        X = df[['r1', 'r2', 'r1_sd', 'r2_sd', 's1', 's2']]
-        X['r1*r2'] = X['r1'] * X['r2']
-        X['r1_sd*r2_sd'] = X['r1_sd'] * X['r2_sd']
-        X['s1*s2'] = X['s1'] * X['s2']
+        X = df[cols[1:]]
         X = X - X.mean()
         X = X / X.std()
         X = sm.add_constant(X)
@@ -164,18 +191,30 @@ for batch in [289, 294]:
             y = (df['bp_dp'] - df['sp_dp'])
         y -= y.mean()
         y /= y.std()
-        delta_reg = sm.OLS(y, X).fit()
-        _delta = pd.DataFrame(columns=cols, data=[[delta_reg.rsquared] + delta_reg.params.values[1:].tolist() + [site]])
+        #delta_reg = sm.OLS(y, X).fit()
+        results = fit_OLS_model(X, y, nboot=10)
+        _delta = pd.DataFrame(columns=cols+['site'], data=[[results['r2']['full']] + list(results['coef'].values()) + [site]])
         delta = delta.append(_delta)
+        _delta_ur2 = pd.DataFrame(columns=cols+['site'], data=[[results['r2']['full']] + [v for k, v in results['r2'].items() if k.startswith('u')] + [site]])
+        delta_ur2 = delta_ur2.append(_delta_ur2)
+        _delta_ir2 = pd.DataFrame(columns=cols+['site'], data=[[results['r2']['full']] + [v for k, v in results['r2'].items() \
+                                                                                if (k.startswith('u')==False) & (k!='full')] + [site]])
+        delta_ir2 = delta_ir2.append(_delta_ir2)
 
         y = df['dp_opt_test']
         y -= y.mean()
         y /= y.std()
-        reg = sm.OLS(y, X).fit()
-        _dp = pd.DataFrame(columns=cols, data=[[reg.rsquared] + reg.params.values[1:].tolist() + [site]])
+        #reg = sm.OLS(y, X).fit()
+        results = fit_OLS_model(X, y, nboot=10)
+        _dp = pd.DataFrame(columns=cols+['site'], data=[[results['r2']['full']] + list(results['coef'].values()) + [site]])
         dp = dp.append(_dp)
+        _dp_ur2 = pd.DataFrame(columns=cols+['site'], data=[[results['r2']['full']] + [v for k, v in results['r2'].items() if k.startswith('u')] + [site]])
+        dp_ur2 = dp_ur2.append(_dp_ur2)
+        _dp_ir2 = pd.DataFrame(columns=cols+['site'], data=[[results['r2']['full']] + [v for k, v in results['r2'].items() \
+                                                                                if (k.startswith('u')==False) & (k!='full')] + [site]])
+        dp_ir2 = dp_ir2.append(_dp_ir2)
 
-xvals = cols[:-1]
+xvals = cols
 
 f, ax = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
 
@@ -192,14 +231,40 @@ f.tight_layout()
 if savefig:
     f.savefig(fig_fn)
 
+
+f, ax = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
+
+sns.stripplot(x='variable', y='value', data=dp_ur2[xvals].melt(), ax=ax[0])
+ax[0].axhline(0, linestyle='--', color='k', lw=2)
+ax[0].set_title(r"Overall $d'^2$")
+ax[0].set_ylabel(r"$cvR^2$ (unique)")
+
+sns.stripplot(x='variable', y='value', data=delta_ur2[xvals].melt(), ax=ax[1])
+ax[1].axhline(0, linestyle='--', color='k', lw=2)
+ax[1].set_title(r"$\Delta d'^2$")
+ax[1].set_ylabel(r"$cvR^2$ (unique)")
+
+f.tight_layout()
+
+f, ax = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
+
+sns.stripplot(x='variable', y='value', data=dp_ir2[xvals].melt(), ax=ax[0])
+ax[0].axhline(0, linestyle='--', color='k', lw=2)
+ax[0].set_title(r"Overall $d'^2$")
+ax[0].set_ylabel(r"$cvR^2$ (independent)")
+
+sns.stripplot(x='variable', y='value', data=delta_ir2[xvals].melt(), ax=ax[1])
+ax[1].axhline(0, linestyle='--', color='k', lw=2)
+ax[1].set_title(r"$\Delta d'^2$")
+ax[1].set_ylabel(r"$cvR^2$ (independent)")
+
+f.tight_layout()
+
 plt.show()
 
 
 # regression overall
-X = df_all[['r1', 'r2', 'r1_sd', 'r2_sd', 's1', 's2', 'site_key']]
-X['r1*r2'] = X['r1'] * X['r2']
-X['r1_sd*r2_sd'] = X['r1_sd'] * X['r2_sd']
-X['s1*s2'] = X['s1'] * X['s2']
+X = df_all[cols[1:]+['noiseAlign']+['dU_mag_test']]
 X = X - X.mean()
 X = X / X.std()
 X = sm.add_constant(X)
@@ -210,7 +275,8 @@ else:
     y = (df_all['bp_dp'] - df_all['sp_dp'])
 y -= y.mean()
 y /= y.std()
-delta_reg = sm.OLS(y, X).fit()
+#delta_reg = sm.OLS(y, X).fit()
+results = fit_OLS_model(X, y, nboot=10)
 
 # regression for delta mu / noise angle
 X = df_all[['dU_mag_test', 'noiseAlign', 'site_key']]
