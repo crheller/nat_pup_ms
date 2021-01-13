@@ -42,8 +42,12 @@ norm = True # normalize the delta dprime
 savefig = True
 fig_fn = PY_FIGURES_DIR.split('/py_figures/')[0] + '/svd_scripts/regression.pdf'
 
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+sim1 = False
+sim_model = 'dprime_simInTDR_sim1_jk10_zscore_nclvz_fixtdr2'
+
 # save full model / coefficients, unique R2, independent R2
-cols = ['rsq', 'mean_r', 'diff_r', 'mean_rSD', 'diff_rSD', 'cos_r1r2', 'mean_s', 'diff_s'] 
+cols = ['rsq', 'mean_r', 'diff_r', 'mean_rSD', 'diff_rSD', 'cos_r1r2', 'mean_s', 'diff_s', 'noiseAlign', 'dU_mag_test'] 
 
 # hold parameter values
 dp = pd.DataFrame(columns=cols)
@@ -130,12 +134,26 @@ for batch in [289, 294]:
         Xpc1sd = Xpc1.var(axis=1)
 
         # ============================ LOAD DPRIME RESULTS =============================
-        loader = decoding.DecodingResults()
-        modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
-        fn = os.path.join(DPRIME_DIR, site, modelname+'_TDR.pickle')
-        results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
-        df = results.numeric_results.loc[results.evoked_stimulus_pairs]
-        df['noiseAlign'] = results.slice_array_results('cos_dU_evec_test', results.evoked_stimulus_pairs, 2, [None,0])[0].apply(lambda x: x[0])
+        if not sim1:
+            loader = decoding.DecodingResults()
+            fn = os.path.join(DPRIME_DIR, site, modelname+'_TDR.pickle')
+            results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+            df = results.numeric_results.loc[results.evoked_stimulus_pairs]
+            df['noiseAlign'] = results.slice_array_results('cos_dU_evec_test', results.evoked_stimulus_pairs, 2, (0, 0))[0]
+        else:
+            loader = decoding.DecodingResults()
+            fn = os.path.join(DPRIME_DIR, site, modelname+'_TDR.pickle')
+            results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+            df2 = results.numeric_results.loc[results.evoked_stimulus_pairs]
+            df2['noiseAlign'] = results.slice_array_results('cos_dU_evec_test', results.evoked_stimulus_pairs, 2, (0, 0))[0]
+            # load simulation
+            loader = decoding.DecodingResults()
+            fn = os.path.join(DPRIME_DIR, site, sim_model+'_TDR.pickle')
+            results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+            df = results.numeric_results.loc[results.evoked_stimulus_pairs]
+            df['dU_mag_test'] = df2['dU_mag_test']
+            df['noiseAlign'] = df2['noiseAlign']
+
 
         # get alignment of r1/r2 in resp space (if resp space dim=1), set to constant
         if Xpc1_full.shape[-1] == 1:
@@ -216,13 +234,20 @@ for batch in [289, 294]:
 
 xvals = cols
 
-f, ax = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
 
-sns.stripplot(x='variable', y='value', data=dp[xvals].melt(), ax=ax[0])
+f, ax = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
+
+colors = plt.cm.get_cmap('tab10', len(dp.site.unique()))
+cpal = {k: colors(i) for k, i in zip(dp.site.unique(), range(len(dp.site.unique())))}
+g = sns.stripplot(x='variable', y='value', hue='site', data=dp.melt(id_vars='site'), palette=cpal, ax=ax[0])
+g.set_xticklabels(xvals, rotation=45)
+g.legend(bbox_to_anchor= (1.03, 1))
 ax[0].axhline(0, linestyle='--', color='k', lw=2)
 ax[0].set_title(r"Overall $d'^2$")
 
-sns.stripplot(x='variable', y='value', data=delta[xvals].melt(), ax=ax[1])
+g = sns.stripplot(x='variable', y='value', hue='site', data=delta.melt(id_vars='site'), palette=cpal, ax=ax[1])
+g.set_xticklabels(xvals, rotation=45)
+g.legend().remove()
 ax[1].axhline(0, linestyle='--', color='k', lw=2)
 ax[1].set_title(r"$\Delta d'^2$")
 
@@ -234,12 +259,16 @@ if savefig:
 
 f, ax = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
 
-sns.stripplot(x='variable', y='value', data=dp_ur2[xvals].melt(), ax=ax[0])
+g = sns.stripplot(x='variable', y='value', hue='site', data=dp_ur2.melt(id_vars='site'), palette=cpal, ax=ax[0])
+g.set_xticklabels(xvals, rotation=45)
+g.legend(bbox_to_anchor= (1.03, 1))
 ax[0].axhline(0, linestyle='--', color='k', lw=2)
 ax[0].set_title(r"Overall $d'^2$")
 ax[0].set_ylabel(r"$cvR^2$ (unique)")
 
-sns.stripplot(x='variable', y='value', data=delta_ur2[xvals].melt(), ax=ax[1])
+g = sns.stripplot(x='variable', y='value', hue='site', data=delta_ur2.melt(id_vars='site'), palette=cpal, ax=ax[1])
+g.set_xticklabels(xvals, rotation=45)
+g.legend().remove()
 ax[1].axhline(0, linestyle='--', color='k', lw=2)
 ax[1].set_title(r"$\Delta d'^2$")
 ax[1].set_ylabel(r"$cvR^2$ (unique)")
@@ -248,12 +277,16 @@ f.tight_layout()
 
 f, ax = plt.subplots(1, 2, figsize=(8, 4), sharey=True)
 
-sns.stripplot(x='variable', y='value', data=dp_ir2[xvals].melt(), ax=ax[0])
+g = sns.stripplot(x='variable', y='value', hue='site', data=dp_ir2.melt(id_vars='site'), palette=cpal, ax=ax[0])
+g.set_xticklabels(xvals, rotation=45)
+g.legend(bbox_to_anchor= (1.03, 1))
 ax[0].axhline(0, linestyle='--', color='k', lw=2)
 ax[0].set_title(r"Overall $d'^2$")
 ax[0].set_ylabel(r"$cvR^2$ (independent)")
 
-sns.stripplot(x='variable', y='value', data=delta_ir2[xvals].melt(), ax=ax[1])
+g = sns.stripplot(x='variable', y='value', hue='site', data=delta_ir2.melt(id_vars='site'), palette=cpal, ax=ax[1])
+g.set_xticklabels(xvals, rotation=45)
+g.legend().remove()
 ax[1].axhline(0, linestyle='--', color='k', lw=2)
 ax[1].set_title(r"$\Delta d'^2$")
 ax[1].set_ylabel(r"$cvR^2$ (independent)")
@@ -261,6 +294,12 @@ ax[1].set_ylabel(r"$cvR^2$ (independent)")
 f.tight_layout()
 
 plt.show()
+
+
+df_all['delta_dprime'] = (df_all['bp_dp'] - df_all['sp_dp'])# / (df_all['bp_dp'] + df_all['sp_dp'])
+dft = df_all[(abs(df_all['delta_dprime'])<40)]
+idx = np.random.choice(range(0, dft.shape[0]), 500, replace=False)
+sns.pairplot(dft[xvals[1:]+['delta_dprime']].iloc[idx], markers='.')
 
 
 # regression overall
