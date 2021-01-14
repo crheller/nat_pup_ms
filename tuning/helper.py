@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import charlieTools.plotting as cplt
 
-def plot_confusion_matrix(df, metric, spectrogram, resp_fs=None, stim_fs=None, cmap='bwr', midpoint=0):
+def plot_confusion_matrix(df, metric, spectrogram, resp_fs=None, stim_fs=None, cmap='bwr', midpoint=0, vmin=None, vmax=None, ax=None):
     """
     df: pairwise decoding results
     metric: value to plot on the matrix
@@ -20,7 +20,7 @@ def plot_confusion_matrix(df, metric, spectrogram, resp_fs=None, stim_fs=None, c
         raise ValueError
 
     # get matrix max based on length of spectrogram
-    extent = int(spectrogram.shape[-1] / stim_fs) * resp_fs
+    extent = int((spectrogram.shape[-1] / stim_fs) * resp_fs)
 
     # fill confusion matrix
     cfm = np.nan * np.ones((extent, extent))
@@ -38,9 +38,15 @@ def plot_confusion_matrix(df, metric, spectrogram, resp_fs=None, stim_fs=None, c
     spChan = spectrogram.shape[0]
     # plot confusion matrix
     ax.imshow(cfm, extent=[0, extent, spChan, extent+spChan], 
-                        origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint))
+                        origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
     # plot spectrograms
-    ax.imshow(spectrogram.T, extent=[extent, spChan+extent, spChan, extent+spChan], origin='lower', cmap='Greys')
+    ax.imshow(np.flipud(spectrogram).T, extent=[extent, spChan+extent, spChan, extent+spChan], origin='lower', cmap='Greys')
     ax.imshow(spectrogram, extent=[0, extent, 0, spChan], origin='lower', cmap='Greys')
 
-    ax.imshow(np.nan * cfm, extent=[0, extent+spChan, 0, extent+spChan])
+    #ax.imshow(np.nan * cfm, extent=[0, extent+spChan, 0, extent+spChan])
+    ax.set_xlim((0, extent+spChan))
+    ax.set_ylim((0, extent+spChan))
+
+    ax.axis('off')
+
+    #[ax.spines[x].set_visible(False) for x in ax.spines]

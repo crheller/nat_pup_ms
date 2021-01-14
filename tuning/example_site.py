@@ -32,6 +32,7 @@ from nems.recording import load_recording
 site = 'DRX006b.e1:64'
 batch = 289
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+recache = False
 
 # get decoding results
 loader = decoding.DecodingResults()
