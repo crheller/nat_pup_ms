@@ -31,6 +31,13 @@ from nems.recording import load_recording
 
 site = 'DRX006b.e1:64'
 batch = 289
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+
+# get decoding results
+loader = decoding.DecodingResults()
+fn = os.path.join(DPRIME_DIR, site, modelname+'_TDR.pickle')
+results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+df = results.numeric_results.loc[results.evoked_stimulus_pairs]
 
 X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch, return_epoch_list=True)
 ncells = X.shape[0]
@@ -69,9 +76,11 @@ proj = (X_spont).T.dot(pca.components_.T)
 loadkey = "ozgf.fs100.ch18.pup"
 uri = generate_recording_uri(cellid=site[:7], batch=batch, loadkey=loadkey)
 rec = load_recording(uri)
+# excise poststim
+postim_bins = rec['pupil'].extract_epoch('PostStimSilence').shape[-1]
 stim = []
 for e in epochs:
-    stim.append(rec['stim']._data[e])
+    stim.append(rec['stim']._data[e][:, :(-1 * postim_bins)])
 stim = np.concatenate(stim, axis=-1)
 
 f = plt.figure(figsize=(16, 4))
