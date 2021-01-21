@@ -34,6 +34,7 @@ from nems.recording import load_recording
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 recache = False
 fpath = '/home/charlie/Desktop/lbhb/tmp_figures/decoding_summary/'
+fpath = '/auto/users/hellerc/results/nat_pupil_ms/tmp_figures/'
 
 for site in HIGHR_SITES:
     if site.startswith('BOL'):
