@@ -75,7 +75,7 @@ proj = (X_spont).T.dot(pca.components_[0:2, :].T)
 f, ax = plt.subplots(1, 3, figsize=(12, 4))
 
 sidx = np.argsort((proj**2).sum(axis=-1).mean(axis=1))
-samples = sidx[::-1][:2]
+samples = sidx[::-1][[1, 7]]#[[0, 6]]
 idx = 0
 for i in range(nstim):
     if i in samples:

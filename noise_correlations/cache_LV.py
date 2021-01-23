@@ -17,9 +17,11 @@ import charlieTools.nat_sounds_ms.preprocessing as preproc
 import charlieTools.nat_sounds_ms.dim_reduction as dr
 import charlieTools.preprocessing as cpreproc
 
-from nems_lbhb.baphy import parse_cellid
+from nems_lbhb.baphy_io import parse_cellid
 from nems_lbhb.preprocessing import create_pupil_mask
+import nems.db as nd
 
+# A1 data
 sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
         'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
         'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
@@ -27,6 +29,8 @@ sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT
         'DRX007a.e1:64', 'DRX007a.e65:128',
         'DRX008b.e1:64', 'DRX008b.e65:128',
         'BOL005c', 'BOL006b']
+# PEG data
+sites = np.unique([c[:7] for c in sites.cellid.unique()]).tolist()
 zscore = True
 
 lv_dict = {}
