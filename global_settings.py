@@ -7,17 +7,17 @@ ALL_SITES = ['BOL005c', 'BOL006b', 'bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', '
             'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
             'DRX006b.e1:64', 'DRX006b.e65:128',
             'DRX007a.e1:64', 'DRX007a.e65:128',
-            'DRX008b.e1:64', 'DRX008b.e65:128',
-            'AMT028b', 'AMT029a', 'AMT031a', 'AMT032a', 'ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
+            'DRX008b.e1:64', 'DRX008b.e65:128']
 
+PEG_SITES = ['AMT028b', 'AMT029a', 'AMT031a', 'AMT032a', 'ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
+HIGHR_PEG_SITES = ['ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
 
 # BRT032, BRT033, and BRT037 + TAR009d?? Excluded because flat pupil, I think...
 # subset in which cross-validation can be performed
 HIGHR_SITES = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
             'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
             'DRX007a.e1:64', 'DRX007a.e65:128', 
-            'DRX008b.e1:64', 'DRX008b.e65:128',
-            'ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
+            'DRX008b.e1:64', 'DRX008b.e65:128']
 
 
 # subset in which cross-validation not possible

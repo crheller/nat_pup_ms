@@ -30,7 +30,8 @@ sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT
         'DRX008b.e1:64', 'DRX008b.e65:128',
         'BOL005c', 'BOL006b']
 # PEG data
-sites = np.unique([c[:7] for c in sites.cellid.unique()]).tolist()
+peg_sites = np.unique([c[:7] for c in nd.get_batch_cells(323).cellid.unique()]).tolist()
+sites += peg_sites
 zscore = True
 
 lv_dict = {}
@@ -38,6 +39,8 @@ for site in sites:
     print('Analyzing site {}'.format(site))
     if site in ['BOL005c', 'BOL006b']:
         batch = 294
+    elif site in peg_sites:
+        batch = 323
     else:
         batch = 289
 
@@ -197,13 +200,17 @@ for site in sites:
 
     path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
     df = pd.concat([pd.read_csv(os.path.join(path,'d_289_pup_sdexp.csv'), index_col=0),
-                    pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0)])
+                    pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0),
+                    pd.read_csv(os.path.join(path,'d_323_pup_sdexp.csv'), index_col=0)])
     df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se']) 
     gain = pd.DataFrame(df.loc[:, pd.IndexSlice['gain_mod', 'st.pup']])
     gain.loc[:, 'site'] = [i.split('-')[0] for i in gain.index]
     gain = gain.loc[[c for c in rec['resp'].chans]]
     g = gain['gain_mod']['st.pup'].values
-    g = [g for g in g]
+    try: 
+        g = [float(g.strip('[]')) for g in g]
+    except: 
+        g = [g for g in g]
 
     lv_dict[site]['b2_corr_gain'] = np.corrcoef(g, evecs[:, 0])[0, 1]
 

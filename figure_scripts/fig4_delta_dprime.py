@@ -6,7 +6,7 @@ Compare model weights for predicting delta vs. predicting overall.
 CLEANING THIS UP AS OF 08.29.2020 (this is the new version, old version is in the old_scripts dir)
 """
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT, HIGHR_PEG_SITES, PEG_SITES
 import colors as color
 import ax_labels as alab
 
@@ -30,9 +30,9 @@ np.random.seed(123)  # for reproducible bootstrap standard error generation
 savefig = False
 
 recache = False
-ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
+ALL_TRAIN_DATA = True  # use training data for all analysis (even if high rep count site / cross val)
                        # in this case, est = val so doesn't matter if you load _test results or _train results
-sites = HIGHR_SITES
+sites = PEG_SITES # HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
@@ -76,19 +76,19 @@ for site in sites:
     _df = results.numeric_results
     stim = results.evoked_stimulus_pairs
     _df = _df.loc[_df.index.get_level_values('combo').isin(stim)]
-    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
-    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
+    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=(0, 0))[0]
+    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=(0, 0))[0]
     _df['state_diff'] = (_df[bp_dp] - _df[sp_dp]) / _df['dp_opt_test']
     _df['state_diff_abs'] = (_df[bp_dp] - _df[sp_dp])
     _df['state_MI'] = (_df[bp_dp] - _df[sp_dp]) / (_df[bp_dp] + _df[sp_dp])
-    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
-    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
-    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=[0, 0])[0]
-    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=[0, 0])[0]
-    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=[0])[0]
-    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=[0])[0]
-    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
-    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
+    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=(0, 0))[0]
+    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=(0, 0))[0]
+    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=(0, 0))[0]
+    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=(0, 0))[0]
+    _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=(0))[0]
+    _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=(0))[0]
+    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=(0, 0))[0]
+    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=(0, 0))[0]
     _df['snr_diff'] = _df['bp_evec_snr'] - _df['sp_evec_snr']
     _df['site'] = site
     df.append(_df)
@@ -100,8 +100,8 @@ if (x_cut is not None) & (y_cut is not None):
     mask1 = (df_all['dU_mag'+estval] < x_cut[1]) & (df_all['dU_mag'+estval] > x_cut[0])
     mask2 = (df_all['cos_dU_evec'+estval] < y_cut[1]) & (df_all['cos_dU_evec'+estval] > y_cut[0])
 else:
-    mask1 = True * np.ones(df_all.shape[0])
-    mask2 = True * np.ones(df_all.shape[0])
+    mask1 = (True * np.ones(df_all.shape[0])).astype(bool)
+    mask2 = (True * np.ones(df_all.shape[0])).astype(bool)
 df = df_all[mask1 & mask2]
 
 # plot large vs. small dprime per site
@@ -113,7 +113,10 @@ try:
     dpax.scatter(dfg.loc[LOWR_SITES][sp_dp], dfg.loc[LOWR_SITES][bp_dp], marker="D", color='grey', s=30, edgecolor='white')
 except:
     pass
-dpax.scatter(dfg.loc[HIGHR_SITES][sp_dp], dfg.loc[HIGHR_SITES][bp_dp], color='k', s=50, edgecolor='white')
+try:
+    dpax.scatter(dfg.loc[HIGHR_SITES][sp_dp], dfg.loc[HIGHR_SITES][bp_dp], color='k', s=50, edgecolor='white')
+except:
+    dpax.scatter(dfg.loc[HIGHR_PEG_SITES][sp_dp], dfg.loc[HIGHR_PEG_SITES][bp_dp], color='k', s=50, edgecolor='white')
 #dpax.errorbar(dfg.loc[HIGHR_SITES][sp_dp], dfg.loc[HIGHR_SITES][bp_dp], 
 #              xerr=dfe.loc[HIGHR_SITES][sp_dp], yerr=dfe.loc[HIGHR_SITES][bp_dp], 
 #                color='k', fmt='.')

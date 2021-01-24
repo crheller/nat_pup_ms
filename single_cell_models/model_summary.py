@@ -7,13 +7,15 @@ import nems.db as nd
 import matplotlib.pyplot as plt
 import pandas as pd
 
-batches = [289, 294]
+batches = [289, 294, 323]
 modelnames = ['ns.fs4.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic', 'ns.fs4.pup-ld-st.pup0-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
         'ns.fs4.pup.voc-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic', 'ns.fs4.pup.voc-ld-st.pup0-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic']
-sql = "SELECT r_test, se_test, cellid, modelname from Results WHERE modelname in {0} and batch in {1}".format(tuple(modelnames), tuple(batches))
+sql = "SELECT r_test, se_test, cellid, modelname, batch from Results WHERE modelname in {0} and batch in {1}".format(tuple(modelnames), tuple(batches))
 
 results = nd.pd_query(sql)
 results['state_mod'] = ['st.pup' if 'st.pup0' not in s else 'st.pup0' for s in results['modelname']]
+
+results = results[results.batch==323]
 
 r = results.pivot(columns='state_mod', index='cellid')
 rdiff = r.loc[:, pd.IndexSlice['r_test', 'st.pup']] - r.loc[:, pd.IndexSlice['r_test', 'st.pup0']]

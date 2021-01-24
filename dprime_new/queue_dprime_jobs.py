@@ -1,15 +1,18 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 323
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
+subset_323 = True # only high rep sites (for cross val)
+no_crossval = True  # for no cross validation (on the larger 289 set )
+
 temp_subset = False # for exculding subset of models for faster run time on jobs
+
 nc_lv = True        # beta defined using nc LV method
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
-no_crossval = False  # for no cross validation (on the larger 289 set )
 loocv = False         # leave-one-out cross validation
 n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 
@@ -34,6 +37,12 @@ if batch == 289:
             
 elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
+
+elif batch == 323:
+    if subset_323:
+        sites = ['ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
+    else:
+        sites = ['AMT028b', 'AMT029a', 'AMT031a', 'AMT032a']
 
 #modellist = ['dprime_jk10']
 modellist = [f'dprime_jk{njack}_zscore', f'dprime_pr_jk{njack}_zscore',
