@@ -118,11 +118,11 @@ for i in range(nstim):
 ax[0].axhline(0, linestyle='--', color='k', zorder=-1); ax[0].axvline(0, linestyle='--', color='k', zorder=-1)
 ax[1].axhline(0, linestyle='--', color='k', zorder=-1); ax[1].axvline(0, linestyle='--', color='k', zorder=-1)
 
-ax[0].set_xlabel(r"$PC_1$")
-ax[0].set_ylabel(r"$PC_2$")
+ax[0].set_xlabel(r"Stim $PC_1$")
+ax[0].set_ylabel(r"Stim $PC_2$")
 ax[0].set_title("Large pupil")
-ax[1].set_xlabel(r"$PC_1$")
-ax[1].set_ylabel(r"$PC_2$")
+ax[1].set_xlabel(r"Stim $PC_1$")
+ax[1].set_ylabel(r"Stim $PC_2$")
 ax[1].set_title("Small pupil")
 
 # share axes
@@ -133,9 +133,11 @@ ax[0].set_xlim((extents.min(), extents.max()))
 ax[1].set_xlim((extents.min(), extents.max()))
 
 # plot scree plot
-ax[2].bar(range(10), pca.explained_variance_ratio_[:10] * 100, edgecolor='k', color='lightgrey', width=0.5)
-ax[2].set_ylabel('Variance explained')
-ax[2].set_xlabel(r"$PC$")
+ax[2].bar(range(10), pca.explained_variance_ratio_[:10] * 100, edgecolor='k', color='lightgrey', width=0.5, label='Stimulus Activity')
+ax[2].bar(range(10), var_explained[:10] * 100, edgecolor='k', color='tab:orange', width=0.5, label='Single Trial Variance')
+ax[2].set_ylabel('% Variance explained')
+ax[2].set_xlabel(r"Stim $PC$")
+ax[2].legend(frameon=False)
 
 f.tight_layout()
 

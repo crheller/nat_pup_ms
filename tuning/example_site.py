@@ -59,6 +59,11 @@ X = X.reshape(ncells, nreps, nstim)
 ev_bins = list(set(range(X.shape[-1])).difference(set(spont_bins.squeeze())))
 Xev = X[:, :, ev_bins]
 
+# get the overall noise axis and see how it aligned with each dU
+# NOTE! this is imperfect because of cross validation...
+tdr2_axes = nat_preproc.get_first_pc_per_est([X])[0]
+du = results.slice_array_results('dU_all', results.evoked_stimulus_pairs, 2, idx=None)[0].apply(lambda x: x/np.linalg.norm(x))
+df['allNoiseAlign'] = du.apply(lambda x: np.abs(x.dot(tdr2_axes.T))[0][0])
 # ============================= DO PCA ================================
 Xu = Xev.mean(axis=1)
 spont = X[:, :, spont_bins.squeeze()].mean(axis=1).mean(axis=-1, keepdims=True)
