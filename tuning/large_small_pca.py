@@ -70,14 +70,72 @@ spont = spont[:, :, np.newaxis] # for subtracting from single trial data
 X_spont = X - spont
 proj = (X_spont).T.dot(pca.components_[0:2, :].T)
 
-# get single trial variance explained by evoked PCs
-zm = Xev - Xev.mean(axis=0, keepdims=True)
+# only keep evoked data of projection
+proj = proj[ev_bins, :, :]
+
+# update pupil mask
+pup_mask = pup_mask[:, ev_bins]
+
+# get single trial variance explained along evoked PCs
+#      also, for big/small single trial separately
+#      and, for big/small evoked
+st_Xev = Xev - Xev.mean(axis=1, keepdims=True)
+ev_Xev = Xev.mean(axis=1, keepdims=True)
+
+# single trial variance
+zm = st_Xev - st_Xev.mean(axis=0, keepdims=True)
 tot_var = (zm**2).sum(axis=(1, 2)).sum()
 var_explained = np.zeros(pca.components_.shape[0])
+bp_var_explained = np.zeros(pca.components_.shape[0])
+sp_var_explained = np.zeros(pca.components_.shape[0])
+
+# evoked variance
+zm = ev_Xev - ev_Xev.mean(axis=-1, keepdims=True)
+ev_tot_var = (zm**2).sum(axis=(1, 2)).sum()
+ev_var_explained = np.zeros(pca.components_.shape[0])
+ev_bp_var_explained = np.zeros(pca.components_.shape[0])
+ev_sp_var_explained = np.zeros(pca.components_.shape[0])
+
 for i in range(0, pca.components_.shape[0]):
-    fp = Xev.T.dot(pca.components_[i, :])
+    # ==================== SINGLE TRIAL =======================
+    # all trials
+    fp = st_Xev.T.dot(pca.components_[i, :])
+    # big / small pupil
+    bp_fp = np.stack([fp[i, pup_mask[:, i]] for i in range(fp.shape[0])])
+    sp_fp = np.stack([fp[i, ~pup_mask[:, i]] for i in range(fp.shape[0])])
+    
+    # all trials
     fp -= fp.mean(axis=(0, 1), keepdims=True)
     var_explained[i] = (fp**2).sum() / tot_var
+
+    # big pupil
+    bp_fp -= bp_fp.mean(axis=(0, 1), keepdims=True)
+    bp_var_explained[i] = (bp_fp**2).sum() / tot_var
+
+    # small pupil
+    sp_fp -= sp_fp.mean(axis=(0, 1), keepdims=True)
+    sp_var_explained[i] = (sp_fp**2).sum() / tot_var
+
+    # ====================== EVOKED =======================
+    # all trials
+    fpev = ev_Xev.T.dot(pca.components_[i, :])
+    # big / small pupil
+    bp_fp = np.stack([Xev[:, pup_mask[:, i], i] for i in range(0, fp.shape[0])]).transpose([1, -1, 0]).T.dot(pca.components_[i, :]).mean(axis=-1, keepdims=True)
+    sp_fp = np.stack([Xev[:, ~pup_mask[:, i], i] for i in range(0, fp.shape[0])]).transpose([1, -1, 0]).T.dot(pca.components_[i, :]).mean(axis=-1, keepdims=True)
+    #bp_fp = np.stack([fp[i, pup_mask[:, i]].mean(axis=-1, keepdims=True) for i in range(fp.shape[0])])
+    #sp_fp = np.stack([fp[i, ~pup_mask[:, i]].mean(axis=-1, keepdims=True) for i in range(fp.shape[0])])
+    
+    # all trials
+    fpev -= fpev.mean(axis=(0, 1), keepdims=True)
+    ev_var_explained[i] = (fpev**2).sum() / ev_tot_var
+
+    # big pupil
+    bp_fp -= bp_fp.mean(axis=(0, 1), keepdims=True)
+    ev_bp_var_explained[i] = (bp_fp**2).sum() / ev_tot_var
+
+    # small pupil
+    sp_fp -= sp_fp.mean(axis=(0, 1), keepdims=True)
+    ev_sp_var_explained[i] = (sp_fp**2).sum() / ev_tot_var
 
 
 # noise pca
@@ -88,12 +146,12 @@ npca.fit(Xnoise.T)
 
 
 # for each stimulus plot ellipse
-f, ax = plt.subplots(1, 3, figsize=(12, 4))
+f, ax = plt.subplots(2, 2, figsize=(8, 8))
 
 sidx = np.argsort((proj**2).sum(axis=-1).mean(axis=1))
 samples = sidx[::-1][[1, 7]]#[[0, 6]]
 idx = 0
-for i in range(nstim):
+for i in range(proj.shape[0]):
     if i in samples:
         if idx==0:
             color = 'tab:blue'
@@ -111,33 +169,43 @@ for i in range(nstim):
     r = proj[i, :, :]
     bp = pup_mask[:, i]
     el = cplt.compute_ellipse(r[bp, 0], r[bp, 1])
-    ax[0].plot(el[0], el[1], lw=lw, color=color, zorder=zorder)
+    ax[0, 0].plot(el[0], el[1], lw=lw, color=color, zorder=zorder)
     el = cplt.compute_ellipse(r[~bp, 0], r[~bp, 1])
-    ax[1].plot(el[0], el[1], lw=lw, color=color, zorder=zorder)
+    ax[0, 1].plot(el[0], el[1], lw=lw, color=color, zorder=zorder)
 
-ax[0].axhline(0, linestyle='--', color='k', zorder=-1); ax[0].axvline(0, linestyle='--', color='k', zorder=-1)
-ax[1].axhline(0, linestyle='--', color='k', zorder=-1); ax[1].axvline(0, linestyle='--', color='k', zorder=-1)
+ax[0, 0].axhline(0, linestyle='--', color='k', zorder=-1); ax[0, 0].axvline(0, linestyle='--', color='k', zorder=-1)
+ax[0, 1].axhline(0, linestyle='--', color='k', zorder=-1); ax[0, 1].axvline(0, linestyle='--', color='k', zorder=-1)
 
-ax[0].set_xlabel(r"Stim $PC_1$")
-ax[0].set_ylabel(r"Stim $PC_2$")
-ax[0].set_title("Large pupil")
-ax[1].set_xlabel(r"Stim $PC_1$")
-ax[1].set_ylabel(r"Stim $PC_2$")
-ax[1].set_title("Small pupil")
+ax[0, 0].set_xlabel(r"Stim $PC_1$")
+ax[0, 0].set_ylabel(r"Stim $PC_2$")
+ax[0, 0].set_title("Large pupil")
+ax[0, 1].set_xlabel(r"Stim $PC_1$")
+ax[0, 1].set_ylabel(r"Stim $PC_2$")
+ax[0, 1].set_title("Small pupil")
 
 # share axes
-extents = np.array(ax[0].get_xlim() + ax[1].get_xlim() + ax[0].get_ylim() + ax[1].get_ylim())
-ax[0].set_ylim((extents.min(), extents.max()))
-ax[1].set_ylim((extents.min(), extents.max()))
-ax[0].set_xlim((extents.min(), extents.max()))
-ax[1].set_xlim((extents.min(), extents.max()))
+extents = np.array(ax[0, 0].get_xlim() + ax[0, 1].get_xlim() + ax[0, 0].get_ylim() + ax[0, 1].get_ylim())
+ax[0, 0].set_ylim((extents.min(), extents.max()))
+ax[0, 1].set_ylim((extents.min(), extents.max()))
+ax[0, 0].set_xlim((extents.min(), extents.max()))
+ax[0, 1].set_xlim((extents.min(), extents.max()))
 
 # plot scree plot
-ax[2].bar(range(10), pca.explained_variance_ratio_[:10] * 100, edgecolor='k', color='lightgrey', width=0.5, label='Stimulus Activity')
-ax[2].bar(range(10), var_explained[:10] * 100, edgecolor='k', color='tab:orange', width=0.5, label='Single Trial Variance')
-ax[2].set_ylabel('% Variance explained')
-ax[2].set_xlabel(r"Stim $PC$")
-ax[2].legend(frameon=False)
+ax[1, 0].bar(range(10), pca.explained_variance_ratio_[:10] * 100, edgecolor='k', color='lightgrey', width=0.5, label='Stimulus Activity')
+ax[1, 0].bar(range(10), var_explained[:10] * 100, edgecolor='k', color='tab:orange', width=0.5, label='Single Trial Variance')
+ax[1, 0].set_ylabel('% Variance explained')
+ax[1, 0].set_xlabel(r"Stim $PC$")
+ax[1, 0].legend(frameon=False)
+
+# plot pupil-dependent variance on the stim PCs
+ax[1, 1].plot(range(10), bp_var_explained[:10] * 100, color=colors.LARGE, label='Single Trial (Large)')
+ax[1, 1].plot(range(10), sp_var_explained[:10] * 100, color=colors.SMALL, label='Single Trial (Small)')
+ax[1, 1].plot(range(10), ev_bp_var_explained[:10] * 100 / 2, color=colors.LARGE, linestyle='--', label='Stimulus activity (Large)')
+ax[1, 1].plot(range(10), ev_sp_var_explained[:10] * 100 / 2, color=colors.SMALL, linestyle='--', label='Stimulus active (Small)')
+
+ax[1, 1].set_ylabel('% Variance explained')
+ax[1, 1].set_xlabel(r"Stim $PC$")
+ax[1, 1].legend(frameon=False)
 
 f.tight_layout()
 
