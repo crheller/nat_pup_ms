@@ -70,6 +70,22 @@ spont = spont[:, :, np.newaxis] # for subtracting from single trial data
 X_spont = X - spont
 proj = (X_spont).T.dot(pca.components_[0:2, :].T)
 
+# get single trial variance explained by evoked PCs
+zm = Xev - Xev.mean(axis=0, keepdims=True)
+tot_var = (zm**2).sum(axis=(1, 2)).sum()
+var_explained = np.zeros(pca.components_.shape[0])
+for i in range(0, pca.components_.shape[0]):
+    fp = Xev.T.dot(pca.components_[i, :])
+    fp -= fp.mean(axis=(0, 1), keepdims=True)
+    var_explained[i] = (fp**2).sum() / tot_var
+
+
+# noise pca
+Xnoise = X - X.mean(axis=-1, keepdims=True)
+Xnoise = Xnoise.reshape(ncells, -1)
+npca = PCA()
+npca.fit(Xnoise.T)
+
 
 # for each stimulus plot ellipse
 f, ax = plt.subplots(1, 3, figsize=(12, 4))
