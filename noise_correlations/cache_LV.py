@@ -4,6 +4,8 @@ covariance and large pupil covariance. e.g. the dimension that explains
 decreased noise correlations.
 """
 
+from global_settings import ALL_SITES, PEG_SITES
+
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
@@ -22,16 +24,8 @@ from nems_lbhb.preprocessing import create_pupil_mask
 import nems.db as nd
 
 # A1 data
-sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
-        'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
-        'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
-        'DRX006b.e1:64', 'DRX006b.e65:128',
-        'DRX007a.e1:64', 'DRX007a.e65:128',
-        'DRX008b.e1:64', 'DRX008b.e65:128',
-        'BOL005c', 'BOL006b']
-# PEG data
-peg_sites = np.unique([c[:7] for c in nd.get_batch_cells(323).cellid.unique()]).tolist()
-sites += peg_sites
+sites = ALL_SITES + PEG_SITES
+
 zscore = True
 
 lv_dict = {}
@@ -39,7 +33,7 @@ for site in sites:
     print('Analyzing site {}'.format(site))
     if site in ['BOL005c', 'BOL006b']:
         batch = 294
-    elif site in peg_sites:
+    elif site in PEG_SITES:
         batch = 323
     else:
         batch = 289

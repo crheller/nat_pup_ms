@@ -1,25 +1,24 @@
 import nems.db as nd
 import numpy as np
 
-batch = 323
+batch = 289
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
-subset_323 = True # only high rep sites (for cross val)
-no_crossval = True  # for no cross validation (on the larger 289 set )
+subset_323 = False # only high rep sites (for cross val)
+no_crossval = False  # for no cross validation (on the larger 289 set )
 
-temp_subset = False # for exculding subset of models for faster run time on jobs
+temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 
 nc_lv = True        # beta defined using nc LV method
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+NOSIM = True   # If true, don't run simulations
 
 if no_crossval & loocv:
     raise ValueError("loocv implies no_crossval (eev). Only set one or the other true")
-
-NOSIM = True   # If true, don't run simulations
 
 if batch == 289:
     sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
@@ -33,7 +32,8 @@ if batch == 289:
         sites = ['TAR010c', 'TAR017b', 
                 'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
                 'DRX007a.e1:64', 'DRX007a.e65:128', 
-                'DRX008b.e1:64', 'DRX008b.e65:128']
+                'DRX008b.e1:64', 'DRX008b.e65:128', 
+                'CRD016d', 'CRD017c']
             
 elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
@@ -71,7 +71,8 @@ if fix_tdr2:
     modellist = [m+'_fixtdr2' for m in modellist]
 
 if temp_subset:
-    modellist = [m for m in modellist if ('_sim' in m)]
+    sites = [s for s in sites if 'CRD' in s]
+    #modellist = [m for m in modellist if ('_sim' in m)]
 
 if n_additional_noise_dims > 0:
     modellist = [m+'_noiseDim{0}'.format(n_additional_noise_dims) for m in modellist]

@@ -7,7 +7,8 @@ ALL_SITES = ['BOL005c', 'BOL006b', 'bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', '
             'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
             'DRX006b.e1:64', 'DRX006b.e65:128',
             'DRX007a.e1:64', 'DRX007a.e65:128',
-            'DRX008b.e1:64', 'DRX008b.e65:128']
+            'DRX008b.e1:64', 'DRX008b.e65:128',
+            'CRD016d', 'CRD017c']
 
 PEG_SITES = ['AMT028b', 'AMT029a', 'AMT031a', 'AMT032a', 'ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
 HIGHR_PEG_SITES = ['ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
@@ -17,7 +18,8 @@ HIGHR_PEG_SITES = ['ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
 HIGHR_SITES = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b', 
             'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
             'DRX007a.e1:64', 'DRX007a.e65:128', 
-            'DRX008b.e1:64', 'DRX008b.e65:128']
+            'DRX008b.e1:64', 'DRX008b.e65:128',
+            'CRD016d', 'CRD017c']
 
 
 # subset in which cross-validation not possible
