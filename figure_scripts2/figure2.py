@@ -103,9 +103,10 @@ for i, (epoch, times) in enumerate(zip(stims, t)):
         ts = int((e1[1] / 4) * rasterfs) + offset
         te = int(((e1[1] / 4) + 0.25) * rasterfs) + offset
         tspks = np.argwhere((st<ts) | (st>te)).squeeze()
-        spk_times[-1] = (n[tspks], st[tspks])
+        #spk_times[-1] = (n[tspks], st[tspks])
         tspks = np.argwhere((st>=ts) & (st<=te)).squeeze()
-        r1.append((n[tspks], st[tspks]))
+        #r1.append((n[tspks], st[tspks]))
+        r1.append([ts, te])
     if epoch == e2[0]:
         nbins = 4 * (prestim + poststim + duration)
         bins = np.linspace(0, nbins, spec.shape[-1])
@@ -116,9 +117,10 @@ for i, (epoch, times) in enumerate(zip(stims, t)):
         ts = int((e2[1] / 4) * rasterfs) + offset
         te = int(((e2[1] / 4) + 0.25) * rasterfs) + offset
         tspks = np.argwhere((st<ts) | (st>te)).squeeze()
-        spk_times[-1] = (n[tspks], st[tspks])
+        #spk_times[-1] = (n[tspks], st[tspks])
         tspks = np.argwhere((st>=ts) & (st<=te)).squeeze()
-        r2.append((n[tspks], st[tspks]))
+        #r2.append((n[tspks], st[tspks]))
+        r2.append([ts, te])
     if epoch == e3[0]:
         nbins = 4 * (prestim + poststim + duration)
         bins = np.linspace(0, nbins, spec.shape[-1])
@@ -129,9 +131,10 @@ for i, (epoch, times) in enumerate(zip(stims, t)):
         ts = int((e3[1] / 4) * rasterfs) + offset
         te = int(((e3[1] / 4) + 0.25) * rasterfs) + offset
         tspks = np.argwhere((st<ts) | (st>te)).squeeze()
-        spk_times[-1] = (n[tspks], st[tspks])
+        #spk_times[-1] = (n[tspks], st[tspks])
         tspks = np.argwhere((st>=ts) & (st<=te)).squeeze()
-        r3.append((n[tspks], st[tspks]))
+        #r3.append((n[tspks], st[tspks]))
+        r3.append([ts, te])
         
     stim1.append(s1)
     stim2.append(s2)
@@ -181,11 +184,13 @@ ts = []
 for time, stim in zip(t, stims):
     tt = rec['resp'].extract_epoch(stim, 
                     mask=rec.and_mask((np.array([time])*rasterfs).astype(int))['mask'])
-    bins = int(tt.shape[-1] / (rasterfs / 4)) - 1
-    print(bins)
+    bins = int(tt.shape[-1] / (rasterfs / 4))
+    bins = np.linspace(0, tt.shape[-1], bins)
     tt = np.apply_along_axis(lambda a: np.histogram(np.where(a), bins=bins)[0], -1, tt)
     ts.append(tt)
 ts = (np.concatenate(ts, axis=0).transpose([1, 0, 2]).reshape(ncells, -1).T - spont.squeeze()).T
+#bins = int(ts.shape[-1] / (rasterfs / 4))
+#ts = np.apply_along_axis(lambda a: np.histogram(np.where(a), bins=bins)[0], -1, ts)
 tp1 = ts.T.dot(pca.components_[0, :])
 tp2 = ts.T.dot(pca.components_[1, :])
 
@@ -233,12 +238,12 @@ offset = np.max(np.concatenate([tp1, tp2])) + 1
 ext = [0, length, ncells+offset, ncells+int(stimulus[0].shape[0] / 4)+offset]
 rast.imshow(np.sqrt(np.concatenate(stimulus, axis=-1)), 
                         origin='lower', cmap='Greys', aspect='auto', extent=ext)
-rast.imshow(np.sqrt(np.concatenate(stim1, axis=-1)), 
-                        origin='lower', cmap='Blues', aspect='auto', extent=ext)
-rast.imshow(np.sqrt(np.concatenate(stim2, axis=-1)), 
-                        origin='lower', cmap='Oranges', aspect='auto', extent=ext)
-rast.imshow(np.sqrt(np.concatenate(stim3, axis=-1)), 
-                        origin='lower', cmap='Greens', aspect='auto', extent=ext)
+#rast.imshow(np.sqrt(np.concatenate(stim1, axis=-1)), 
+#                        origin='lower', cmap='Blues', aspect='auto', extent=ext)
+#rast.imshow(np.sqrt(np.concatenate(stim2, axis=-1)), 
+#                        origin='lower', cmap='Oranges', aspect='auto', extent=ext)
+#rast.imshow(np.sqrt(np.concatenate(stim3, axis=-1)), 
+#                        origin='lower', cmap='Greens', aspect='auto', extent=ext)
 
 # plot raster ticks
 argsort = np.argsort(np.abs(pca.components_[0]))
@@ -250,23 +255,42 @@ m = '|'
 rast.plot(np.concatenate(spk_times, axis=-1)[1, :] / rasterfs, 
             mfunc(np.concatenate(spk_times, axis=-1)[0, :]) + offset, 
             m, color='k', markersize=ms, alpha=0.4)
-rast.plot(np.concatenate(r1, axis=-1)[1, :] / rasterfs, 
-            mfunc(np.concatenate(r1, axis=-1)[0, :]) + offset, 
-            m, color='tab:blue', markersize=ms, alpha=0.4)
-rast.plot(np.concatenate(r2, axis=-1)[1, :] / rasterfs, 
-            mfunc(np.concatenate(r2, axis=-1)[0, :]) + offset, 
-            m, color='tab:orange', markersize=ms, alpha=0.4)
-rast.plot(np.concatenate(r3, axis=-1)[1, :] / rasterfs, 
-            mfunc(np.concatenate(r3, axis=-1)[0, :]) + offset, 
-            m, color='tab:green', markersize=ms, alpha=0.4)
+
+#rast.plot(np.concatenate(r1, axis=-1)[1, :] / rasterfs, 
+#            mfunc(np.concatenate(r1, axis=-1)[0, :]) + offset, 
+#            m, color='tab:blue', markersize=ms, alpha=0.4)
+#rast.plot(np.concatenate(r2, axis=-1)[1, :] / rasterfs, 
+#            mfunc(np.concatenate(r2, axis=-1)[0, :]) + offset, 
+#            m, color='tab:orange', markersize=ms, alpha=0.4)
+#rast.plot(np.concatenate(r3, axis=-1)[1, :] / rasterfs, 
+#            mfunc(np.concatenate(r3, axis=-1)[0, :]) + offset, 
+#            m, color='tab:green', markersize=ms, alpha=0.4)
 rast.set_xlim((0, length))
 
 # plot pc timeseries
 rast.plot(np.linspace(0, length, tp1.shape[0]), tp1, color='k', lw=2, label=r'Stim. $PC_1$')
 rast.plot(np.linspace(0, length, tp1.shape[0]), tp2, color='grey', lw=2, label=r'Stim. $PC_2$')
 rast.axhline(0, linestyle='--', lw=0.8, color='k', label='Spont baseline')
-
 rast.legend(frameon=False, bbox_to_anchor=(1, 0), loc='lower left',)
+
+lim = rast.get_ylim()
+lw = 0.8
+# plot boxes
+for tse in r1:
+    rast.plot([tse[0] / rasterfs, tse[0] / rasterfs], [lim[0], lim[1]], color='tab:blue', lw=lw)
+    rast.plot([tse[1] / rasterfs, tse[1] / rasterfs], [lim[0], lim[1]], color='tab:blue', lw=lw)
+    rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[1], lim[1]], color='tab:blue', lw=lw)
+    rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[0], lim[0]], color='tab:blue', lw=lw)
+for tse in r2:
+    rast.plot([tse[0] / rasterfs, tse[0] / rasterfs], [lim[0], lim[1]], color='tab:orange', lw=lw)
+    rast.plot([tse[1] / rasterfs, tse[1] / rasterfs], [lim[0], lim[1]], color='tab:orange', lw=lw)
+    rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[1], lim[1]], color='tab:orange', lw=lw)
+    rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[0], lim[0]], color='tab:orange', lw=lw)
+for tse in r3:
+    rast.plot([tse[0] / rasterfs, tse[0] / rasterfs], [lim[0], lim[1]], color='tab:green', lw=lw)
+    rast.plot([tse[1] / rasterfs, tse[1] / rasterfs], [lim[0], lim[1]], color='tab:green', lw=lw)
+    rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[1], lim[1]], color='tab:green', lw=lw)
+    rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[0], lim[0]], color='tab:green', lw=lw)
 
 # plot pc ellipse plots
 for i in range(proj.shape[0]):
