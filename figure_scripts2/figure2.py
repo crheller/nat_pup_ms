@@ -28,6 +28,9 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
+savefig = True
+fig_fn = PY_FIGURES_DIR2 + 'fig2.svg'
+
 e1 = ('STIM_00ferretmixed41.wav', 8)
 e2 = ('STIM_00ferretmixed41.wav', 12)
 e3 = ('STIM_00Oxford_male2b.wav', 12)
@@ -254,7 +257,7 @@ ms = 0.8
 m = '|'
 rast.plot(np.concatenate(spk_times, axis=-1)[1, :] / rasterfs, 
             mfunc(np.concatenate(spk_times, axis=-1)[0, :]) + offset, 
-            m, color='k', markersize=ms, alpha=0.4)
+            m, color='k', markersize=ms, alpha=0.4, rasterized=True)
 
 #rast.plot(np.concatenate(r1, axis=-1)[1, :] / rasterfs, 
 #            mfunc(np.concatenate(r1, axis=-1)[0, :]) + offset, 
@@ -268,10 +271,15 @@ rast.plot(np.concatenate(spk_times, axis=-1)[1, :] / rasterfs,
 rast.set_xlim((0, length))
 
 # plot pc timeseries
-rast.plot(np.linspace(0, length, tp1.shape[0]), tp1, color='k', lw=2, label=r'Stim. $PC_1$')
-rast.plot(np.linspace(0, length, tp1.shape[0]), tp2, color='grey', lw=2, label=r'Stim. $PC_2$')
+rast.plot(np.linspace(0, length, tp1.shape[0]), tp1, color='k', lw=1, label=r'Stim. $PC_1$')
+rast.plot(np.linspace(0, length, tp1.shape[0]), tp2, color='grey', lw=1, label=r'Stim. $PC_2$')
 rast.axhline(0, linestyle='--', lw=0.8, color='k', label='Spont baseline')
-rast.legend(frameon=False, bbox_to_anchor=(1, 0), loc='lower left',)
+rast.legend(frameon=False, bbox_to_anchor=(1, 0), loc='lower left')
+
+rast.set_xlabel("Time (sec)")
+rast.set_ylabel(r"Units ($n=55$)"+"\n"+r"sorted by stim. $PC_1$ loading")
+rast.set_yticks([])
+
 
 lim = rast.get_ylim()
 lw = 0.8
@@ -380,5 +388,8 @@ scax.set_title(r"Stimulus discriminability ($d'^2$)")
 scax.axis('square')
 
 f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn, dpi=400)
 
 plt.show()

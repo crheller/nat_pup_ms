@@ -140,7 +140,7 @@ else:
 f.tight_layout()
 
 if savefig:
-    f.savefig(fig_fn)
+    f.savefig(fig_fn, dpi=400)
 
 plt.show()
 
