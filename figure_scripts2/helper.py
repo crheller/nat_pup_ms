@@ -100,7 +100,7 @@ def plot_confusion_matrix(df, metric, spectrogram, resp_fs=None, stim_fs=None,
         pcsm *= pcHeight
         pcsm += (extent)
         for i in range(pcs.shape[-1]):
-            ax.plot(t, pcsm[:, i], lw=0.5)
+            ax.plot(t, pcsm[:, i], lw=0.8)
 
         ax.set_xlim((0, extent+spChan))
         ax.set_ylim((0, extent+spChan+pcHeight))
