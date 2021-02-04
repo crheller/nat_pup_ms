@@ -52,6 +52,11 @@ for i, site in enumerate(HIGHR_SITES):
     bp = results.slice_array_results('bp_evals', results.evoked_stimulus_pairs, 2, idx=None)[0]
     sp = results.slice_array_results('sp_evals', results.evoked_stimulus_pairs, 2, idx=None)[0]
     df['noise_diff'] = bp.apply(lambda x: x.sum()) - sp.apply(lambda x: x.sum())
+
+    # mask df based on significant change in dprime
+    err = np.sqrt(df['bp_dp_sem']**2 + df['sp_dp_sem']**2)
+    mask = err < abs(df['bp_dp'] - df['sp_dp'])
+    df = df[mask]
     
     X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch, return_epoch_list=True)
     ncells = X.shape[0]
