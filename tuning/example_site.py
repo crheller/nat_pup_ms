@@ -79,6 +79,7 @@ proj = (X_spont).T.dot(pca.components_.T)
 
 # load spectrogram
 loadkey = "ozgf.fs100.ch18.pup"
+loadkey = "ozgf.fs4.ch18.pup"
 uri = generate_recording_uri(cellid=site[:7], batch=batch, loadkey=loadkey)
 rec = load_recording(uri)
 # excise poststim
