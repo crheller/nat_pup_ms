@@ -172,20 +172,29 @@ f.tight_layout()
 
 pairs = [
     [46, 47],
-    [47, 51],
+    [47, 52],
     [46, 48],
-    [48, 51],
+    [48, 52],
     [46, 49],
-    [49, 51],
-    [46, 50],
-    [50, 51]
+    [49, 52],
+    [43, 46],
+    [43, 52]
 ]
-ylim = (-7, 7)
-xlim = (-7, 7)
+ylim = (-10, 10)
+xlim = (-10, 10)
+ylim = (None, None)
+xlim = (None, None)
 f, ax = plt.subplots(4, 2, figsize=(6, 12))
 
 for a, p in zip(ax.flatten(), pairs):
 
+    # get delta dprime
+    try:
+        idx = '_'.join([str(p[0]), str(p[1])])
+        delt = (df.loc[idx]['bp_dp'] - df.loc[idx]['sp_dp']) / (df.loc[idx]['bp_dp'] + df.loc[idx]['sp_dp'])
+        delt = delt.iloc[0]
+    except:
+        raise ValueError(f"{p} not in data frame")
     decoding.plot_stimulus_pair(site, batch, pair=p,
                                 axlabs=[r"$dDR_1$", r"$dDR_2$"],
                                 ylim=ylim,
@@ -194,6 +203,8 @@ for a, p in zip(ax.flatten(), pairs):
                                 pup_split=True,
                                 ax=a, 
                                 title_string=f"{p[0]} vs. {p[1]}")
+
+    a.legend([f'Delta d-prime={delt:.4f}'], frameon=False, fontsize=6)
 f.tight_layout()
 
 plt.show()

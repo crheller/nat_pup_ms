@@ -15,6 +15,7 @@ import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
 
 import os
+import statsmodels.api as sm
 from itertools import combinations
 from sklearn.decomposition import PCA
 from scipy.io import wavfile
@@ -27,7 +28,7 @@ mpl.rcParams['axes.spines.top'] = False
 
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 recache = False
-site = 'DRX007a.e65:128'
+site = 'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
 batch = 289
 duration = 1   # length of stimuli (for making spectrograms)
 prestim = 0.25 # legnth of stimuli (for making spectrograms)
@@ -88,7 +89,15 @@ for i, epoch in enumerate(epochs):
 stimulus = np.concatenate(stimulus, axis=-1)
 stim_fs = 500
 
-# =================== PERFORM REGRESSION ANALYSIS ACROSS SITES ==========================
+# ====================== LOAD REGRESSION ANALYSIS ACROSS SITES ==========================
+# for example site alone
+df['r1'] = [proj[int(idx.split('_')[0]), :, 0].mean() for idx in df.index.get_level_values(0)]
+df['r2'] = [proj[int(idx.split('_')[1]), :, 0].mean() for idx in df.index.get_level_values(0)]
+y = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
+X = df[['r1', 'r2', 'dU_mag_test', 'noiseAlign']]
+X['interaction'] = X['r1'] * X['r2']
+X = sm.add_constant(X)
+model = sm.OLS(y, X).fit()
 
 
 # ================================== BUILD FIGURE =======================================
