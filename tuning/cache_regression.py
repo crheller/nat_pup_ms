@@ -154,8 +154,8 @@ big_df = pd.concat(big_df)
 
 big_df['delt'] = (big_df['bp_dp']-big_df['sp_dp']) / (big_df['bp_dp'] + big_df['sp_dp'])
 # do stepwise regression on the big data frame with long list of regressors
-reg = ['r1', 'r2', 'dU_mag_test', 'noiseAlign', 'mean_pupil_range']
-reg = reg[::-1]
+reg = ['r1', 'r2', 'dU_mag_test', 'noiseAlign', 'mean_pupil_range', 'du_diff', 'noise_diff']
+
 perf = []
 ci = []
 for i, r in enumerate(reg):
