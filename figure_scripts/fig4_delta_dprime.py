@@ -30,9 +30,9 @@ np.random.seed(123)  # for reproducible bootstrap standard error generation
 savefig = False
 
 recache = False
-ALL_TRAIN_DATA = True  # use training data for all analysis (even if high rep count site / cross val)
+ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
                        # in this case, est = val so doesn't matter if you load _test results or _train results
-sites = PEG_SITES # HIGHR_SITES
+sites = HIGHR_SITES #PEG_SITES # HIGHR_SITES
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig4_modeldprime.svg'
 loader = decoding.DecodingResults()
@@ -339,15 +339,17 @@ for s in df.site.unique():
     
     X = sm.add_constant(X)
     X['interaction'] = X['cos_dU_evec_test'] * X['dU_mag_test']
-    y = (df_all[df_all.site==s][bp_dp].values.copy() - df_all[df_all.site==s][sp_dp].values.copy()) / \
-        (df_all[df_all.site==s][bp_dp].values.copy() + df_all[df_all.site==s][sp_dp].values.copy())
+    y = (df_all[df_all.site==s][bp_dp].copy() - df_all[df_all.site==s][sp_dp].copy()) / \
+        (df_all[df_all.site==s][bp_dp].copy() + df_all[df_all.site==s][sp_dp].copy())
     y -= y.mean()
     y /= y.std()
-
+    
     model = sm.OLS(y, X).fit()
     low_ci = model.conf_int().values[:,0]
     high_ci = model.conf_int().values[:,1]
     beta_delta.append(model.params.values)
+    #out = fit_OLS_model(X, y, replace=False)
+    #beta_delta.append(np.array([model.params.values[0]]+list(output['coef'].values())))
     ci_delta.append(high_ci - low_ci)
     pvals_delta.append(model.pvalues)
     rsquared.append(model.rsquared)
