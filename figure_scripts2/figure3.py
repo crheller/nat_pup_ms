@@ -28,7 +28,7 @@ mpl.rcParams['axes.spines.top'] = False
 
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 recache = False
-site = 'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
+site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
 batch = 289
 duration = 1   # length of stimuli (for making spectrograms)
 prestim = 0.25 # legnth of stimuli (for making spectrograms)
