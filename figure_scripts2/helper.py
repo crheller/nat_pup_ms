@@ -4,6 +4,8 @@ temp file - WIP: a helper function for building cofusion matrices at a site
 import pandas as pd
 import numpy as np
 import charlieTools.plotting as cplt
+import scipy.cluster.hierarchy as hc
+
 
 def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, stim_fs=None, 
                                         pcs=None,
@@ -18,6 +20,8 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, st
     If pcs not None, also plot them (under the top spectrogram)
     Their sampling rate must be same as df (stim bins)
     pcs is a matrix of stim x trials x dims
+
+    sortby - tuple: (df key, binsize (bins to bin the cfm by in order to sort))
     """
     if (resp_fs is None) | (stim_fs is None):
         raise ValueError
@@ -29,6 +33,7 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, st
     extent = int((spectrogram.shape[-1] / stim_fs) * resp_fs)
 
     # fill confusion matrix
+    
     cfm = np.nan * np.ones((extent, extent))
     for c in df.index.get_level_values(0):
         r = df.loc[pd.IndexSlice[c, 2], :]
@@ -40,17 +45,55 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, st
     if sortby is not None:
         # sort at level of full sound chunks, so that we don't totally jumble
         # the spectrograms
-        cfm = np.nan * np.ones((extent, extent))
+        cfm_sort = np.nan * np.ones((extent, extent))
         for c in df.index.get_level_values(0):
             r = df.loc[pd.IndexSlice[c, 2], :]
             c1 = int(c.split('_')[0])
             c2 = int(c.split('_')[1])
-            cfm[c1, c2] = r[sortby]
-            cfm[c2, c1] = r[sortby]
+            cfm_sort[c1, c2] = r[sortby[0]]
+            cfm_sort[c2, c1] = r[sortby[0]]
 
-        # reduce for clustering
-        for i in range():
-            pass
+        # reduce for clustering - slide window nanmean over the data
+        bins = int(cfm.shape[0] / sortby[1])
+        dscfm = np.zeros((bins, bins))
+        for i in range(bins):
+            for j in range(bins):
+                if i != j:
+                    xr = np.arange(i*sortby[1], (i*sortby[1]) + sortby[1])
+                    yr = np.arange(j*sortby[1], (j*sortby[1]) + sortby[1])
+                    val = np.nanmean(cfm_sort[xr, yr])
+                    dscfm[i, j] = val
+        
+        # now, cluster this reduced matrix and sort stimuli based on this
+        link = hc.linkage(dscfm, method='median', metric='euclidean')
+        o1 = hc.leaves_list(link)
+        cfm_ordered = np.zeros(cfm.shape)
+        for i, _o1 in enumerate(o1):
+            for j, _o2 in enumerate(o1):
+                xr = np.arange(_o1*sortby[1], (_o1*sortby[1]) + sortby[1])
+                yr = np.arange(_o2*sortby[1], (_o2*sortby[1]) + sortby[1])
+                idx1 = 0
+                for _i in xr:
+                    idx2 = 0
+                    for _j in yr:
+                        val = cfm[_i, _j]
+                        cfm_ordered[int(i*sortby[1])+idx1, int(j*sortby[1])+idx2] = val
+                        cfm_ordered[int(j*sortby[1])+idx2, int(i*sortby[1])+idx1] = val
+                        idx2 += 1
+                    idx1 += 1 
+
+        cfm = cfm_ordered
+
+        # reorder spectrgram
+        spec_new = np.zeros(spectrogram.shape)
+        sbin = int((sortby[1]/resp_fs)*stim_fs)
+        for i, o in enumerate(o1):
+            idx = np.arange(int(i * sbin), int(i * sbin) + sbin)
+            idxt = np.arange(int(o * sbin), int(o * sbin) + sbin)
+            spec_new[:, idx] = spectrogram[:, idxt]
+        
+        spectrogram = spec_new
+
 
     # layout of elements on a single axis
     if ax is None:

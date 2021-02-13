@@ -15,6 +15,7 @@ import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
 
 import os
+import pandas as pd
 from scipy.stats import gaussian_kde
 import statsmodels.api as sm
 from itertools import combinations
@@ -140,12 +141,13 @@ ran = ma - mi
 bpsp_proj += abs(mi)
 bpsp_proj /= ran
 
+nbins = int(((stimulus.shape[1]/stim_fs) * resp_fs) / len(epochs))
 # plot big pupil
 bp_proj = np.stack([bpsp_proj[i, pup_mask[0, :, i], :] for i in range(pup_mask.shape[-1])])
 chelp.plot_confusion_matrix(df, 
                     metric='bp_dp',
                     spectrogram=np.sqrt(stimulus)**(1/2),
-                    sortby='delta',
+                    sortby=('delta', nbins),
                     resp_fs=4,
                     stim_fs=stim_fs,
                     pcs = bp_proj,
@@ -160,7 +162,7 @@ sp_proj = np.stack([bpsp_proj[i, ~pup_mask[0, :, i], :] for i in range(pup_mask.
 chelp.plot_confusion_matrix(df, 
                     metric='sp_dp',
                     spectrogram=np.sqrt(stimulus)**(1/2),
-                    sortby='delta',
+                    sortby=('delta', nbins),
                     resp_fs=4,
                     stim_fs=stim_fs,
                     pcs = sp_proj,
@@ -175,7 +177,7 @@ df['delta'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
 chelp.plot_confusion_matrix(df, 
                     metric='delta',
                     spectrogram=np.sqrt(stimulus)**(1/2),
-                    sortby='delta',
+                    sortby=('delta', nbins),
                     resp_fs=4,
                     stim_fs=stim_fs,
                     ax=diff
