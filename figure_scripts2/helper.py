@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import charlieTools.plotting as cplt
 
-def plot_confusion_matrix(df, metric, spectrogram, resp_fs=None, stim_fs=None, 
+def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, stim_fs=None, 
                                         pcs=None,
                                         cmap='bwr', midpoint=0, vmin=None, vmax=None, ax=None):
     """
@@ -35,13 +35,29 @@ def plot_confusion_matrix(df, metric, spectrogram, resp_fs=None, stim_fs=None,
         c1 = int(c.split('_')[0])
         c2 = int(c.split('_')[1])
         cfm[c1, c2] = r[metric]
+        cfm[c2, c1] = r[metric]
+    
+    if sortby is not None:
+        # sort at level of full sound chunks, so that we don't totally jumble
+        # the spectrograms
+        cfm = np.nan * np.ones((extent, extent))
+        for c in df.index.get_level_values(0):
+            r = df.loc[pd.IndexSlice[c, 2], :]
+            c1 = int(c.split('_')[0])
+            c2 = int(c.split('_')[1])
+            cfm[c1, c2] = r[sortby]
+            cfm[c2, c1] = r[sortby]
+
+        # reduce for clustering
+        for i in range():
+            pass
 
     # layout of elements on a single axis
     if ax is None:
         f, ax = plt.subplots(1, 1)
     
     if (pcs is None):
-        spChan = extent / 8 # make spec height 1/8 of matrix # spectrogram.shape[0]
+        spChan = extent / 16 # make spec height 1/8 of matrix # spectrogram.shape[0]
         # plot confusion matrix
         cfmflip = cfm.copy()
         for i in range(cfm.shape[0]):

@@ -3,7 +3,6 @@
 2 - Stim PC1/2 ellipse plots: overall, big, and small pupil
     - only show single trials for the highlighted chunks in the
       spectrogram
-3 - scatter plot of big / small pupil dprime
 ? - add schematic of dprime calculation onto the ellipse plot?
 """
 from global_settings import HIGHR_SITES, LOWR_SITES
@@ -21,14 +20,13 @@ import nems.analysis.gammatone.gtgram as gt
 from itertools import combinations
 from sklearn.decomposition import PCA
 import pandas as pd
-from scipy.stats import gaussian_kde
 import os
 import copy
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig2.svg'
 
 e1 = ('STIM_00ferretmixed41.wav', 8)
@@ -201,38 +199,13 @@ tp2 = ts.T.dot(pca.components_[1, :])
 tp1 /= 2
 tp2 /= 2
 
-# ============================= LOAD DPRIME =========================================
-path = DPRIME_DIR
-loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
-n_components = 2
-recache = False
-df = []
-for site in HIGHR_SITES:
-    if (site in LOWR_SITES):
-        mn = modelname.replace('_jk10', '_jk1_eev')
-    else:
-        mn = modelname
-    fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
-    _df = results.numeric_results
-
-    stim = results.evoked_stimulus_pairs
-    _df = _df.loc[pd.IndexSlice[stim, 2], :]
-    _df['site'] = site
-    df.append(_df)
-
-df = pd.concat(df)
-
-
 # ============================== Make figure =========================================
 f = plt.figure(figsize=(7, 5))
 
-rast = plt.subplot2grid((5, 4), (0, 0), rowspan=3, colspan=4)
-el_all = plt.subplot2grid((5, 4), (3, 0), rowspan=2, colspan=1)
-el_bp = plt.subplot2grid((5, 4), (3, 1), rowspan=2, colspan=1)
-el_sp = plt.subplot2grid((5, 4), (3, 2), rowspan=2, colspan=1)
-scax = plt.subplot2grid((5, 4), (3, 3), rowspan=2, colspan=1)
+rast = plt.subplot2grid((5, 3), (0, 0), rowspan=3, colspan=3)
+el_all = plt.subplot2grid((5, 3), (3, 0), rowspan=2, colspan=1)
+el_bp = plt.subplot2grid((5, 3), (3, 1), rowspan=2, colspan=1)
+el_sp = plt.subplot2grid((5, 3), (3, 2), rowspan=2, colspan=1)
 
 # OFFSET FOR PC TIMESERIES PLOT
 offset = np.max(np.concatenate([tp1, tp2])) + 1
@@ -241,12 +214,6 @@ offset = np.max(np.concatenate([tp1, tp2])) + 1
 ext = [0, length, ncells+offset, ncells+int(stimulus[0].shape[0] / 4)+offset]
 rast.imshow(np.sqrt(np.concatenate(stimulus, axis=-1)), 
                         origin='lower', cmap='Greys', aspect='auto', extent=ext)
-#rast.imshow(np.sqrt(np.concatenate(stim1, axis=-1)), 
-#                        origin='lower', cmap='Blues', aspect='auto', extent=ext)
-#rast.imshow(np.sqrt(np.concatenate(stim2, axis=-1)), 
-#                        origin='lower', cmap='Oranges', aspect='auto', extent=ext)
-#rast.imshow(np.sqrt(np.concatenate(stim3, axis=-1)), 
-#                        origin='lower', cmap='Greens', aspect='auto', extent=ext)
 
 # plot raster ticks
 argsort = np.argsort(np.abs(pca.components_[0]))
@@ -258,16 +225,6 @@ m = '|'
 rast.plot(np.concatenate(spk_times, axis=-1)[1, :] / rasterfs, 
             mfunc(np.concatenate(spk_times, axis=-1)[0, :]) + offset, 
             m, color='k', markersize=ms, alpha=0.4, rasterized=True)
-
-#rast.plot(np.concatenate(r1, axis=-1)[1, :] / rasterfs, 
-#            mfunc(np.concatenate(r1, axis=-1)[0, :]) + offset, 
-#            m, color='tab:blue', markersize=ms, alpha=0.4)
-#rast.plot(np.concatenate(r2, axis=-1)[1, :] / rasterfs, 
-#            mfunc(np.concatenate(r2, axis=-1)[0, :]) + offset, 
-#            m, color='tab:orange', markersize=ms, alpha=0.4)
-#rast.plot(np.concatenate(r3, axis=-1)[1, :] / rasterfs, 
-#            mfunc(np.concatenate(r3, axis=-1)[0, :]) + offset, 
-#            m, color='tab:green', markersize=ms, alpha=0.4)
 rast.set_xlim((0, length))
 
 # plot pc timeseries
@@ -299,7 +256,7 @@ for tse in r3:
     rast.plot([tse[1] / rasterfs, tse[1] / rasterfs], [lim[0], lim[1]], color='tab:green', lw=lw)
     rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[1], lim[1]], color='tab:green', lw=lw)
     rast.plot([tse[0] / rasterfs, tse[1] / rasterfs], [lim[0], lim[0]], color='tab:green', lw=lw)
-
+rast.set_ylim((lim[0], lim[1]+0.1))
 # plot pc ellipse plots
 for i in range(proj.shape[0]):
     if i in ev_bins:
@@ -370,22 +327,6 @@ el_bp.set_ylim(el_all.get_ylim())
 el_bp.set_xlim(el_all.get_xlim())
 el_sp.set_ylim(el_all.get_ylim())
 el_sp.set_xlim(el_all.get_xlim())
-
-# plot dprime results
-nSamples = 2000
-idx = df[['bp_dp', 'sp_dp']].max(axis=1) < 100
-sidx = np.random.choice(range(idx.sum()), nSamples, replace=False)
-bp = df['bp_dp'].values[idx][sidx]
-sp = df['sp_dp'].values[idx][sidx]
-s = 5
-xy = np.vstack([bp, sp])
-z = gaussian_kde(xy)(xy)
-scax.scatter(sp, bp, s=s, c=z)
-scax.plot([0, 100], [0, 100], 'k--')
-scax.set_xlabel("Small pupil")
-scax.set_ylabel("Large pupil")
-scax.set_title(r"Stimulus discriminability ($d'^2$)")
-scax.axis('square')
 
 f.tight_layout()
 

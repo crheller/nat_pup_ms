@@ -31,6 +31,11 @@ remove_ns_changes = False
 recache = False
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 
+regressors = ['pc1_mean', 'pc1_diff',
+                    'dU_mag_test', 'noiseAlign']
+xlab = [r'$PC_1$', r'$PC_1$ (diff)',
+            r"$|\Delta \mu|$", r"$|cos(\theta_{e_{1}, \Delta \mu})|$"]
+
 big_df = []
 for i, site in enumerate(HIGHR_SITES):
     if 'BOL' in site:
@@ -94,10 +99,6 @@ for i, site in enumerate(HIGHR_SITES):
 big_df = pd.concat(big_df)
 big_df['delt'] = (big_df['bp_dp']-big_df['sp_dp']) / (big_df['bp_dp'] + big_df['sp_dp'])
 
-regressors = ['pc1_mean', 'pc1_diff',
-                    'dU_mag_test', 'noiseAlign']
-xlab = [r'$PC_1$', r'$PC_1$ (diff)',
-            r"$|\Delta \mu|$", r"$|cos(\theta_{e_{1}, \Delta \mu})|$"]
 # instead of doing regression per-site, resample with hierarchical bootstrap to 
 # get distribution over params. For each resample, fit the OLS model and save rsq / param values
 np.random.seed(123)

@@ -15,6 +15,7 @@ import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
 
 import os
+from scipy.stats import gaussian_kde
 import statsmodels.api as sm
 from itertools import combinations
 from sklearn.decomposition import PCA
@@ -48,6 +49,29 @@ nstim = X.shape[2]
 nbins = X.shape[3]
 sp_bins = sp_bins.reshape(1, sp_bins.shape[1], nstim * nbins)
 nstim = nstim * nbins
+
+# ============================= LOAD DPRIME =========================================
+path = DPRIME_DIR
+loader = decoding.DecodingResults()
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+n_components = 2
+recache = False
+df_all = []
+for site in HIGHR_SITES:
+    if (site in LOWR_SITES):
+        mn = modelname.replace('_jk10', '_jk1_eev')
+    else:
+        mn = modelname
+    fn = os.path.join(path, site, mn+'_TDR.pickle')
+    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+    _df = results.numeric_results
+
+    stim = results.evoked_stimulus_pairs
+    _df = _df.loc[pd.IndexSlice[stim, 2], :]
+    _df['site'] = site
+    df_all.append(_df)
+
+df_all = pd.concat(df_all)
 
 # =========================== generate a list of stim pairs ==========================
 # these are the indices of the decoding results dataframes
@@ -101,12 +125,12 @@ model = sm.OLS(y, X).fit()
 
 
 # ================================== BUILD FIGURE =======================================
-f = plt.figure(figsize=(6, 6))
+f = plt.figure(figsize=(7, 1.75))
 
-bp = plt.subplot2grid((2, 2), (0, 0))
-sp = plt.subplot2grid((2, 2), (0, 1))
-diff = plt.subplot2grid((2, 2), (1, 0))
-reg = plt.subplot2grid((2, 2), (1, 1))
+bp = plt.subplot2grid((1, 4), (0, 0))
+sp = plt.subplot2grid((1, 4), (0, 1))
+diff = plt.subplot2grid((1, 4), (0, 2))
+scax = plt.subplot2grid((1, 4), (0, 3))
 
 # get big pupil / small pupil projected response, scale the same way to put between 0 / 1
 bpsp_proj = proj[:, :, :2]
@@ -121,6 +145,7 @@ bp_proj = np.stack([bpsp_proj[i, pup_mask[0, :, i], :] for i in range(pup_mask.s
 chelp.plot_confusion_matrix(df, 
                     metric='bp_dp',
                     spectrogram=np.sqrt(stimulus)**(1/2),
+                    sortby='delta',
                     resp_fs=4,
                     stim_fs=stim_fs,
                     pcs = bp_proj,
@@ -135,6 +160,7 @@ sp_proj = np.stack([bpsp_proj[i, ~pup_mask[0, :, i], :] for i in range(pup_mask.
 chelp.plot_confusion_matrix(df, 
                     metric='sp_dp',
                     spectrogram=np.sqrt(stimulus)**(1/2),
+                    sortby='delta',
                     resp_fs=4,
                     stim_fs=stim_fs,
                     pcs = sp_proj,
@@ -149,11 +175,29 @@ df['delta'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
 chelp.plot_confusion_matrix(df, 
                     metric='delta',
                     spectrogram=np.sqrt(stimulus)**(1/2),
+                    sortby='delta',
                     resp_fs=4,
                     stim_fs=stim_fs,
                     ax=diff
                     )
 diff.set_title(r"$\Delta d'^2$")
+
+# plot scatter plot of delta dprime results
+# plot dprime results
+nSamples = 2000
+idx = df_all[['bp_dp', 'sp_dp']].max(axis=1) < 100
+sidx = np.random.choice(range(idx.sum()), nSamples, replace=False)
+bp = df_all['bp_dp'].values[idx][sidx]
+sp = df_all['sp_dp'].values[idx][sidx]
+s = 5
+xy = np.vstack([bp, sp])
+z = gaussian_kde(xy)(xy)
+scax.scatter(sp, bp, s=s, c=z)
+scax.plot([0, 100], [0, 100], 'k--')
+scax.set_xlabel("Small pupil")
+scax.set_ylabel("Large pupil")
+scax.set_title(r"Stimulus discriminability ($d'^2$)")
+scax.axis('square')
 
 f.tight_layout()
 
