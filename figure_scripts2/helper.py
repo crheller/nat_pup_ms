@@ -7,14 +7,14 @@ import charlieTools.plotting as cplt
 import scipy.cluster.hierarchy as hc
 
 
-def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, stim_fs=None, 
-                                        pcs=None,
+def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='full', 
+                                        resp_fs=None, stim_fs=None, pcs=None, baseline=0,
                                         cmap='bwr', midpoint=0, vmin=None, vmax=None, ax=None):
     """
     df: pairwise decoding results
     metric: value to plot on the matrix
         column name existing in df
-    spectrogram: freq bins X time bins
+    spectrogram: freq bins X time 
         extent of heatmap will be forced to len(time bins)
 
     If pcs not None, also plot them (under the top spectrogram)
@@ -43,8 +43,7 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, st
         cfm[c2, c1] = r[metric]
     
     if sortby is not None:
-        # sort at level of full sound chunks, so that we don't totally jumble
-        # the spectrograms
+
         cfm_sort = np.nan * np.ones((extent, extent))
         for c in df.index.get_level_values(0):
             r = df.loc[pd.IndexSlice[c, 2], :]
@@ -63,10 +62,16 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, st
                     yr = np.arange(j*sortby[1], (j*sortby[1]) + sortby[1])
                     val = np.nanmean(cfm_sort[xr, yr])
                     dscfm[i, j] = val
-        
-        # now, cluster this reduced matrix and sort stimuli based on this
-        link = hc.linkage(dscfm, method='median', metric='euclidean')
-        o1 = hc.leaves_list(link)
+
+       
+        # sort at level of full sound chunks, so that we don't totally jumble
+        # the spectrograms
+        if sort_method=='1D':
+            o1 = np.argsort(dscfm.mean(axis=-1)).squeeze()
+        elif sort_method=='full':
+            # now, cluster this reduced matrix and sort stimuli based on this
+            link = hc.linkage(dscfm, method='median', metric='euclidean')
+            o1 = hc.leaves_list(link)
         cfm_ordered = np.zeros(cfm.shape)
         for i, _o1 in enumerate(o1):
             for j, _o2 in enumerate(o1):
@@ -94,75 +99,70 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, resp_fs=None, st
         
         spectrogram = spec_new
 
+        # reorder PCs
+        if pcs is not None:
+            pcs_new = np.zeros(pcs.shape)
+            for i, o in enumerate(o1):
+                idx = np.arange(int(i * sortby[1]), int(i * sortby[1]) + sortby[1])
+                idxt = np.arange(int(o * sortby[1]), int(o * sortby[1]) + sortby[1])
+                pcs_new[idx, :, :] = pcs[idxt, :, :]
+            pcs = pcs_new
 
     # layout of elements on a single axis
     if ax is None:
         f, ax = plt.subplots(1, 1)
     
-    if (pcs is None):
-        spChan = extent / 16 # make spec height 1/8 of matrix # spectrogram.shape[0]
-        # plot confusion matrix
-        cfmflip = cfm.copy()
-        for i in range(cfm.shape[0]):
-            for j in range(cfm.shape[0]):
-                cfmflip[i, j] = cfm[j, i]
-        ax.imshow(cfmflip, extent=[0, extent, 0, extent], 
-                            origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
-        ax.imshow(cfm, extent=[0, extent, 0, extent], 
-                            origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
-        # plot spectrograms
-        # right spec
-        ax.imshow(np.fliplr(np.flipud(spectrogram).T), extent=[extent, spChan+extent, 0, extent], origin='lower', cmap='Greys')
-        # top spec
-        ax.imshow(spectrogram, extent=[0, extent, extent, spChan+extent], origin='lower', cmap='Greys')
+    # add raster plot / pc response to plot
 
-        ax.set_xlim((0, extent+spChan))
-        ax.set_ylim((0, extent+spChan))
+    # figure out extent of different panels
+    spChan = extent / 16   # make spec height 1/8 of matrix 
+    pcHeight = extent / 16 
+    #rastHeight = extent / 8
+
+    # plot confusion matrix
+    cfmflip = cfm.copy()
+    for i in range(cfm.shape[0]):
+        for j in range(cfm.shape[0]):
+            cfmflip[i, j] = cfm[j, i]
+    # upper triangle
+    mappable = ax.imshow(cfmflip, extent=[0, extent, 0, extent], 
+                        origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
+    # lower triangle
+    ax.imshow(cfm, extent=[0, extent, 0, extent], 
+                        origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
     
-    elif (pcs is not None):
-        # add raster plot / pc response to plot
-
-        # figure out extent of different panels
-        spChan = extent / 16   # make spec height 1/8 of matrix 
-        pcHeight = extent / 16 
-        #rastHeight = extent / 8
-
-        # plot confusion matrix
-        cfmflip = cfm.copy()
-        for i in range(cfm.shape[0]):
-            for j in range(cfm.shape[0]):
-                cfmflip[i, j] = cfm[j, i]
-        # upper triangle
-        ax.imshow(cfmflip, extent=[0, extent, 0, extent], 
-                            origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
-        # lower triangle
-        ax.imshow(cfm, extent=[0, extent, 0, extent], 
-                            origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
-        
-        
-        # plot spectrograms
-        # right spec (same as above)
-        ax.imshow(np.fliplr(np.flipud(spectrogram).T), extent=[extent, spChan+extent, 0, extent], origin='lower', cmap='Greys')
-        # top spec (need to offset for response)
-        ax.imshow(spectrogram, extent=[0, extent, extent+pcHeight, 
-                                                spChan+extent+pcHeight], origin='lower', cmap='Greys')
+    
+    # plot spectrograms
+    # right spec (same as above)
+    ax.imshow(np.fliplr(np.flipud(spectrogram).T), extent=[extent+pcHeight, spChan+extent+pcHeight, 0, extent], origin='lower', cmap='Greys')
+    # top spec (need to offset for response)
+    ax.imshow(spectrogram, extent=[0, extent, extent+pcHeight, 
+                                            spChan+extent+pcHeight], origin='lower', cmap='Greys')
 
 
-        # Plot PC response / rasters
-        #ax.imshow(raster, extent=[0, extent, extent+pcHeight, extent+pcHeight+rastHeight], cmap='plasma')
+    # Plot PC response / rasters
+    #ax.imshow(raster, extent=[0, extent, extent+pcHeight, extent+pcHeight+rastHeight], cmap='plasma')
 
-        # pcs -- these should *come* in scaled between 0 and 1, 
-        # so, just scale by the pcHeight param - this way, all plots (i.e. big/small)
-        # use the same scale
+    # pcs -- these should *come* in scaled between 0 and 1, 
+    # so, just scale by the pcHeight param - this way, all plots (i.e. big/small)
+    # use the same scale
+    if pcs is not None:
         t = np.linspace(0, extent, extent)
         pcsm = pcs.mean(axis=1)
         pcsm *= pcHeight
         pcsm += (extent)
         for i in range(pcs.shape[-1]):
-            ax.plot(t, pcsm[:, i], lw=0.8)
+            ax.plot(t, pcsm[:, i], lw=0.6)
+            ax.plot(pcsm[:, i], t, lw=0.6, color=ax.get_lines()[-1].get_color())
+        base = (baseline * pcHeight) + extent
+        ax.plot(t, np.ones(t.shape)*base, lw=0.6, linestyle='--', color='grey', zorder=-1)
+        ax.plot(np.ones(t.shape)*base, t, lw=0.6, linestyle='--', color='grey', zorder=-1)
 
-        ax.set_xlim((0, extent+spChan))
-        ax.set_ylim((0, extent+spChan+pcHeight))
+    ax.set_xlim((0, extent+spChan+pcHeight))
+    ax.set_ylim((0, extent+spChan+pcHeight))
+    
     ax.axis('off')
 
     #[ax.spines[x].set_visible(False) for x in ax.spines]
+
+    return mappable

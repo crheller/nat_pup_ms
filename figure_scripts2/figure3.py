@@ -3,8 +3,7 @@ Example "confusion" matrix plotting dprime / population responses for all
 stimuli at a site. Highlight that changes are not explained by first order 
 response properties (e.g. PC_1 response variance)
 
-*can* predict some of the delta dprime with other features 
-    (noise alignement and dU mag)
+Also, show big /small pupil d-pdrime scatter plot
 """
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR2, CACHE_PATH
 from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
@@ -27,6 +26,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams['font.size'] = 8
 
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 recache = False
@@ -126,64 +126,81 @@ model = sm.OLS(y, X).fit()
 
 
 # ================================== BUILD FIGURE =======================================
-f = plt.figure(figsize=(7, 1.75))
+f = plt.figure(figsize=(10, 4))
 
-bp = plt.subplot2grid((1, 4), (0, 0))
-sp = plt.subplot2grid((1, 4), (0, 1))
-diff = plt.subplot2grid((1, 4), (0, 2))
-scax = plt.subplot2grid((1, 4), (0, 3))
+gs = mpl.gridspec.GridSpec(2, 9, width_ratios=np.ones(9), height_ratios=[1, 0.05],
+         wspace=0.0, hspace=0.0, top=0.9, bottom=0.1, left=0.0, right=1.0)
+bp = f.add_subplot(gs[0, 0:3])
+sp = f.add_subplot(gs[0, 3:6])
+diff = f.add_subplot(gs[0, 6:9])
+#scax = f.add_subplot(gs[0, 0])
 
 # get big pupil / small pupil projected response, scale the same way to put between 0 / 1
-bpsp_proj = proj[:, :, :2]
+bpsp_proj = proj[:, :, :2].copy()
 ma = bpsp_proj.max()
 mi = bpsp_proj[:, :, :2].min()
 ran = ma - mi
 bpsp_proj += abs(mi)
 bpsp_proj /= ran
+baseline = abs(mi)
+baseline /= ran
 
-nbins = int(((stimulus.shape[1]/stim_fs) * resp_fs) / len(epochs))
+nbins = int(((stimulus.shape[1]/stim_fs) * 4) / len(epochs))
+df['delta'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
 # plot big pupil
 bp_proj = np.stack([bpsp_proj[i, pup_mask[0, :, i], :] for i in range(pup_mask.shape[-1])])
-chelp.plot_confusion_matrix(df, 
+im = chelp.plot_confusion_matrix(df, 
                     metric='bp_dp',
                     spectrogram=np.sqrt(stimulus)**(1/2),
                     sortby=('delta', nbins),
+                    sort_method='1D',
                     resp_fs=4,
                     stim_fs=stim_fs,
                     pcs = bp_proj,
+                    baseline=baseline,
                     vmin=0,
                     vmax=100,
                     ax=bp
                     )
 bp.set_title(r"Large pupil $d'^2$")
+cax = plt.subplot(gs[1, 1])
+f.colorbar(im, ax=bp, cax=cax, orientation='horizontal', ticks=[0, 50, 100])
 # plot small pupil
-# plot big pupil
 sp_proj = np.stack([bpsp_proj[i, ~pup_mask[0, :, i], :] for i in range(pup_mask.shape[-1])])
-chelp.plot_confusion_matrix(df, 
+im = chelp.plot_confusion_matrix(df, 
                     metric='sp_dp',
                     spectrogram=np.sqrt(stimulus)**(1/2),
                     sortby=('delta', nbins),
+                    sort_method='1D',
                     resp_fs=4,
                     stim_fs=stim_fs,
                     pcs = sp_proj,
+                    baseline=baseline,
                     vmin=0,
                     vmax=100,
                     ax=sp
                     )
 sp.set_title(r"Small pupil $d'^2$")
+cax = plt.subplot(gs[1, 4])
+f.colorbar(im, ax=sp, cax=cax, orientation='horizontal', ticks=[0, 50, 100])
 
 # plot difference
-df['delta'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
-chelp.plot_confusion_matrix(df, 
+im = chelp.plot_confusion_matrix(df, 
                     metric='delta',
                     spectrogram=np.sqrt(stimulus)**(1/2),
                     sortby=('delta', nbins),
+                    sort_method='1D',
                     resp_fs=4,
                     stim_fs=stim_fs,
+                    vmin=-1,
+                    vmax=1,
                     ax=diff
                     )
 diff.set_title(r"$\Delta d'^2$")
-
+#cax = f.add_axes([0.1, 0.1, 0.1, 0.05])
+cax = plt.subplot(gs[1, 7])
+cbar = f.colorbar(im, ax=diff, cax=cax, orientation='horizontal', ticks=[-1, 0, 1])
+'''
 # plot scatter plot of delta dprime results
 # plot dprime results
 nSamples = 2000
@@ -194,13 +211,13 @@ sp = df_all['sp_dp'].values[idx][sidx]
 s = 5
 xy = np.vstack([bp, sp])
 z = gaussian_kde(xy)(xy)
-scax.scatter(sp, bp, s=s, c=z)
+scax.scatter(sp, bp, s=s, c=z, cmap='inferno')
 scax.plot([0, 100], [0, 100], 'k--')
 scax.set_xlabel("Small pupil")
 scax.set_ylabel("Large pupil")
 scax.set_title(r"Stimulus discriminability ($d'^2$)")
 scax.axis('square')
-
-f.tight_layout()
+'''
+#f.tight_layout()
 
 plt.show()

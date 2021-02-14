@@ -3,7 +3,7 @@ Predict delta dprime from first order response stats /
     more complicated population metrics
 """
 
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR2, CACHE_PATH
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR2, CACHE_PATH, REGRESSION
 from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
 from regression_helper import fit_OLS_model
 import figure_scripts2.helper as chelp
@@ -12,6 +12,7 @@ import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
 from charlieTools.statistics import get_direct_prob
 
+import pickle
 import pandas as pd
 import seaborn as sns
 import os
@@ -99,6 +100,8 @@ for i, site in enumerate(HIGHR_SITES):
 big_df = pd.concat(big_df)
 big_df['delt'] = (big_df['bp_dp']-big_df['sp_dp']) / (big_df['bp_dp'] + big_df['sp_dp'])
 
+
+# ===================================== DELTA D-PRIME MODEL =======================================================
 # instead of doing regression per-site, resample with hierarchical bootstrap to 
 # get distribution over params. For each resample, fit the OLS model and save rsq / param values
 np.random.seed(123)
@@ -142,6 +145,96 @@ for i in np.arange(nboot):
     else:
         r2 = pd.concat((r2, pd.DataFrame(output['r2'], index=[i])))
         coef = pd.concat((coef, pd.DataFrame(output['coef'], index=[i])))
+
+# save results
+with open(REGRESSION+'delta_r2.pickle', 'wb') as handle:
+    pickle.dump(r2, handle, protocol=pickle.HIGHEST_PROTOCOL)
+with open(REGRESSION+'delta_coef.pickle', 'wb') as handle:
+    pickle.dump(coef, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+f, ax = plt.subplots(1, 2, figsize=(8, 4))
+
+# plot r2
+r2p = r2[[k for k in r2 if (k=='full') | (k.startswith('u'))]]
+sns.boxplot(x='variable', y='value', data=r2p.melt(), 
+                        color='lightgrey', width=0.3, showfliers=False, linewidth=2, ax=ax[0])
+ax[0].axhline(0, linestyle='--', color='k')
+ax[0].set_xlabel("Regressor")
+ax[0].set_ylabel(r"$R^2$ (unique)")
+ax[0].set_xticks(range(r2p.shape[1]))
+ax[0].set_xticklabels(['Full Model'] + xlab, rotation=45)
+# add pvalue for each regressor
+ym = ax[0].get_ylim()[-1]
+for i, r in enumerate(r2p.keys()):
+    p = get_direct_prob(r2[r], np.zeros(nboot))[0]
+    ax[0].text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
+
+# plot coefficients
+sns.boxplot(x='variable', y='value', data=coef.melt(), 
+                         color='lightgrey', width=0.3, showfliers=False, linewidth=2, ax=ax[1])
+ax[1].axhline(0, linestyle='--', color='k')
+ax[1].set_xlabel("Regressor")
+ax[1].set_ylabel("Regression coefficient (normalized)")
+ax[1].set_xticks(range(coef.shape[1]))
+ax[1].set_xticklabels(xlab, rotation=45)
+# add pvalue for each regressor
+ym = ax[1].get_ylim()[-1]
+for i, r in enumerate(coef.keys()):
+    p = get_direct_prob(coef[r], np.zeros(nboot))[0]
+    ax[1].text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
+
+f.tight_layout()
+
+# ===================================== OVERALL D-PRIME MODEL =======================================================
+# instead of doing regression per-site, resample with hierarchical bootstrap to 
+# get distribution over params. For each resample, fit the OLS model and save rsq / param values
+np.random.seed(123)
+njack = 10
+even_sample = True
+nboot = 500
+for i in np.arange(nboot):
+    print(f"Bootstrap {i} / {nboot}")
+    temp = []
+    num_lev1 = len(big_df.site.unique()) # n animals
+    num_lev2 = max([big_df[big_df.site==s].shape[0] for s in big_df.site.unique()]) # min number of observations sampled for an animal
+    rand_lev1 = np.random.choice(num_lev1, num_lev1)
+    lev1_keys = np.array(list(big_df.site.unique()))[rand_lev1]
+    for k in lev1_keys:
+        # for this animal, how many obs to choose from?
+        this_n_range = big_df[big_df.site==k].shape[0]
+        if even_sample:
+            rand_lev2 = np.random.choice(this_n_range, num_lev2, replace=True)
+        else:
+            rand_lev2 = np.random.choice(this_n_range, this_n_range, replace=True)
+        
+        temp.append(big_df[big_df.site==k].iloc[rand_lev2]) 
+    
+    # fit cross-validated model on the resampled data (no need for resampling here, because we did it above)
+    _df = pd.concat(temp)
+    X = _df[regressors]
+    X -= X.mean(axis=0)
+    X /= X.std(axis=0)
+    X = sm.add_constant(X)
+
+    y = _df['dp_opt_test']
+    y -= y.mean()
+    y /= y.std()
+
+    output = fit_OLS_model(X, y, replace=False, nboot=1, njacks=njack)
+
+    # save r2 values and coefficients
+    if i == 0:
+        r2 = pd.DataFrame(output['r2'], index=[i])
+        coef = pd.DataFrame(output['coef'], index=[i])
+    else:
+        r2 = pd.concat((r2, pd.DataFrame(output['r2'], index=[i])))
+        coef = pd.concat((coef, pd.DataFrame(output['coef'], index=[i])))
+
+# save results
+with open(REGRESSION+'dpall_r2.pickle', 'wb') as handle:
+    pickle.dump(r2, handle, protocol=pickle.HIGHEST_PROTOCOL)
+with open(REGRESSION+'dpall_coef.pickle', 'wb') as handle:
+    pickle.dump(coef, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 f, ax = plt.subplots(1, 2, figsize=(8, 4))
