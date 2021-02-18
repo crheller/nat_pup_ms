@@ -28,6 +28,9 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
+savefig = True
+fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
+
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 recache = False
 site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
@@ -126,14 +129,14 @@ model = sm.OLS(y, X).fit()
 
 
 # ================================== BUILD FIGURE =======================================
-f = plt.figure(figsize=(10, 4))
+f = plt.figure(figsize=(13, 4))
 
-gs = mpl.gridspec.GridSpec(2, 9, width_ratios=np.ones(9), height_ratios=[1, 0.05],
+gs = mpl.gridspec.GridSpec(2, 12, width_ratios=np.ones(12), height_ratios=[1, 0.05],
          wspace=0.0, hspace=0.0, top=0.9, bottom=0.1, left=0.0, right=1.0)
 bp = f.add_subplot(gs[0, 0:3])
 sp = f.add_subplot(gs[0, 3:6])
 diff = f.add_subplot(gs[0, 6:9])
-#scax = f.add_subplot(gs[0, 0])
+scax = f.add_subplot(gs[0, 9:])
 
 # get big pupil / small pupil projected response, scale the same way to put between 0 / 1
 bpsp_proj = proj[:, :, :2].copy()
@@ -200,7 +203,7 @@ diff.set_title(r"$\Delta d'^2$")
 #cax = f.add_axes([0.1, 0.1, 0.1, 0.05])
 cax = plt.subplot(gs[1, 7])
 cbar = f.colorbar(im, ax=diff, cax=cax, orientation='horizontal', ticks=[-1, 0, 1])
-'''
+
 # plot scatter plot of delta dprime results
 # plot dprime results
 nSamples = 2000
@@ -217,7 +220,10 @@ scax.set_xlabel("Small pupil")
 scax.set_ylabel("Large pupil")
 scax.set_title(r"Stimulus discriminability ($d'^2$)")
 scax.axis('square')
-'''
+
 #f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
 
 plt.show()

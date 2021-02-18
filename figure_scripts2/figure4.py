@@ -14,10 +14,13 @@ Layout:
 import colors as color
 import ax_labels as alab
 from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH, REGRESSION
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.plotting as cplt
+from charlieTools.statistics import get_direct_prob
+import pickle
+import seaborn as sns
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -28,13 +31,14 @@ mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = False
+savefig = True
+fig_fn = PY_FIGURES_DIR2+'fig4.svg'
+
 recache = False # recache dprime results locally
 ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
                        # in this case, est = val so doesn't matter if you load _test results or _train results
 sites = HIGHR_SITES
 path = DPRIME_DIR
-fig_fn = PY_FIGURES_DIR+'fig4.svg'
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 val = 'dp_opt_test'
@@ -91,16 +95,23 @@ B = np.random.multivariate_normal(u2, cov, (200,))
 Ael = cplt.compute_ellipse(A[:, 0], A[:, 1])
 Bel = cplt.compute_ellipse(B[:, 0], B[:, 1])
 
-# ================================ MAKE FIGURE ==================================
-f = plt.figure(figsize=(7.1, 4))
+# Load regression results
+r2_all = pickle.load(open(REGRESSION+'dpall_r2.pickle', 'rb'))
+r2_delta = pickle.load(open(REGRESSION+'delta_r2.pickle', 'rb'))
+coef_all = pickle.load(open(REGRESSION+'dpall_coef.pickle', 'rb'))
+coef_delta = pickle.load(open(REGRESSION+'delta_coef.pickle', 'rb'))
 
-gs = mpl.gridspec.GridSpec(2, 6)
+# ================================ MAKE FIGURE ==================================
+f = plt.figure(figsize=(7.1, 6))
+
+gs = mpl.gridspec.GridSpec(3, 6)
 sch = f.add_subplot(gs[0, 0:2])
 dpall = f.add_subplot(gs[0, 2:4])
 delta = f.add_subplot(gs[0, 4:])
 reg1 = f.add_subplot(gs[1, :3])
-reg2 = f.add_subplot(gs[1, 3:])
-
+reg2 = f.add_subplot(gs[2, :3])
+coef1 = f.add_subplot(gs[1, 3:])
+coef2 = f.add_subplot(gs[2, 3:])
 # plot heatmaps
 df_dp.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
@@ -138,6 +149,71 @@ sch.axhline(0, linestyle='--', color='lightgrey', zorder=-1)
 sch.set_xlabel(r"$dDR_1 (\Delta \mathbf{\mu})$")
 sch.set_ylabel(r"$dDR_2$")
 
+# plot regression
+palette = {'full': 'lightgrey', 'upc1_mean': 'r', 'upc1_diff': 'r', 'udU_mag_test': color.SIGNAL, 'unoiseAlign': color.COSTHETA}
+r2a = r2_all[[k for k in r2_all if (k=='full') | (k.startswith('u'))]]
+sns.boxplot(x='variable', y='value', data=r2a.melt(), 
+                        palette=palette, width=0.3, showfliers=False, linewidth=1, ax=reg1)
+reg1.axhline(0, linestyle='--', color='k')
+reg1.set_xlabel("Regressor")
+reg1.set_ylabel(r"$R^2$ (unique)")
+reg1.set_xticks(range(r2a.shape[1]))
+reg1.set_xticklabels(['']*r2a.shape[1])
+# add pvalue for each regressor
+ym = reg1.get_ylim()[-1]
+for i, r in enumerate(r2a.keys()):
+    p = get_direct_prob(r2a[r], np.zeros(r2a.shape[0]))[0]
+    reg1.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
+
+r2d = r2_delta[[k for k in r2_delta if (k=='full') | (k.startswith('u'))]]
+sns.boxplot(x='variable', y='value', data=r2d.melt(), 
+                        palette=palette, width=0.3, showfliers=False, linewidth=1, ax=reg2)
+reg2.axhline(0, linestyle='--', color='k')
+reg2.set_xlabel("Regressor")
+reg2.set_ylabel(r"$R^2$ (unique)")
+reg2.set_xticks(range(r2d.shape[1]))
+reg2.set_xticklabels(['']*r2d.shape[1])
+# add pvalue for each regressor
+ym = reg2.get_ylim()[-1]
+for i, r in enumerate(r2d.keys()):
+    p = get_direct_prob(r2d[r], np.zeros(r2d.shape[0]))[0]
+    if p>0.5:
+        p = 1 - p
+    reg2.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
+
+# plot coefficients
+palette = {'pc1_mean': 'r', 'pc1_diff': 'r', 'dU_mag_test': color.SIGNAL, 'noiseAlign': color.COSTHETA}
+sns.boxplot(x='variable', y='value', data=coef_all.melt(), 
+                        palette=palette, width=0.3, showfliers=False, linewidth=1, ax=coef1)
+coef1.axhline(0, linestyle='--', color='k')
+coef1.set_xlabel("Regressor")
+coef1.set_ylabel("Coefficient (norm.)")
+coef1.set_xticks(range(coef_all.shape[1]))
+coef1.set_xticklabels(['']*coef_all.shape[1])
+# add pvalue for each regressor
+ym = coef1.get_ylim()[-1]
+for i, r in enumerate(coef_all.keys()):
+    p = get_direct_prob(coef_all[r], np.zeros(coef_all.shape[0]))[0]
+    if p > 0.5:
+        p = 1 - p
+    coef1.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
+
+sns.boxplot(x='variable', y='value', data=coef_delta.melt(), 
+                        palette=palette, width=0.3, showfliers=False, linewidth=1, ax=coef2)
+coef2.axhline(0, linestyle='--', color='k')
+coef2.set_xlabel("Regressor")
+coef2.set_ylabel("Coefficient (norm.)")
+coef2.set_xticks(range(coef_delta.shape[1]))
+coef2.set_xticklabels(['']*coef_delta.shape[1])
+# add pvalue for each regressor
+ym = coef2.get_ylim()[-1]
+for i, r in enumerate(coef_delta.keys()):
+    p = get_direct_prob(coef_delta[r], np.zeros(coef_delta.shape[0]))[0]
+    coef2.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
+
 f.tight_layout()
+
+if savefig: 
+    f.savefig(fig_fn)
 
 plt.show()
