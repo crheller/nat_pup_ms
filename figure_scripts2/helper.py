@@ -9,7 +9,7 @@ import scipy.cluster.hierarchy as hc
 
 def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='full', 
                                         resp_fs=None, stim_fs=None, pcs=None, baseline=0,
-                                        cmap='bwr', midpoint=0, vmin=None, vmax=None, ax=None):
+                                        cmap='bwr', midpoint=0, vmin=None, vmax=None, pc_div=16, spec_div=16, ax=None):
     """
     df: pairwise decoding results
     metric: value to plot on the matrix
@@ -115,8 +115,8 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='ful
     # add raster plot / pc response to plot
 
     # figure out extent of different panels
-    spChan = extent / 16   # make spec height 1/8 of matrix 
-    pcHeight = extent / 16 
+    spChan = extent / spec_div   # make spec height 1/8 of matrix 
+    pcHeight = extent / pc_div
     #rastHeight = extent / 8
 
     # plot confusion matrix
@@ -132,14 +132,6 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='ful
                         origin='lower', cmap=cmap, norm=cplt.MidpointNormalize(midpoint=midpoint, vmin=vmin, vmax=vmax))
     
     
-    # plot spectrograms
-    # right spec (same as above)
-    ax.imshow(np.fliplr(np.flipud(spectrogram).T), extent=[extent+pcHeight, spChan+extent+pcHeight, 0, extent], origin='lower', cmap='Greys')
-    # top spec (need to offset for response)
-    ax.imshow(spectrogram, extent=[0, extent, extent+pcHeight, 
-                                            spChan+extent+pcHeight], origin='lower', cmap='Greys')
-
-
     # Plot PC response / rasters
     #ax.imshow(raster, extent=[0, extent, extent+pcHeight, extent+pcHeight+rastHeight], cmap='plasma')
 
@@ -147,6 +139,12 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='ful
     # so, just scale by the pcHeight param - this way, all plots (i.e. big/small)
     # use the same scale
     if pcs is not None:
+        # plot spectrograms
+        # right spec (same as above)
+        ax.imshow(np.fliplr(np.flipud(spectrogram).T), extent=[extent+pcHeight, spChan+extent+pcHeight, 0, extent], origin='lower', cmap='Greys')
+        # top spec (need to offset for response)
+        ax.imshow(spectrogram, extent=[0, extent, extent+pcHeight, 
+                                            spChan+extent+pcHeight], origin='lower', cmap='Greys')
         t = np.linspace(0, extent, extent)
         pcsm = pcs.mean(axis=1)
         pcsm *= pcHeight
@@ -157,6 +155,12 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='ful
         base = (baseline * pcHeight) + extent
         ax.plot(t, np.ones(t.shape)*base, lw=0.6, linestyle='--', color='grey', zorder=-1)
         ax.plot(np.ones(t.shape)*base, t, lw=0.6, linestyle='--', color='grey', zorder=-1)
+    else:
+        # put the spec where the PCs would've been (make it hug matrix)
+        ax.imshow(np.fliplr(np.flipud(spectrogram).T), extent=[extent, spChan+extent, 0, extent], origin='lower', cmap='Greys')
+        # top spec (need to offset for response)
+        ax.imshow(spectrogram, extent=[0, extent, extent, 
+                                            spChan+extent], origin='lower', cmap='Greys')
 
     ax.set_xlim((0, extent+spChan+pcHeight))
     ax.set_ylim((0, extent+spChan+pcHeight))

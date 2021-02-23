@@ -37,6 +37,7 @@ site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128
 batch = 289
 duration = 1   # length of stimuli (for making spectrograms)
 prestim = 0.25 # legnth of stimuli (for making spectrograms)
+pc_div  = 8 # how much space to leave around conf. matrix edge for PC (bigger this is, the less space. Default = 16)
 soundpath = '/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalSounds/sounds_set4/'
 
 # get decoding results
@@ -129,7 +130,7 @@ model = sm.OLS(y, X).fit()
 
 
 # ================================== BUILD FIGURE =======================================
-f = plt.figure(figsize=(13, 4))
+f = plt.figure(figsize=(13, 6))
 
 gs = mpl.gridspec.GridSpec(2, 12, width_ratios=np.ones(12), height_ratios=[1, 0.05],
          wspace=0.0, hspace=0.0, top=0.9, bottom=0.1, left=0.0, right=1.0)
@@ -163,6 +164,7 @@ im = chelp.plot_confusion_matrix(df,
                     baseline=baseline,
                     vmin=0,
                     vmax=100,
+                    pc_div=8,
                     ax=bp
                     )
 bp.set_title(r"Large pupil $d'^2$")
@@ -181,6 +183,7 @@ im = chelp.plot_confusion_matrix(df,
                     baseline=baseline,
                     vmin=0,
                     vmax=100,
+                    pc_div=pc_div,
                     ax=sp
                     )
 sp.set_title(r"Small pupil $d'^2$")
@@ -197,6 +200,7 @@ im = chelp.plot_confusion_matrix(df,
                     stim_fs=stim_fs,
                     vmin=-1,
                     vmax=1,
+                    pc_div=pc_div,
                     ax=diff
                     )
 diff.set_title(r"$\Delta d'^2$")
