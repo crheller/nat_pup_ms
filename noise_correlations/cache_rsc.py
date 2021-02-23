@@ -11,6 +11,7 @@ import nems.db as nd
 import nems.xforms as xforms
 import nems_lbhb.baphy as nb
 from nems_lbhb.preprocessing import mask_high_repetion_stims, create_pupil_mask
+import nems_lbhb.baphy_io as io
 from nems.recording import Recording
 import sys
 sys.path.append('/auto/users/hellerc/code/projects/nat_pupil_ms/')
@@ -107,7 +108,7 @@ else:
 if batch == 294:
     xforms_modelname = xforms_modelname.replace('pup-ld', 'pup.voc-ld')
 
-cellid, _ = nb.parse_cellid({'batch': batch, 'cellid': site})
+cellid, _ = io.parse_cellid({'batch': batch, 'cellid': site})
 
 if not regression_method2:
     # only load model fit if using for regression

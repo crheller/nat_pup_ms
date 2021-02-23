@@ -1,11 +1,11 @@
 import nems.db as nd
 
-batches = [289, 294]
+batches = [289] #[289, 294]
 force_rerun = True
 boxcar = True
 evoked = True
 slow = False
-custom = True  # run a subset of jobs
+custom = False  # run a subset of jobs
 for batch in batches:
 
     if custom:
@@ -71,6 +71,7 @@ for batch in batches:
                 'DRX006b.e1:64', 'DRX006b.e65:128',
                 'DRX007a.e1:64', 'DRX007a.e65:128',
                 'DRX008b.e1:64', 'DRX008b.e65:128']
+        sites = ['CRD016d', 'CRD017c']
     # BRT032, BRT033, and BRT037 and TAR009d??            
     if batch == 294:
         sites = ['BOL005c', 'BOL006b']
