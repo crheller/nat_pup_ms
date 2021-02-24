@@ -14,7 +14,7 @@ Layout:
 import colors as color
 import ax_labels as alab
 from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR, CACHE_PATH, REGRESSION
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR, PY_FIGURES_DIR2, CACHE_PATH, REGRESSION
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 import charlieTools.plotting as cplt
@@ -28,10 +28,10 @@ import numpy as np
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams['font.size'] = 8
+mpl.rcParams['font.size'] = 7
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR2+'fig4.svg'
 
 recache = False # recache dprime results locally
@@ -102,8 +102,8 @@ coef_all = pickle.load(open(REGRESSION+'dpall_coef.pickle', 'rb'))
 coef_delta = pickle.load(open(REGRESSION+'delta_coef.pickle', 'rb'))
 
 # ================================ MAKE FIGURE ==================================
-f = plt.figure(figsize=(7.1, 6))
-
+f = plt.figure(figsize=(7.4, 3.5))
+'''
 gs = mpl.gridspec.GridSpec(3, 6)
 sch = f.add_subplot(gs[0, 0:2])
 dpall = f.add_subplot(gs[0, 2:4])
@@ -112,6 +112,17 @@ reg1 = f.add_subplot(gs[1, :3])
 reg2 = f.add_subplot(gs[2, :3])
 coef1 = f.add_subplot(gs[1, 3:])
 coef2 = f.add_subplot(gs[2, 3:])
+'''
+
+gs = mpl.gridspec.GridSpec(2, 4)
+sch = f.add_subplot(gs[0:2, 0])
+dpall = f.add_subplot(gs[0, 1])
+delta = f.add_subplot(gs[1, 1])
+reg1 = f.add_subplot(gs[0, 2])
+reg2 = f.add_subplot(gs[1, 2])
+coef1 = f.add_subplot(gs[0, 3])
+coef2 = f.add_subplot(gs[1, 3])
+
 # plot heatmaps
 df_dp.plot.hexbin(x='dU_mag'+estval, 
                   y='cos_dU_evec'+estval, 
@@ -148,6 +159,7 @@ sch.axvline(0, linestyle='--', color='lightgrey', zorder=-1)
 sch.axhline(0, linestyle='--', color='lightgrey', zorder=-1)
 sch.set_xlabel(r"$dDR_1 (\Delta \mathbf{\mu})$")
 sch.set_ylabel(r"$dDR_2$")
+sch.set_aspect(cplt.get_square_asp(sch))
 
 # plot regression
 palette = {'full': 'lightgrey', 'upc1_mean': 'r', 'upc1_diff': 'r', 'udU_mag_test': color.SIGNAL, 'unoiseAlign': color.COSTHETA}
@@ -161,8 +173,10 @@ reg1.set_xticks(range(r2a.shape[1]))
 reg1.set_xticklabels(['']*r2a.shape[1])
 # add pvalue for each regressor
 ym = reg1.get_ylim()[-1]
+print('r-squared (overall)')
 for i, r in enumerate(r2a.keys()):
     p = get_direct_prob(r2a[r], np.zeros(r2a.shape[0]))[0]
+    print(f"{r}, {p}, {r2a[r].mean()}")
     reg1.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
 
 r2d = r2_delta[[k for k in r2_delta if (k=='full') | (k.startswith('u'))]]
@@ -175,10 +189,12 @@ reg2.set_xticks(range(r2d.shape[1]))
 reg2.set_xticklabels(['']*r2d.shape[1])
 # add pvalue for each regressor
 ym = reg2.get_ylim()[-1]
+print('r-squared (delta)')
 for i, r in enumerate(r2d.keys()):
     p = get_direct_prob(r2d[r], np.zeros(r2d.shape[0]))[0]
     if p>0.5:
         p = 1 - p
+    print(f"{r}, {p}, {r2d[r].mean()}")
     reg2.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
 
 # plot coefficients
@@ -192,10 +208,12 @@ coef1.set_xticks(range(coef_all.shape[1]))
 coef1.set_xticklabels(['']*coef_all.shape[1])
 # add pvalue for each regressor
 ym = coef1.get_ylim()[-1]
+print('coeff (overall)')
 for i, r in enumerate(coef_all.keys()):
     p = get_direct_prob(coef_all[r], np.zeros(coef_all.shape[0]))[0]
     if p > 0.5:
         p = 1 - p
+    print(f"{r}, {p}, {coef_all[r].mean()}")
     coef1.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
 
 sns.boxplot(x='variable', y='value', data=coef_delta.melt(), 
@@ -207,8 +225,10 @@ coef2.set_xticks(range(coef_delta.shape[1]))
 coef2.set_xticklabels(['']*coef_delta.shape[1])
 # add pvalue for each regressor
 ym = coef2.get_ylim()[-1]
+print('coef (delta)')
 for i, r in enumerate(coef_delta.keys()):
     p = get_direct_prob(coef_delta[r], np.zeros(coef_delta.shape[0]))[0]
+    print(f"{r}, {p}, {coef_delta[r].mean()}")
     coef2.text(i-0.3, ym, f"p={p:.4f}", fontsize=6)
 
 f.tight_layout()

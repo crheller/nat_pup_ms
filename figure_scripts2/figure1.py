@@ -133,6 +133,8 @@ df = df[df.loc[:, 'site'].isin([s[:7] for s in ALL_SITES])]
 MI = df.loc[:, pd.IndexSlice['MI', 'st.pup']]
 MI = np.array([np.float(x.strip('[]')) if type(x)==str else x for x in MI.values])
 
+print(f"Mean MI: {MI.mean()}, sem: {MI.std() / np.sqrt(MI.shape[0])} \n n total units: {MI.shape[0]}")
+
 miax.hist(MI, bins=mi_bins, edgecolor='white', color='grey')
 miax.axvline(0, linestyle='--', color='k')
 miax.set_xlabel('Modulation Index')
@@ -159,6 +161,10 @@ ncax.bar([0, 1], [rsc_df['bp'].mean(), rsc_df['sp'].mean()],
                 color=[colors.LARGE, colors.SMALL], edgecolor='k', width=0.5)
 ncax.set_ylabel('Noise correlation')
 ncax.text(ncax.get_xlim()[0], ncax.get_ylim()[-1], r"p=%s" % round(p, 4))
+
+print(f"Mean rsc small: {rsc_df['sp'].mean()}, sem: {rsc_df['sp'].std() / np.sqrt(rsc_df.shape[0])}")
+print(f"Mean rsc large: {rsc_df['bp'].mean()}, sem: {rsc_df['bp'].std() / np.sqrt(rsc_df.shape[0])}")
+print(f"Mean unit pairs per session: {np.mean([len(x) for k, x in d.items()])}, sem: {np.std([len(x) for k, x in d.items()]) / len(d.keys())} ")
 
 f.tight_layout()
 
