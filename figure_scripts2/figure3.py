@@ -12,6 +12,7 @@ import figure_scripts2.helper as chelp
 
 import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
+from charlieTools.statistics import get_direct_prob, get_bootstrapped_sample
 
 import os
 import pandas as pd
@@ -28,7 +29,7 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
 
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
@@ -224,6 +225,24 @@ scax.set_xlabel("Small pupil")
 scax.set_ylabel("Large pupil")
 scax.set_title(r"Stimulus discriminability ($d'^2$)")
 scax.axis('square')
+
+# get statistics for all data
+df_all['delta'] = (df_all['bp_dp'] - df_all['sp_dp']) #/ (df_all['bp_dp'] + df_all['sp_dp'])
+d = {s: df_all[df_all.site==s]['delta'].values for s in df_all.site.unique()}
+bs = get_bootstrapped_sample(d, even_sample=False, nboot=1000)
+p = get_direct_prob(bs, np.zeros(bs.shape[0]))[0]
+
+print(f"mean large pupil d': {df_all['bp_dp'].mean()}, {df_all['bp_dp'].sem()}")
+print(f"mean small pupil d': {df_all['sp_dp'].mean()}, {df_all['sp_dp'].sem()}")
+print(f"pval (bootstrapped): {p}")
+print(f"Mean n stimulus pairs per session: {np.mean([len(d[s]) for s in d.keys()])}, {np.std([len(d[s]) for s in d.keys()]) / np.sqrt(len(d.keys()))}")
+
+
+frac = []
+for s in d.keys():
+    frac.append(np.sum(d[s]<0) / len(d[s]))
+print(f"Fraction of stimlulus pairs with decreases per site: {np.mean(frac)}, sem: {np.std(frac)/len(frac)}")
+
 
 #f.tight_layout()
 
