@@ -63,6 +63,8 @@ sim2 = False
 sim12 = False
 sim_tdr_space = False  # perform the simulation in the TDR space. piggy-back on jackknifes for this. e.g. for each jackknife, do a new simulation
                        # this is kludgy. may want to do more iterations. If so, gonna need to rethink the modelname / est val creation etc.
+lv_model = False       # perform decoding on the simulated, lv model predictions
+
 do_pls = False
 do_PCA = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
@@ -96,6 +98,12 @@ for op in options:
         sim12 = True
     if op == 'simInTDR':
         sim_tdr_space = True
+    if op.startswith('model'):
+        if op.split('-')[1]=='LV':
+            lv_model = True
+        else:
+            # add options for first order model / ind noise
+            pass
     if op == 'PLS':
         do_pls = True
     if op == 'PCA':
@@ -179,7 +187,7 @@ spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in 
 
 # =================================== simulate =======================================
 # update X to simulated data if specified. Else X = X_raw.
-# point of this is so that decoding axes / TDR space doesn't change for simulation.
+# point of this is so that decoding axes / TDR space doesn't change for simulation (or for xforms predicted data)
 # should make results easier to interpret. CRH 06.04.2020
 X_raw = X.copy()
 pup_mask_raw = pup_mask.copy()
@@ -188,6 +196,14 @@ if (sim1 | sim2 | sim12) & (not sim_tdr_space):
                                                           sim_second_order=sim2,
                                                           sim_all=sim12,
                                                           ntrials=5000)
+elif lv_model:
+    lvmodelstr = "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5"
+    # get lv model predictions 
+    # TODO: add this loader to charlieTools.decoding
+    # TODO: add cases for lv_model, mirroring what was doing for sim1/sim2/sim12, where we fit dDR on raw data,
+    # then evaluate decoding with predictions
+    X, pup_mask = decoding.load_xformsModel(site, batch, modelstring=lvmodelstr)
+
 elif sim_tdr_space:
     log.info("Performing simulations within TDR space. Unique simulation per each jackknife")
 
@@ -220,7 +236,7 @@ est_raw, val_raw, p_est_raw, p_val_raw = nat_preproc.get_est_val_sets(X_raw, pup
 nreps_train_raw = est_raw[0].shape[1]
 nreps_test_raw = val_raw[0].shape[1]
 
-# check if data was simulated. If so, then generate the simulated est / val sets
+# check if data was simulated. If so, then generate the est / val sets for this data
 xraw_equals_x = False
 if (X.shape == X_raw.shape):
     if np.all(X_raw == X):
