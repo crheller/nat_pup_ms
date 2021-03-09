@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
+batch = 294
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
