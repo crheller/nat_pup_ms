@@ -99,8 +99,9 @@ for op in options:
     if op == 'simInTDR':
         sim_tdr_space = True
     if op.startswith('model'):
-        if op.split('-')[1]=='LV':
+        if op.split('-')[1].startswith('LV'):
             lv_model = True
+            lv_str = op.split('-')[2] # can be d01, d11, g01 etc.
         else:
             # add options for first order model / ind noise
             pass
@@ -197,12 +198,25 @@ if (sim1 | sim2 | sim12) & (not sim_tdr_space):
                                                           sim_all=sim12,
                                                           ntrials=5000)
 elif lv_model:
-    lvmodelstr = "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5"
+    modelnames= {
+    'indep': "psth.fs4.pup-loadpred-st.pup-plgsm-lvnoise.r4-aev_lvnorm.1xR.d-inoise.2xR_ccnorm.t5",
+    'dc11': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
+    'dc10': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
+    'dc00': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
+    'gn11': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn10': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn00': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    }
+    lvmodelstr = modelnames[lv_str]
     # get lv model predictions 
     # TODO: add this loader to charlieTools.decoding
     # TODO: add cases for lv_model, mirroring what was doing for sim1/sim2/sim12, where we fit dDR on raw data,
     # then evaluate decoding with predictions
-    X, pup_mask = decoding.load_xformsModel(site, batch, modelstring=lvmodelstr)
+    if batch==289:
+        _b = 322
+    else:
+        _b = batch
+    X, pup_mask = decoding.load_xformsModel(site, _b, signal='pred', modelstring=lvmodelstr)
 
 elif sim_tdr_space:
     log.info("Performing simulations within TDR space. Unique simulation per each jackknife")

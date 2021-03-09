@@ -32,7 +32,7 @@ mpl.rcParams['font.size'] = 8
 savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
 
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2' #_model-LV-dc10'
 recache = False
 site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
 batch = 289
@@ -59,7 +59,6 @@ nstim = nstim * nbins
 # ============================= LOAD DPRIME =========================================
 path = DPRIME_DIR
 loader = decoding.DecodingResults()
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
 n_components = 2
 recache = False
 df_all = []
@@ -68,9 +67,12 @@ for site in HIGHR_SITES:
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
-    fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
-    _df = results.numeric_results
+    try:
+        fn = os.path.join(path, site, mn+'_TDR.pickle')
+        results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+        _df = results.numeric_results
+    except:
+        print(f"WARNING!! NOT LOADING SITE {site}")
 
     stim = results.evoked_stimulus_pairs
     _df = _df.loc[pd.IndexSlice[stim, 2], :]

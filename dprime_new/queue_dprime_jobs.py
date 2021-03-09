@@ -7,7 +7,12 @@ force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
 no_crossval = False  # for no cross validation (on the larger 289 set )
-
+lvmodels = True    # run for the simulated, model results from lv xforms models
+# each of these corresponds to a specific xforms model. See cache_dprime script to see
+# how these keys map to xforms model strings
+lvmodelkeys = {
+    'indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00'
+}
 temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 
 nc_lv = True        # beta defined using nc LV method
@@ -26,7 +31,7 @@ if batch == 289:
             'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
             'DRX006b.e1:64', 'DRX006b.e65:128',
             'DRX007a.e1:64', 'DRX007a.e65:128',
-            'DRX008b.e1:64', 'DRX008b.e65:128']
+            'DRX008b.e1:64', 'DRX008b.e65:128', 'CRD016d', 'CRD017c']
     if subset_289:
         # list of sites with > 10 reps of each stimulus
         sites = ['TAR010c', 'TAR017b', 
@@ -80,14 +85,13 @@ if n_additional_noise_dims > 0:
 if NOSIM:
     modellist = [m for m in modellist if ('_sim1' not in m) & ('_sim2' not in m) & ('_sim12' not in m)]
 
+if lvmodels:
+    # don't do the pupil regression models for this, doesn't make sense
+    modellist = [m for m in modellist if '_pr_' not in m]
+    modellist = np.concatenate([[m+f'_model-LV-{lvstr}' for lvstr in lvmodelkeys] for m in modellist]).tolist()
+
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
-
-
-if NOSIM:
-    # remove simulation models
-    modellist = [m for m in modellist if ('_sim1' not in m) & ('_sim2' not in m) & ('_sim12' not in m)]
-
 
 nd.enqueue_models(celllist=sites,
                   batch=batch,
