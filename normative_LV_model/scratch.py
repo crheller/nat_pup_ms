@@ -6,6 +6,7 @@ from path_settings import DPRIME_DIR, PY_FIGURES_DIR, PY_FIGURES_DIR2, CACHE_PAT
 
 import charlieTools.nat_sounds_ms.decoding as decoding
 
+import seaborn as sns
 from scipy.stats import gaussian_kde
 import os
 import pandas as pd
@@ -17,11 +18,12 @@ mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
 figpath = '/auto/users/hellerc/results/nat_pupil_ms/tmp_figures/lv_models/'
-
+ext = '.e.sp' # '', '.e' '.e.sp' (different cost functions)
 for site in HIGHR_SITES:
     lvstr = ['indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00']
+    lvstr = [lv+ext for lv in lvstr]
     modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
-    recache = False
+    recache = True
 
     loader = decoding.DecodingResults()
     fn = os.path.join(DPRIME_DIR, site, modelname+'_TDR.pickle')
@@ -63,7 +65,7 @@ for site in HIGHR_SITES:
 
     f.tight_layout()
 
-    f.savefig(figpath+f'lvplot1_{site}.png')
+    f.savefig(figpath+f'lvplot1_{site}_{ext}.png')
 
     # for each model, scatter plot of raw vs. lv model results
     f, ax = plt.subplots(1, len(lv_results.keys()), figsize=(14, 3), sharex=True, sharey=True)
@@ -90,6 +92,6 @@ for site in HIGHR_SITES:
 
     f.tight_layout()
 
-    f.savefig(figpath+f'lvplot2_{site}.png')
+    f.savefig(figpath+f'lvplot2_{site}_{ext}.png')
 
-    plt.close('all')
+plt.show()

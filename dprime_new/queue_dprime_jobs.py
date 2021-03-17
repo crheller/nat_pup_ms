@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -9,9 +9,11 @@ subset_323 = False # only high rep sites (for cross val)
 no_crossval = False  # for no cross validation (on the larger 289 set )
 lvmodels = True    # run for the simulated, model results from lv xforms models
 # each of these corresponds to a specific xforms model. See cache_dprime script to see
-# how these keys map to xforms model strings
+# how these keys map to xforms model strings. .e corresponds to models fit on evoked correlations only
 lvmodelkeys = {
-    'indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00'
+    'indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00',
+    'indep.e', 'dc11.e', 'dc10.e', 'dc00.e', 'gn11.e', 'gn10.e', 'gn00.e',
+    'indep.e.sp', 'dc11.e.sp', 'dc10.e.sp', 'dc00.e.sp', 'gn11.e.sp', 'gn10.e.sp', 'gn00.e.sp'
 }
 temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 
