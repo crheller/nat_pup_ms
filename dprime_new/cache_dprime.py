@@ -220,6 +220,9 @@ elif lv_model:
     'gn11.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
     'gn10.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
     'gn00.e.sp': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5"
+    'gn11.8x': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn10.8x': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn00.8x': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5"
     }
     lvmodelstr = modelnames[lv_str]
     # get lv model predictions 
