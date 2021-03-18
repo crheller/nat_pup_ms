@@ -1,7 +1,7 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
+batch = 294
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -14,6 +14,9 @@ lvmodelkeys = {
     'indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00',
     'indep.e', 'dc11.e', 'dc10.e', 'dc00.e', 'gn11.e', 'gn10.e', 'gn00.e',
     'indep.e.sp', 'dc11.e.sp', 'dc10.e.sp', 'dc00.e.sp', 'gn11.e.sp', 'gn10.e.sp', 'gn00.e.sp'
+}
+lvmodelkeys = {
+        'gn00.8x.e1', 'gn10.8x.e1', 'gn11.8x.e1', 'gn00.8x.e.sp', 'gn10.8x.e.sp', 'gn11.8x.e.sp'       
 }
 temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 

@@ -18,12 +18,13 @@ mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
 figpath = '/auto/users/hellerc/results/nat_pupil_ms/tmp_figures/lv_models/'
-ext = '.e.sp' # '', '.e' '.e.sp' (different cost functions)
+lvstr = ['indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00']
+lvstr = ['gn11', 'gn10', 'gn00']
+ext = '.8x.e1' #'.e.sp' # '', '.e' '.e.sp' (different cost functions)
+lvstr = [lv+ext for lv in lvstr]
 for site in HIGHR_SITES:
-    lvstr = ['indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00']
-    lvstr = [lv+ext for lv in lvstr]
     modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
-    recache = True
+    recache = False
 
     loader = decoding.DecodingResults()
     fn = os.path.join(DPRIME_DIR, site, modelname+'_TDR.pickle')
@@ -33,6 +34,11 @@ for site in HIGHR_SITES:
         fn = os.path.join(DPRIME_DIR, site, modelname+f'_model-LV-{k}_TDR.pickle')
         lv_results[k] = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
 
+    # get "first bin" epoch combos so that we can color them differently
+    bins = np.unique([(int(x.split('_')[0]), int(x.split('_')[1])) 
+                    for x in results.evoked_stimulus_pairs])
+    first_bins = bins[np.append(0, np.argwhere(np.diff(bins)>1).squeeze()+1)]
+    fb_combos = [x for x in results.evoked_stimulus_pairs if (int(x.split('_')[0]) in first_bins) & (int(x.split('_')[1]) in first_bins)]
     # plot crude comparison -- big / small pupil mean /sem for each model
     f, ax = plt.subplots(1, 2, figsize=(8, 3))
 
@@ -68,17 +74,18 @@ for site in HIGHR_SITES:
     f.savefig(figpath+f'lvplot1_{site}_{ext}.png')
 
     # for each model, scatter plot of raw vs. lv model results
-    f, ax = plt.subplots(1, len(lv_results.keys()), figsize=(14, 3), sharex=True, sharey=True)
+    f, ax = plt.subplots(1, len(lv_results.keys()), figsize=(9, 3), sharex=True, sharey=True)
     df = results.numeric_results.loc[pd.IndexSlice[results.evoked_stimulus_pairs, 2], :]
-    delta = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
+    delta = (df['bp_dp'] - df['sp_dp']) #/ (df['bp_dp'] + df['sp_dp'])
     for i, k in enumerate(lv_results.keys()):
         df2 = lv_results[k].numeric_results.loc[pd.IndexSlice[results.evoked_stimulus_pairs, 2], :]
-        delta2 = (df2['bp_dp'] - df2['sp_dp']) / (df2['bp_dp'] + df2['sp_dp'])
+        delta2 = (df2['bp_dp'] - df2['sp_dp']) # / (df2['bp_dp'] + df2['sp_dp'])
         xy = np.vstack([delta, delta2])
         z = gaussian_kde(xy)(xy)
         #ax[i].scatter(delta, delta2, c=z, s=5)
         #ax[i].scatter(delta, delta2, s=2)
         sns.regplot(delta, delta2, ax=ax[i], scatter_kws = {'s':2, 'alpha': 0.3})
+        sns.regplot(delta.loc[pd.IndexSlice[fb_combos, 2]], delta2.loc[pd.IndexSlice[fb_combos, 2]], ax=ax[i], scatter_kws = {'s':4, 'alpha': 1})
         ax[i].axhline(0, linestyle='--', color='k')
         ax[i].axvline(0, linestyle='--', color='k')
         ax[i].set_xlabel('raw')
@@ -91,6 +98,8 @@ for site in HIGHR_SITES:
         a.plot([ll, hl], [ll, hl], 'k--')
 
     f.tight_layout()
+
+    f.canvas.set_window_title(site)
 
     f.savefig(figpath+f'lvplot2_{site}_{ext}.png')
 

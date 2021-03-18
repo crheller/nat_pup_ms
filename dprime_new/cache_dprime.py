@@ -167,11 +167,12 @@ else:
     beta2 = None
 
 # ================================= load recording ==================================
-X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
+X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch, 
                                        regress_pupil=regress_pupil,
                                        gain_only=gain_only,
                                        dc_only=dc_only,
-                                       use_xforms=use_xforms)
+                                       use_xforms=use_xforms,
+                                       return_epoch_list=True)
 ncells = X.shape[0]
 nreps_raw = X.shape[1]
 nstim = X.shape[2]
@@ -185,6 +186,10 @@ spont_bins = np.argwhere(sp_bins[0, 0, :])
 spont_combos = [c for c in all_combos if (c[0] in spont_bins) & (c[1] in spont_bins)]
 ev_ev_combos = [c for c in all_combos if (c[0] not in spont_bins) & (c[1] not in spont_bins)]
 spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in spont_combos)]
+
+# get list of epoch combos as a tuple (in the same fashion as above)
+epochs_bins = np.concatenate([[e+'_'+str(k) for k in range(nbins)] for e in epochs])
+epochs_str_combos = list(combinations(epochs_bins, 2))
 
 # =================================== simulate =======================================
 # update X to simulated data if specified. Else X = X_raw.
@@ -326,7 +331,7 @@ pca_idx = 0
 pls_idx = 0
 tdr_idx = 0
 # ============================== Loop over stim pairs ================================
-for stim_pair_idx, combo in enumerate(all_combos):
+for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combos)):
     # print every 500th pair. Don't want to overwhelm log
     if (stim_pair_idx % 500) == 0:
         log.info("Analyzing stimulus pair {0} / {1}".format(stim_pair_idx, len(all_combos)))
@@ -409,6 +414,8 @@ for stim_pair_idx, combo in enumerate(all_combos):
             'n_components': 2+n_noise_axes,
             'jack_idx': ev_set,
             'combo': combo,
+            'e1': ecombo[0],
+            'e2': ecombo[1],
             'category': category,
             'site': site
         })
@@ -437,6 +444,8 @@ for stim_pair_idx, combo in enumerate(all_combos):
                 'n_components': 2,
                 'jack_idx': ev_set,
                 'combo': combo,
+                'e1': ecombo[0],
+                'e2': ecombo[1],
                 'category': category,
                 'site': site
             })
@@ -468,6 +477,8 @@ for stim_pair_idx, combo in enumerate(all_combos):
                     'n_components': n_components,
                     'jack_idx': ev_set,
                     'combo': combo,
+                    'e1': ecombo[0],
+                    'e2': ecombo[1],
                     'category': category,
                     'site': site
                 })
