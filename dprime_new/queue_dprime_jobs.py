@@ -18,6 +18,9 @@ lvmodelkeys = {
 lvmodelkeys = {
         'gn00.8x.e1', 'gn10.8x.e1', 'gn11.8x.e1', 'gn00.8x.e.sp', 'gn10.8x.e.sp', 'gn11.8x.e.sp'       
 }
+lvmodelkeys = {
+        'gn00.8x.e5.sp', 'gn10.8x.e5.sp', 'gn11.8x.e5.sp', 'gn00.8x.e10.sp', 'gn10.8x.e10.sp', 'gn11.8x.e10.sp'
+}
 temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 
 nc_lv = True        # beta defined using nc LV method

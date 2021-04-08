@@ -197,6 +197,7 @@ epochs_str_combos = list(combinations(epochs_bins, 2))
 # should make results easier to interpret. CRH 06.04.2020
 X_raw = X.copy()
 pup_mask_raw = pup_mask.copy()
+meta = None
 if (sim1 | sim2 | sim12) & (not sim_tdr_space):
     X, pup_mask = decoding.simulate_response(X, pup_mask, sim_first_order=sim1,
                                                           sim_second_order=sim2,
@@ -233,7 +234,13 @@ elif lv_model:
     'gn11.8x.e1': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e1.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
     'gn00.8x.e.sp': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
     'gn10.8x.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn11.8x.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5"
+    'gn11.8x.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn00.8x.e5.sp':"psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn10.8x.e5.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn11.8x.e5.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn00.8x.e10.sp': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn10.8x.e10.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
+    'gn11.8x.e10.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5"
     }
     lvmodelstr = modelnames[lv_str]
     # get lv model predictions 
@@ -244,7 +251,7 @@ elif lv_model:
         _b = 322
     else:
         _b = batch
-    X, pup_mask = decoding.load_xformsModel(site, _b, signal='pred', modelstring=lvmodelstr)
+    X, pup_mask, meta = decoding.load_xformsModel(site, _b, signal='pred', modelstring=lvmodelstr, return_meta=True)
 
 elif sim_tdr_space:
     log.info("Performing simulations within TDR space. Unique simulation per each jackknife")
@@ -528,6 +535,10 @@ if do_PCA:
     pca_results = decoding.DecodingResults(pca_results, pupil_range=pupil_range)
 if do_pls:
     pls_results = decoding.DecodingResults(pls_results, pupil_range=pupil_range)
+
+if meta is not None:
+    if 'mask_bins' in meta.keys():
+        tdr_results.meta['mask_bins'] = meta['mask_bins']
 
 # save results
 log.info("Saving results to {}".format(path))
