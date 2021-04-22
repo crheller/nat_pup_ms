@@ -52,6 +52,12 @@ if queueid:
 site = sys.argv[1]  
 batch = int(sys.argv[2])
 modelname = sys.argv[3]
+# kludge for loading xforms models
+if 'model-' in modelname:
+    end = modelname.split('model-')[1]
+    start = modelname.split('model-')[0]
+    end = end.replace('_', '*')
+    modelname = start + 'model-' + end
 options = modelname.split('_')
 
 njacks = 10
@@ -101,7 +107,7 @@ for op in options:
     if op.startswith('model'):
         if op.split('-')[1].startswith('LV'):
             lv_model = True
-            lv_str = op.split('-')[2] # can be d01, d11, g01 etc.
+            lv_str = op.split('LV-')[1] # can be d01, d11, g01 etc.
         else:
             # add options for first order model / ind noise
             pass
@@ -204,52 +210,13 @@ if (sim1 | sim2 | sim12) & (not sim_tdr_space):
                                                           sim_all=sim12,
                                                           ntrials=5000)
 elif lv_model:
-    modelnames= {
-    'indep': "psth.fs4.pup-loadpred-st.pup-plgsm-lvnoise.r4-aev_lvnorm.1xR.d-inoise.2xR_ccnorm.t5",
-    'dc11': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'dc10': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'dc00': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'gn11': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'indep.e': "psth.fs4.pup-loadpred-st.pup-plgsm.e-lvnoise.r4-aev_lvnorm.1xR.d-inoise.2xR_ccnorm.t5",
-    'dc11.e': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'dc10.e': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'dc00.e': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'gn11.e': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10.e': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00.e': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'indep.e.sp': "psth.fs4.pup-loadpred-st.pup-plgsm.e.sp-lvnoise.r4-aev_lvnorm.1xR.d-inoise.2xR_ccnorm.t5",
-    'dc11.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'dc10.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'dc00.e.sp': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    'gn11.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00.e.sp': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e.sp-lvnoise.r4-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn11.8x': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10.8x': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00.8x': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00.8x.e1': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e1.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10.8x.e1': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e1.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn11.8x.e1': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e1.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00.8x.e.sp': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10.8x.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn11.8x.e.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00.8x.e5.sp':"psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10.8x.e5.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn11.8x.e5.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn00.8x.e10.sp': "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn10.8x.e10.sp': "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5",
-    'gn11.8x.e10.sp': "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5"
-    }
-    lvmodelstr = modelnames[lv_str]
     # get lv model predictions 
     # then evaluate decoding with predictions
     if batch==289:
         _b = 322
     else:
         _b = batch
-    X, pup_mask, meta = decoding.load_xformsModel(site, _b, signal='pred', modelstring=lvmodelstr, return_meta=True)
+    X, pup_mask, meta = decoding.load_xformsModel(site, _b, signal='pred', modelstring=lv_str.replace('*', '_'), return_meta=True)
 
 elif sim_tdr_space:
     log.info("Performing simulations within TDR space. Unique simulation per each jackknife")

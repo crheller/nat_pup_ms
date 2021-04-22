@@ -1,25 +1,20 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
 no_crossval = False  # for no cross validation (on the larger 289 set )
 lvmodels = True    # run for the simulated, model results from lv xforms models
-# each of these corresponds to a specific xforms model. See cache_dprime script to see
-# how these keys map to xforms model strings. .e corresponds to models fit on evoked correlations only
-lvmodelkeys = {
-    'indep', 'dc11', 'dc10', 'dc00', 'gn11', 'gn10', 'gn00',
-    'indep.e', 'dc11.e', 'dc10.e', 'dc00.e', 'gn11.e', 'gn10.e', 'gn00.e',
-    'indep.e.sp', 'dc11.e.sp', 'dc10.e.sp', 'dc00.e.sp', 'gn11.e.sp', 'gn10.e.sp', 'gn00.e.sp'
-}
-lvmodelkeys = {
-        'gn00.8x.e1', 'gn10.8x.e1', 'gn11.8x.e1', 'gn00.8x.e.sp', 'gn10.8x.e.sp', 'gn11.8x.e.sp'       
-}
-lvmodelkeys = {
-        'gn00.8x.e5.sp', 'gn10.8x.e5.sp', 'gn11.8x.e5.sp', 'gn00.8x.e10.sp', 'gn10.8x.e10.sp', 'gn11.8x.e10.sp'
+# each of these corresponds to an xforms LV model. If modelname = model-LV-modelname, 
+# "resp" will be loaded from the pred of "modelname", then decoding will be performed.
+lvmodelnames = {
+    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
+    "psth.fs4.pup-loadpred-st.pup-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
+    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
+    "psth.fs4.pup-loadpred.z-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5"
 }
 temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 
@@ -96,7 +91,7 @@ if NOSIM:
 if lvmodels:
     # don't do the pupil regression models for this, doesn't make sense
     modellist = [m for m in modellist if '_pr_' not in m]
-    modellist = np.concatenate([[m+f'_model-LV-{lvstr}' for lvstr in lvmodelkeys] for m in modellist]).tolist()
+    modellist = np.concatenate([[m+f'_model-LV-{lvstr}' for lvstr in lvmodelnames] for m in modellist]).tolist()
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
