@@ -244,8 +244,6 @@ elif lv_model:
     }
     lvmodelstr = modelnames[lv_str]
     # get lv model predictions 
-    # TODO: add this loader to charlieTools.decoding
-    # TODO: add cases for lv_model, mirroring what was doing for sim1/sim2/sim12, where we fit dDR on raw data,
     # then evaluate decoding with predictions
     if batch==289:
         _b = 322
