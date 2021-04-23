@@ -32,7 +32,7 @@ mpl.rcParams['font.size'] = 8
 savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
 
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2' #_model-LV-dc10'
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2' #_model-LV-psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1' #
 recache = False
 site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
 batch = 289

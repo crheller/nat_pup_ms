@@ -506,6 +506,8 @@ if meta is not None:
         tdr_results.meta['mask_bins'] = meta['mask_bins']
 
 # save results
+modelname = modelname.replace('*', '_')
+
 log.info("Saving results to {}".format(path))
 if not os.path.isdir(os.path.join(path, site)):
     os.mkdir(os.path.join(path, site))
