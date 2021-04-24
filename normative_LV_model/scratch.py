@@ -32,6 +32,11 @@ lvstr = [
     "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
     "psth.fs4.pup-loadpred-st.pup-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1"
 ]
+lvstr = [
+        "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
+    "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
+    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1"
+]
 all_keys_sets = [set(k.split('.')) for k in lvstr]
 all_keys = np.unique(np.concatenate([k.split('.') for k in lvstr]))
 ext = '' #'.8x.e10.sp' #'.e.sp' # '', '.e' '.e.sp' (different cost functions)
