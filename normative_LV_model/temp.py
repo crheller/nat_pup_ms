@@ -8,6 +8,9 @@ import charlieTools.nat_sounds_ms.decoding as decoding
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+
+from dDR.dDR import dDR
 
 from nems.xform_helper import load_model_xform
 
@@ -76,7 +79,21 @@ for site in sites: #[s for s in HIGHR_SITES if s not in ['CRD017c', 'CRD016d']]:
     big_diff = idx[:3].index.get_level_values(0)
 
     e1, e2 = lvres.mapping[big_diff[0]]
+    e1, b1 = ('_'.join(e1.split('_')[:-1]), int(e1.split('_')[-1]))
+    e2, b2 = ('_'.join(e2.split('_')[:-1]), int(e2.split('_')[-1]))
 
-    
+    # plot pred responses in dDR space (use first PC of real data as "noise" axis to approximate true ddr space)
+    noise_axis = dpres.array_results['evecs_all'].loc[big_diff[0]]['mean'].values[0][:, [0]].T
+    noise_axis = noise_axis / np.linalg.norm(noise_axis)
+    r1 = rec['resp'].extract_epoch(e1)[:, :, b1]
+    r2 = rec['resp'].extract_epoch(e2)[:, :, b2]
+    p1 = rec['pred'].extract_epoch(e1)[:, :, b1]
+    p2 = rec['pred'].extract_epoch(e2)[:, :, b2]
+    ddr = dDR(ddr2_init=noise_axis)
+    dr1, dr2 = ddr.fit_transform(r1, r2)
+    dp1 = ddr.transform(p1)
+    dp2 = ddr.transform(p2)
+    f, ax = plt.subplots(1, 2, figsize=( )
+
 
 plt.show()

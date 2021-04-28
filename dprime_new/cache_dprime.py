@@ -70,7 +70,8 @@ sim12 = False
 sim_tdr_space = False  # perform the simulation in the TDR space. piggy-back on jackknifes for this. e.g. for each jackknife, do a new simulation
                        # this is kludgy. may want to do more iterations. If so, gonna need to rethink the modelname / est val creation etc.
 lv_model = False       # perform decoding on the simulated, lv model predictions
-
+# reduce dimensionality of the data first (compute PCs on all data, noise, or psth - i.e. this is the pc_source)
+pca_ops = None
 do_pls = False
 do_PCA = False
 var_first_order = True # for simulations, define single neuron variance from first order dataset (if true) or second order (if false)
@@ -111,6 +112,20 @@ for op in options:
         else:
             # add options for first order model / ind noise
             pass
+    if op.startswith('pca'):
+        pca_ops = {
+            'pc_count': 4,
+            'pc_source': 'psth'
+        }
+        _ops = op.split('-')
+        npcs = int(_ops[1])
+        pca_ops['pc_count'] = npcs
+        for o in _ops[2:]:
+            if o=='psth':
+                pca_ops['pc_source'] = 'psth'
+            else:
+                log.info(f'OPTION UNKNOWN FOR PCA: {o}')
+
     if op == 'PLS':
         do_pls = True
     if op == 'PCA':
@@ -145,35 +160,41 @@ else:
     log.info("Only performing TDR dimensionality reduction. No PLS or PCA")
 
 # ================ load LV information for this site =======================
-if pca_lv:
-    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/pca_regression_lvs.pickle'
-    # load results from pickle file
-    with open(fn, 'rb') as handle:
-        lv_results = pickle.load(handle)
-    beta1 = lv_results[site]['beta1']
-    beta2 = lv_results[site]['beta2']
-elif nc_lv:
-    log.info("loading LVs from NC method using raw responses")
-    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'
-    # load results from pickle file
-    with open(fn, 'rb') as handle:
-        lv_results = pickle.load(handle)
-    beta1 = lv_results[site]['beta1']
-    beta2 = lv_results[site]['beta2']
-elif nc_lv_z:
-    log.info("loading LVs from NC method using z-scored responses")
-    fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
-    # load results from pickle file
-    with open(fn, 'rb') as handle:
-        lv_results = pickle.load(handle)
-    beta1 = lv_results[site]['beta1']
-    beta2 = lv_results[site]['beta2']
+# can't compare these axes if we've reduced dimensionality
+if pca_ops is None:
+    if pca_lv:
+        fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/pca_regression_lvs.pickle'
+        # load results from pickle file
+        with open(fn, 'rb') as handle:
+            lv_results = pickle.load(handle)
+        beta1 = lv_results[site]['beta1']
+        beta2 = lv_results[site]['beta2']
+    elif nc_lv:
+        log.info("loading LVs from NC method using raw responses")
+        fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'
+        # load results from pickle file
+        with open(fn, 'rb') as handle:
+            lv_results = pickle.load(handle)
+        beta1 = lv_results[site]['beta1']
+        beta2 = lv_results[site]['beta2']
+    elif nc_lv_z:
+        log.info("loading LVs from NC method using z-scored responses")
+        fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
+        # load results from pickle file
+        with open(fn, 'rb') as handle:
+            lv_results = pickle.load(handle)
+        beta1 = lv_results[site]['beta1']
+        beta2 = lv_results[site]['beta2']
+    else:
+        beta1=None
+        beta2=None
 else:
     beta1 = None
     beta2 = None
 
 # ================================= load recording ==================================
 X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch, 
+                                       pca_ops=pca_ops,
                                        regress_pupil=regress_pupil,
                                        gain_only=gain_only,
                                        dc_only=dc_only,
