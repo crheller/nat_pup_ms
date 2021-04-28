@@ -1,13 +1,16 @@
 import nems.db as nd
 import numpy as np
 
-batch = 289
+batch = 294
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
 no_crossval = False  # for no cross validation (on the larger 289 set )
-lvmodels = True    # run for the simulated, model results from lv xforms models
+lvmodels = False    # run for the simulated, model results from lv xforms models
+pca = True
+pc_keys = ['pca-3-psth', 'pca-4-psth', 'pca-5-psth']
+
 # each of these corresponds to an xforms LV model. If modelname = model-LV-modelname, 
 # "resp" will be loaded from the pred of "modelname", then decoding will be performed.
 lvmodelnames = {
@@ -89,6 +92,12 @@ modellist = [f'dprime_jk{njack}_zscore', f'dprime_pr_jk{njack}_zscore',
 # NOTE: as of 06.04.2020: tried regressing out only baseline or only gain (prd / prg models). Didn't see much of 
 # a difference. Still an option though. May want to look into a bug at some point.
 # NOTE: as of 08.23.2020: removed sim2 models from queue list. Decided to just use first order and first + second order
+
+if pca:
+    new = []
+    for pc_key in pc_keys:
+        new.extend([m.replace('dprime_', f'dprime_{pc_key}_') for m in modellist])
+    modellist = new
 
 if no_crossval:
     modellist = [m.replace('_jk10', '_jk1_eev') for m in modellist]
