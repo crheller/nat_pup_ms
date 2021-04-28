@@ -115,7 +115,8 @@ for op in options:
     if op.startswith('pca'):
         pca_ops = {
             'pc_count': 4,
-            'pc_source': 'psth'
+            'pc_source': 'psth',
+            'whiten': False
         }
         _ops = op.split('-')
         npcs = int(_ops[1])
@@ -123,6 +124,8 @@ for op in options:
         for o in _ops[2:]:
             if o=='psth':
                 pca_ops['pc_source'] = 'psth'
+            if o=='whiten':
+                pca_ops['whiten'] = True
             else:
                 log.info(f'OPTION UNKNOWN FOR PCA: {o}')
 

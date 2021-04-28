@@ -9,7 +9,8 @@ subset_323 = False # only high rep sites (for cross val)
 no_crossval = False  # for no cross validation (on the larger 289 set )
 lvmodels = False    # run for the simulated, model results from lv xforms models
 pca = True
-pc_keys = ['pca-3-psth', 'pca-4-psth', 'pca-5-psth']
+pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
+zscore = False
 
 # each of these corresponds to an xforms LV model. If modelname = model-LV-modelname, 
 # "resp" will be loaded from the pred of "modelname", then decoding will be performed.
@@ -128,6 +129,9 @@ if lvmodels:
     # don't do the pupil regression models for this, doesn't make sense
     modellist = [m for m in modellist if '_pr_' not in m]
     modellist = np.concatenate([[m+f'_model-LV-{lvstr}' for lvstr in lvmodelnames] for m in modellist]).tolist()
+
+if zscore == False:
+    modellist = [m.replace('_zscore', '') for m in modellist]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
