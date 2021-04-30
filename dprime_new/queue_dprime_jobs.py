@@ -1,51 +1,43 @@
 import nems.db as nd
 import numpy as np
 
-batch = 294
+batch = 289
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
-no_crossval = False  # for no cross validation (on the larger 289 set )
-lvmodels = False    # run for the simulated, model results from lv xforms models
-pca = True
+no_crossval = True  # for no cross validation (on the larger 289 set )
+lvmodels = True    # run for the simulated, model results from lv xforms models
+pca = False
 pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
-zscore = False
+pc_keys = ['pca-4-psth-whiten']
+zscore = True
 
 # each of these corresponds to an xforms LV model. If modelname = model-LV-modelname, 
 # "resp" will be loaded from the pred of "modelname", then decoding will be performed.
 lvmodelnames = {
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    "psth.fs4.pup-loadpred-st.pup-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5",
-    "psth.fs4.pup-loadpred.z-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t5"
+    "psth.fs4.pup-loadpred.pc4-st.pup0.pvp0-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp0-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 }
 lvmodelnames = {
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1",
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc2",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc2",
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.sh2",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.sh2"
+    "psth.fs4.pup-loadpred.pc4-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 }
 lvmodelnames = {
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
-    "psth.fs4.pup-loadpred-st.pup-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1"
+    "psth.fs4.pup-loadpred.pc4-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6",
+    "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6"
 }
+
 lvmodelnames = {
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2",
-    "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2",
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2",
-    "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2",
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
-    "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss1",
-    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss3",
+    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss3",
     "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss3",
-    "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss3"
+    "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss3"
 }
 temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 
