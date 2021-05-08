@@ -2,9 +2,11 @@
 LV defined as first (positive) PC of the difference between small pupil
 covariance and large pupil covariance. e.g. the dimension that explains
 decreased noise correlations.
+
+These get loaded by the decoding analysis (if specified in the modelname)
 """
 
-from global_settings import ALL_SITES, PEG_SITES
+from global_settings import ALL_SITES, PEG_SITES, CPN_SITES
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,7 +26,7 @@ from nems_lbhb.preprocessing import create_pupil_mask
 import nems.db as nd
 
 # A1 data
-sites = ALL_SITES + PEG_SITES
+sites = ALL_SITES + PEG_SITES + CPN_SITES
 
 zscore = True
 
@@ -35,6 +37,8 @@ for site in sites:
         batch = 294
     elif site in PEG_SITES:
         batch = 323
+    elif site in CPN_SITES:
+        batch = 331
     else:
         batch = 289
 

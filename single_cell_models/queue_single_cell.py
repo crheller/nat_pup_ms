@@ -1,6 +1,6 @@
 import nems.db as nd
 
-batch = 289 # 294, 289 || 323 (PEG)
+batch = 331 # 294, 289 || 323 (PEG) | 331 (CPN)
 force_rerun = True
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/single_cell_models/fit_script.py'
@@ -33,6 +33,9 @@ modelnames = ['ns.fs4.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
 
 if batch == 294:
     modelnames = [m.replace('pup-ld', 'pup.voc-ld') for m in modelnames]
+
+if batch == 331:
+    modelnames = [m.replace('-hrc', '-epcpn-hrc') for m in modelnames]
 
 cellids = nd.get_batch_cells(batch).cellid.tolist()
 

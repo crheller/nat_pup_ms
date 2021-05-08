@@ -25,6 +25,7 @@ norm_diff = True
 plot_individual = False
 
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2"
+modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
@@ -51,7 +52,7 @@ for site in sites: #[s for s in HIGHR_SITES if s not in ['CRD017c', 'CRD016d']]:
     fn = os.path.join(DPRIME_DIR, site, decoder+f'_model-LV-{modelname}_TDR.pickle')
     lvres = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
     #fn = os.path.join(DPRIME_DIR, site, 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'+'_TDR.pickle')
-    fn = fn.replace('st.pup.pvp', 'st.pup.pvp0')
+    fn = fn.replace('st.pup.pvp', 'st.pup0.pvp0')
     lvres0 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
 
     if 'jk10' in decoder:
