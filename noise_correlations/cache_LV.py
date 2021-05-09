@@ -42,7 +42,7 @@ for site in sites:
     else:
         batch = 289
 
-    lv_dict[site] = {}
+    lv_dict[site+str(batch)] = {}
 
     fs = 4
     ops = {'batch': batch, 'cellid': site}
@@ -108,8 +108,8 @@ for site in sites:
     beta2 = evecs[:, [0]]
     beta2_lambda = evals[0]
 
-    lv_dict[site]['beta2'] = beta2
-    lv_dict[site]['beta2_lambda'] = evals[0]
+    lv_dict[site+str(batch)]['beta2'] = beta2
+    lv_dict[site+str(batch)]['beta2_lambda'] = evals[0]
 
     # project rank1 data onto first eval of diff
     r1_resp = (resp_matrix.T.dot(evecs[:, 0])[:, np.newaxis] @ evecs[:, [0]].T).T
@@ -125,10 +125,10 @@ for site in sites:
         var[pc] = np.var(r1_resp.T.dot(pca.components_[pc])) / np.sum(pca.explained_variance_)
         fo_var[pc] = np.var(pred_matrix.T.dot(pca.components_[pc])) / np.sum(pca.explained_variance_)
 
-    lv_dict[site]['max_var_pc'] = np.argmax(var)
-    lv_dict[site]['b2_dot_pc1'] = pca.components_[0].dot(evecs[:,0])
-    lv_dict[site]['b2_tot_var_ratio'] = np.sum(var)
-    lv_dict[site]['b2_var_pc1_ratio'] = np.sum(var) / pca.explained_variance_ratio_[0]
+    lv_dict[site+str(batch)]['max_var_pc'] = np.argmax(var)
+    lv_dict[site+str(batch)]['b2_dot_pc1'] = pca.components_[0].dot(evecs[:,0])
+    lv_dict[site+str(batch)]['b2_tot_var_ratio'] = np.sum(var)
+    lv_dict[site+str(batch)]['b2_var_pc1_ratio'] = np.sum(var) / pca.explained_variance_ratio_[0]
 
     # ===================================== perform analysis on shuff data =======================================
     # do beta2 analysis 20 times on shuffled pupil to determine if first eval is significant pup dimension
@@ -165,7 +165,9 @@ for site in sites:
                 shuf_matrix_big = np.concatenate((shuf_matrix_big, np.transpose(shuf_dict_big[k], [1, 0, -1]).reshape(nCells, -1)), axis=-1)
 
         shuf_small = np.corrcoef(shuf_matrix_small)
+        shuf_small = np.nan_to_num(shuf_small, 0)
         shuf_big = np.corrcoef(shuf_matrix_big)
+        shuf_big = np.nan_to_num(shuf_big, 0)
         shuf_diff = shuf_small - shuf_big
         shuf_evals, shuf_evecs = np.linalg.eig(shuf_diff)
         shuf_evals = shuf_evals[np.argsort(shuf_evals)[::-1]]
@@ -175,12 +177,12 @@ for site in sites:
     mean_shuf_beta2_lambda = np.mean(shuffled_eval1)
     sem_shuf_beta2_lambda = np.std(shuffled_eval1) / np.sqrt(niters)
 
-    lv_dict[site]['shuf_beta2_lambda'] = mean_shuf_beta2_lambda
-    lv_dict[site]['shuf_beta2_lambda_sem'] = sem_shuf_beta2_lambda
+    lv_dict[site+str(batch)]['shuf_beta2_lambda'] = mean_shuf_beta2_lambda
+    lv_dict[site+str(batch)]['shuf_beta2_lambda_sem'] = sem_shuf_beta2_lambda
 
     # figure out if dim is significant
-    if (lv_dict[site]['beta2_lambda'] - lv_dict[site]['shuf_beta2_lambda']) > lv_dict[site]['shuf_beta2_lambda_sem']: lv_dict[site]['beta2_sig'] = True
-    else: lv_dict[site]['beta2_sig'] = False
+    if (lv_dict[site+str(batch)]['beta2_lambda'] - lv_dict[site+str(batch)]['shuf_beta2_lambda']) > lv_dict[site+str(batch)]['shuf_beta2_lambda_sem']: lv_dict[site+str(batch)]['beta2_sig'] = True
+    else: lv_dict[site+str(batch)]['beta2_sig'] = False
 
     # use model pred to get beta1
     residual = rec['psth']._data - rec['psth_sp']._data
@@ -192,14 +194,15 @@ for site in sites:
     pca2.fit(residual.T)
     beta1 = pca2.components_[0, :]
 
-    lv_dict[site]['beta1'] = beta1[:, np.newaxis]
+    lv_dict[site+str(batch)]['beta1'] = beta1[:, np.newaxis]
 
-    lv_dict[site]['b1_dot_b2'] = beta1.dot(beta2)
+    lv_dict[site+str(batch)]['b1_dot_b2'] = beta1.dot(beta2)
 
     path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
     df = pd.concat([pd.read_csv(os.path.join(path,'d_289_pup_sdexp.csv'), index_col=0),
                     pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0),
-                    pd.read_csv(os.path.join(path,'d_323_pup_sdexp.csv'), index_col=0)])
+                    pd.read_csv(os.path.join(path,'d_323_pup_sdexp.csv'), index_col=0),
+                    pd.read_csv(os.path.join(path,'d_331_pup_sdexp.csv'), index_col=0)])
     df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se']) 
     gain = pd.DataFrame(df.loc[:, pd.IndexSlice['gain_mod', 'st.pup']])
     gain.loc[:, 'site'] = [i.split('-')[0] for i in gain.index]
@@ -210,7 +213,7 @@ for site in sites:
     except: 
         g = [g for g in g]
 
-    lv_dict[site]['b2_corr_gain'] = np.corrcoef(g, evecs[:, 0])[0, 1]
+    lv_dict[site+str(batch)]['b2_corr_gain'] = np.corrcoef(g, evecs[:, 0])[0, 1]
 
     # get largest PC 
 

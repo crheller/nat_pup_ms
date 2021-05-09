@@ -1,13 +1,14 @@
 import nems.db as nd
 import numpy as np
+from global_settings import CPN_SITES
 
-batch = 294
+batch = 331
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
-no_crossval = True  # for no cross validation (on the larger 289 set )
-lvmodels = True    # run for the simulated, model results from lv xforms models
+no_crossval = False  # for no cross validation (on the larger 289 set )
+lvmodels = False    # run for the simulated, model results from lv xforms models
 pca = False
 pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
 pc_keys = ['pca-4-psth-whiten']
@@ -89,6 +90,9 @@ if batch == 289:
             
 elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
+
+elif batch == 331:
+    sites = CPN_SITES
 
 elif batch == 323:
     if subset_323:

@@ -170,24 +170,24 @@ if pca_ops is None:
         # load results from pickle file
         with open(fn, 'rb') as handle:
             lv_results = pickle.load(handle)
-        beta1 = lv_results[site]['beta1']
-        beta2 = lv_results[site]['beta2']
+        beta1 = lv_results[site+str(batch)]['beta1']
+        beta2 = lv_results[site+str(batch)]['beta2']
     elif nc_lv:
         log.info("loading LVs from NC method using raw responses")
         fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'
         # load results from pickle file
         with open(fn, 'rb') as handle:
             lv_results = pickle.load(handle)
-        beta1 = lv_results[site]['beta1']
-        beta2 = lv_results[site]['beta2']
+        beta1 = lv_results[site+str(batch)]['beta1']
+        beta2 = lv_results[site+str(batch)]['beta2']
     elif nc_lv_z:
         log.info("loading LVs from NC method using z-scored responses")
         fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle'
         # load results from pickle file
         with open(fn, 'rb') as handle:
             lv_results = pickle.load(handle)
-        beta1 = lv_results[site]['beta1']
-        beta2 = lv_results[site]['beta2']
+        beta1 = lv_results[site+str(batch)]['beta1']
+        beta2 = lv_results[site+str(batch)]['beta2']
     else:
         beta1=None
         beta2=None
