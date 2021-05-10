@@ -27,33 +27,34 @@ import nems.db as nd
 
 # A1 data
 sites = ALL_SITES + PEG_SITES + CPN_SITES
-
+batches = [289]*len(ALL_SITES) + [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
 zscore = True
 
 lv_dict = {}
-for site in sites:
+for batch, site in zip(batches, sites):
     print('Analyzing site {}'.format(site))
     if site in ['BOL005c', 'BOL006b']:
         batch = 294
-    elif site in PEG_SITES:
-        batch = 323
-    elif site in CPN_SITES:
-        batch = 331
-    else:
-        batch = 289
 
     lv_dict[site+str(batch)] = {}
 
     fs = 4
     ops = {'batch': batch, 'cellid': site}
     xmodel = 'ns.fs{}.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'.format(fs)
+    recache=False
     if batch == 294:
         xmodel = xmodel.replace('ns.fs4.pup', 'ns.fs4.pup.voc')
-    path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
+    elif batch == 331:
+        xmodel = xmodel.replace('-hrc', '-epcpn-hrc')
+        recache = True
+    path = f'/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/{batch}/'
+
+    if not os.path.isdir(path):
+        os.mkdir(path)
 
     cells, _ = parse_cellid(ops)
     rec = generate_state_corrected_psth(batch=batch, modelname=xmodel, cellids=cells, siteid=site,
-                                        cache_path=path, gain_only=False, recache=False)
+                                        cache_path=path, gain_only=False, recache=recache)
     rec = rec.apply_mask(reset_epochs=True)
     pupil = rec['pupil']._data.squeeze()
     epochs = [e for e in rec.epochs.name.unique() if 'STIM' in e]
@@ -188,7 +189,9 @@ for site in sites:
     residual = rec['psth']._data - rec['psth_sp']._data
     if zscore:
         residual = residual - residual.mean(axis=-1, keepdims=True)
-        residual = residual / residual.std(axis=-1, keepdims=True)
+        sd = residual.mean(axis=-1)
+        sd[sd==0] = 1
+        residual = (residual.T / sd).T
     # get first PC of residual
     pca2 = PCA()
     pca2.fit(residual.T)

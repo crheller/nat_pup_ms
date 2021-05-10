@@ -3,7 +3,7 @@ For whatever reason, some stimuli might drive very weak responses and have unrel
 We don't want to try to fit out latent variable on these unreliable stimuli. So, for each site, identify the best
 X number of stimuli for the model to be fit on based on how consistently we can estimate their first PC
 """
-from global_settings import HIGHR_SITES
+from global_settings import HIGHR_SITES, CPN_SITES
 
 import numpy as np
 from itertools import combinations
@@ -27,11 +27,11 @@ log = logging.getLogger(__name__)
 
 sorted_epochs = {}
 path = '/auto/users/hellerc/results/nat_pupil_ms/reliable_epochs/'
-for site in HIGHR_SITES:
+sites = HIGHR_SITES + CPN_SITES
+batches = [289]*len(HIGHR_SITES) + [331]*len(CPN_SITES)
+for batch, site in zip(batches, sites):
     if site in ['BOL005c', 'BOL006b']:
         batch = 294
-    else:
-        batch = 289
 
     X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch, return_epoch_list=True)
     ncells = X.shape[0]

@@ -39,6 +39,7 @@ ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep c
                        # in this case, est = val so doesn't matter if you load _test results or _train results
 sites = HIGHR_SITES
 sites = CPN_SITES
+batches = [331] * len(CPN_SITES)
 path = DPRIME_DIR
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
@@ -58,13 +59,13 @@ elif estval == '_test':
     y_cut = NOISE_INTERFERENCE_CUT
 
 df = []
-for site in sites:
-    if ((site in LOWR_SITES) | (ALL_TRAIN_DATA)) & (batch is not ):
+for batch, site in zip(batches, sites):
+    if ((site in LOWR_SITES) | (ALL_TRAIN_DATA)) & (batch != 331):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
-    fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+    fn = os.path.join(path, str(batch), site, mn+'_TDR.pickle')
+    results = loader.load_results(fn, cache_path=None, recache=recache)
     _df = results.numeric_results
 
     stim = results.evoked_stimulus_pairs

@@ -4,7 +4,7 @@ Script for queuing xforms latent variable models
 from nems.xform_helper import fit_model_xform
 import nems.db as nd
 
-from global_settings import HIGHR_SITES
+from global_settings import HIGHR_SITES, CPN_SITES
 
 cellid='TAR010c'
 batch=322
@@ -49,10 +49,13 @@ d=sp.cc_comp(ctx1['val'],ctx1['modelspec'], extra_epoch=extra_epochs)
 # queue up a batch of jobs
 force_rerun = True
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
-script = '/auto/users/svd/python/nems/scripts/fit_single.py'
+script = '/auto/users/hellerc/code/NEMS/scripts/fit_single.py'
 
 sites = HIGHR_SITES
 batches = [322 if s not in ['BOL006b', 'BOL005c'] else 294 for s in sites]
+sites = CPN_SITES
+batches = [331] * len(CPN_SITES)
+modellist = [m.replace('loadpred', 'loadpred.cpn') for m in modellist]
 for s, b in zip(sites, batches):
     nd.enqueue_models(celllist=[s],
                       batch=b,

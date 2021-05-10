@@ -43,8 +43,8 @@ soundpath = '/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalSou
 
 # get decoding results
 loader = decoding.DecodingResults()
-fn = os.path.join(DPRIME_DIR, site, modelname+'_TDR.pickle')
-results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+fn = os.path.join(DPRIME_DIR, str(batch), site, modelname+'_TDR.pickle')
+results = loader.load_results(fn, cache_path=None, recache=recache)
 df = results.numeric_results.loc[results.evoked_stimulus_pairs]
 df['noiseAlign'] = results.slice_array_results('cos_dU_evec_test', results.evoked_stimulus_pairs, 2, idx=(0, 0))[0]
 
@@ -62,14 +62,16 @@ loader = decoding.DecodingResults()
 n_components = 2
 recache = False
 df_all = []
-for site in HIGHR_SITES:
+sites = CPN_SITES
+batches = [331]*len(CPN_SITES)
+for batch, site in zip(batches, sites):
     if (site in LOWR_SITES):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
     try:
-        fn = os.path.join(path, site, mn+'_TDR.pickle')
-        results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+        fn = os.path.join(path, str(batch), site, mn+'_TDR.pickle')
+        results = loader.load_results(fn, cache_path=None, recache=recache)
         _df = results.numeric_results
     except:
         print(f"WARNING!! NOT LOADING SITE {site}")
@@ -215,6 +217,7 @@ cbar = f.colorbar(im, ax=diff, cax=cax, orientation='horizontal', ticks=[-1, 0, 
 # plot dprime results
 nSamples = 2000
 idx = df_all[['bp_dp', 'sp_dp']].max(axis=1) < 100
+nSamples = idx.sum()
 sidx = np.random.choice(range(idx.sum()), nSamples, replace=False)
 bp = df_all['bp_dp'].values[idx][sidx]
 sp = df_all['sp_dp'].values[idx][sidx]
