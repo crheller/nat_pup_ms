@@ -34,8 +34,8 @@ log = logging.getLogger(__name__)
 np.random.seed(123)
 
 # ============================== SAVE PARAMETERS ===================================
-path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
-
+#path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_new/'
+path = '/auto/users/hellerc/results/nat_pupil_ms/dprime_final/'
 # ============================ set up dbqueue stuff ================================
 if 'QUEUEID' in os.environ:
     queueid = os.environ['QUEUEID']
@@ -532,18 +532,20 @@ if meta is not None:
 # save results
 modelname = modelname.replace('*', '_')
 
-log.info("Saving results to {}".format(path))
-if not os.path.isdir(os.path.join(path, site)):
-    os.mkdir(os.path.join(path, site))
+log.info("Saving results to {}".format(os.path.join(path, str(batch))))
+if not os.path.isdir(os.path.join(path, str(batch))):
+    os.mkdir(os.path.join(path, str(batch)))
+if not os.path.isdir(os.path.join(path, str(batch), site)):
+    os.mkdir(os.path.join(path, str(batch), site))
 
-tdr_results.save_json(os.path.join(path, site, modelname+'_TDR.json'))
-tdr_results.save_pickle(os.path.join(path, site, modelname+'_TDR.pickle'))
+tdr_results.save_json(os.path.join(path, str(batch), site, modelname+'_TDR.json'))
+tdr_results.save_pickle(os.path.join(path, str(batch), site, modelname+'_TDR.pickle'))
 
 if do_PCA:
-    pca_results.save_pickle(os.path.join(path, site, modelname+'_PCA.pickle'))
+    pca_results.save_pickle(os.path.join(path, str(batch), site, modelname+'_PCA.pickle'))
 
 if do_pls:
-    pls_results.save_pickle(os.path.join(path, site, modelname+'_PLS.pickle'))
+    pls_results.save_pickle(os.path.join(path, str(batch), site, modelname+'_PLS.pickle'))
 
 if queueid:
     nd.update_job_complete(queueid)

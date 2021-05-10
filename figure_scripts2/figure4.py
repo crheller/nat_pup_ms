@@ -13,7 +13,7 @@ Layout:
 
 import colors as color
 import ax_labels as alab
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT, CPN_SITES
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR, PY_FIGURES_DIR2, CACHE_PATH, REGRESSION
 
 import charlieTools.nat_sounds_ms.decoding as decoding
@@ -38,6 +38,7 @@ recache = False # recache dprime results locally
 ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
                        # in this case, est = val so doesn't matter if you load _test results or _train results
 sites = HIGHR_SITES
+sites = CPN_SITES
 path = DPRIME_DIR
 loader = decoding.DecodingResults()
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
@@ -58,7 +59,7 @@ elif estval == '_test':
 
 df = []
 for site in sites:
-    if (site in LOWR_SITES) | (ALL_TRAIN_DATA):
+    if ((site in LOWR_SITES) | (ALL_TRAIN_DATA)) & (batch is not ):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
