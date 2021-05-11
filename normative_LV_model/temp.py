@@ -2,7 +2,7 @@
 Load / analyse single LV model fit.
 Look at "good" stimulus pairs and "bad" stimulus pairs.
 """
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, NOISE_INTERFERENCE_CUT, DU_MAG_CUT, CPN_SITES
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR, PY_FIGURES_DIR2, CACHE_PATH, REGRESSION
 import charlieTools.nat_sounds_ms.decoding as decoding
 
@@ -16,7 +16,8 @@ from nems.xform_helper import load_model_xform
 
 load = False
 sites = ['DRX008b.e65:128'] #HIGHR_SITES #'TAR010c'
-sites = HIGHR_SITES
+sites = CPN_SITES
+batches = [331]*len(CPN_SITES)
 
 decoder = 'dprime_jk10_zscore_nclvz_fixtdr2'
 #decoder = 'dprime_pca-4-psth-whiten_jk10_nclvz_fixtdr2'
@@ -35,11 +36,12 @@ all_raw = []
 all_lv = []
 all_lv0 = []
 bad_flags = []
-for site in sites: #[s for s in HIGHR_SITES if s not in ['CRD017c', 'CRD016d']]:
+for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['CRD017c', 'CRD016d']]:
     if site in ['BOL006b', 'BOL005c']:
         batch = batch2 = 294
-    else:
-        batch = 322; batch2 = 289
+    if batch == 289:
+        batch2 = 289
+        batch = 322
 
     if load:
         xf, ctx = load_model_xform(modelname=modelname, batch=batch, cellid=site)
@@ -47,18 +49,18 @@ for site in sites: #[s for s in HIGHR_SITES if s not in ['CRD017c', 'CRD016d']]:
 
     recache = True
     loader = decoding.DecodingResults()
-    fn = os.path.join(DPRIME_DIR, site, decoder+'_TDR.pickle')
-    dpres = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
-    fn = os.path.join(DPRIME_DIR, site, decoder+f'_model-LV-{modelname}_TDR.pickle')
-    lvres = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
-    #fn = os.path.join(DPRIME_DIR, site, 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'+'_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+'_TDR.pickle')
+    dpres = loader.load_results(fn, cache_path=None, recache=recache)
+    fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{modelname}_TDR.pickle')
+    lvres = loader.load_results(fn, cache_path=None, recache=recache)
+    #fn = os.path.join(DPRIME_DIR, str(batch), site, 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'+'_TDR.pickle')
     fn = fn.replace('st.pup.pvp', 'st.pup0.pvp0')
-    lvres0 = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+    lvres0 = loader.load_results(fn, cache_path=None, recache=recache)
 
     if 'jk10' in decoder:
         cvres = dpres
     else:
-        fn = os.path.join(DPRIME_DIR, site, decoder.replace('jk1_eev', 'jk10')+'_TDR.pickle')
+        fn = os.path.join(DPRIME_DIR, str(batch), site, decoder.replace('jk1_eev', 'jk10')+'_TDR.pickle')
         cvres = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
 
     # get the epochs of interest (fit epochs)

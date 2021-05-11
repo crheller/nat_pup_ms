@@ -65,7 +65,7 @@ df_all = []
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
 for batch, site in zip(batches, sites):
-    if (site in LOWR_SITES):
+    if (site in LOWR_SITES) & (batch != 331):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname

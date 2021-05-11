@@ -5,10 +5,10 @@ from global_settings import CPN_SITES
 batch = 294
 njack = 10
 force_rerun = True
-subset_289 = False  # only high rep sites (so that we can do cross validation)
+subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
 no_crossval = False  # for no cross validation (on the larger 289 set )
-lvmodels = False    # run for the simulated, model results from lv xforms models
+lvmodels = True    # run for the simulated, model results from lv xforms models
 pca = False
 pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
 pc_keys = ['pca-4-psth-whiten']
@@ -61,6 +61,13 @@ lvmodelnames = {
     "psth.fs4.pup-loadpred-st.pup.pvp0-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss3",
     "psth.fs4.pup-loadpred-st.pup0.pvp0-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss3"
 }
+
+# indep noise only model
+lvmodelnames = {
+    "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3",
+    "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
+}
+
 temp_subset = False # for exculding subset of models/sites for faster run time on jobs
 
 nc_lv = True        # beta defined using nc LV method
@@ -146,6 +153,8 @@ if lvmodels:
     # don't do the pupil regression models for this, doesn't make sense
     modellist = [m for m in modellist if '_pr_' not in m]
     modellist = np.concatenate([[m+f'_model-LV-{lvstr}' for lvstr in lvmodelnames] for m in modellist]).tolist()
+    if batch == 331:
+        modellist = [m.replace('loadpred', 'loadpred.cpn') for m in modellist]
 
 if zscore == False:
     modellist = [m.replace('_zscore', '') for m in modellist]
