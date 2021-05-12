@@ -17,7 +17,9 @@ from nems.xform_helper import load_model_xform
 load = False
 sites = ['DRX008b.e65:128'] #HIGHR_SITES #'TAR010c'
 sites = CPN_SITES
+sites = HIGHR_SITES
 batches = [331]*len(CPN_SITES)
+batches = [289]*len(CPN_SITES)
 
 decoder = 'dprime_jk10_zscore_nclvz_fixtdr2'
 #decoder = 'dprime_pca-4-psth-whiten_jk10_nclvz_fixtdr2'
@@ -27,6 +29,7 @@ plot_individual = False
 
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2"
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
+modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss3"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
@@ -41,7 +44,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
         batch = batch2 = 294
     if batch == 289:
         batch2 = 289
-        batch = 322
+        batch = 289
 
     if load:
         xf, ctx = load_model_xform(modelname=modelname, batch=batch, cellid=site)
@@ -49,7 +52,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
 
     recache = True
     loader = decoding.DecodingResults()
-    fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+'_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+'_TDR.pickle')
     dpres = loader.load_results(fn, cache_path=None, recache=recache)
     fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{modelname}_TDR.pickle')
     lvres = loader.load_results(fn, cache_path=None, recache=recache)

@@ -6,7 +6,7 @@ response properties (e.g. PC_1 response variance)
 Also, show big /small pupil d-pdrime scatter plot
 """
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR2, CACHE_PATH
-from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES
+from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, CPN_SITES
 from regression_helper import fit_OLS_model
 import figure_scripts2.helper as chelp
 
@@ -33,6 +33,7 @@ savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
 
 modelname = 'dprime_jk10_zscore_nclvz_fixtdr2' #_model-LV-psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1' #
+modelname = "dprime_jk10_zscore_nclvz_fixtdr2_model-LV-psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
 recache = False
 site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
 batch = 289
@@ -64,11 +65,18 @@ recache = False
 df_all = []
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
+
+sites = HIGHR_SITES
+batches = [289] * len(sites)
+
+#modelname = modelname.replace('loadpred', 'loadpred.cpn')
 for batch, site in zip(batches, sites):
     if (site in LOWR_SITES) & (batch != 331):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
+    if site in ['BOL005c', 'BOL006b']:
+        batch = 294
     try:
         fn = os.path.join(path, str(batch), site, mn+'_TDR.pickle')
         results = loader.load_results(fn, cache_path=None, recache=recache)
@@ -217,7 +225,7 @@ cbar = f.colorbar(im, ax=diff, cax=cax, orientation='horizontal', ticks=[-1, 0, 
 # plot dprime results
 nSamples = 2000
 idx = df_all[['bp_dp', 'sp_dp']].max(axis=1) < 100
-nSamples = idx.sum()
+#nSamples = idx.sum()
 sidx = np.random.choice(range(idx.sum()), nSamples, replace=False)
 bp = df_all['bp_dp'].values[idx][sidx]
 sp = df_all['sp_dp'].values[idx][sidx]
