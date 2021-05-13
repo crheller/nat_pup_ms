@@ -101,6 +101,9 @@ for batch, site in zip(batches, sites):
     thissite['reliable_mask'] = (np.array(evec_err)< np.array(null_err).min())[sidx]
     sorted_epochs[site] = thissite
     # save for this site
-    pickle.dump(thissite, open(f"{path}{site}.pickle", "wb"))
-
+    if os.path.isdir(os.path.join(path, str(batch))):
+        pickle.dump(thissite, open(f"{path}{batch}/{site}.pickle", "wb"))
+    else:
+        os.mkdir(os.path.join(path, str(batch)))
+        pickle.dump(thissite, open(f"{path}{batch}/{site}.pickle", "wb"))
 plt.show()

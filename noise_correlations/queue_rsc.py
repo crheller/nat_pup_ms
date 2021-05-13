@@ -1,6 +1,7 @@
 import nems.db as nd
+from global_settings import HIGHR_SITES, CPN_SITES
 
-batches = [289] #[289, 294]
+batches = [289, 294, 331]
 force_rerun = True
 boxcar = True
 evoked = True
@@ -65,19 +66,13 @@ for batch in batches:
         modelnames = [m.replace('fft', 'fs4_fft') for m in modelnames]
 
     if batch == 289:
-        sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
-                'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
-                'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
-                'DRX006b.e1:64', 'DRX006b.e65:128',
-                'DRX007a.e1:64', 'DRX007a.e65:128',
-                'DRX008b.e1:64', 'DRX008b.e65:128']
-        sites = ['CRD016d', 'CRD017c']
-    # BRT032, BRT033, and BRT037 and TAR009d??            
+        sites = [s for s in HIGHR_SITES if s not in ['BOL005c', 'BOL006b']]  
     if batch == 294:
         sites = ['BOL005c', 'BOL006b']
+    if batch == 331:
+        sites = CPN_SITES
 
     script = '/auto/users/hellerc/code/projects/nat_pupil_ms/noise_correlations/cache_rsc.py'
-    #script = '/auto/users/hellerc/code/projects/nat_pupil_ms/noise_correlations/cache_rsc_xforms.py'
     python_path = '/auto/users/hellerc/anaconda3/envs/crh_nems/bin/python'
     python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
     nd.enqueue_models(celllist=sites,

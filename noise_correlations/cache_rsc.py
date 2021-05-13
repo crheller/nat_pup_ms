@@ -81,7 +81,7 @@ for k in keys:
         evoked = True
     if 'fs4' in k:
         fs4 = True
-path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
+path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations_final/'
 
 log.info('Computing noise correlations for site: {0} with options: \n \
             regress pupil: {1} \n \
@@ -230,13 +230,17 @@ df['p_sp'] = df_small['pval']
 df['site'] = site
 df['mean_pupil_range'] = mean_pupil_range
 
-log.info("save noise corr results for model: {0}, site: {1}".format(modelname, site))
+log.info("save noise corr results for model: {0}, batch: {1}, site: {2}".format(modelname, batch, site))
 
-if os.path.isdir(path+site):
-    df.to_csv(path+site+'/'+modelname+'.csv')
+if os.path.isdir(os.path.join(path, str(batch), site)):
+    df.to_csv(os.path.join(path, str(batch), site, modelname+'.csv'))
+elif os.path.isdir(os.path.join(path, str(batch))):
+    os.mkdir(os.path.join(path, str(batch), site))
+    df.to_csv(os.path.join(path, str(batch), site, modelname+'.csv'))
 else:
-    os.mkdir(path+site, 777)
-    df.to_csv(path+site+'/'+modelname+'.csv')
+    os.mkdir(os.path.join(path, str(batch)))
+    os.mkdir(os.path.join(path, str(batch), site))
+    df.to_csv(os.path.join(path, str(batch), site, modelname+'.csv'))
 
 if queueid:
     nd.update_job_complete(queueid)

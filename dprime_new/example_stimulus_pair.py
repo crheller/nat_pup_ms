@@ -19,16 +19,18 @@ sim1 = False
 sim2 = False
 njacks = 10 # generate one random est / val set
 jk_set = 2 # which jack set to use for plotting 
-combo = (56, 58)  # if None, just using first evoked/evoked combo
+combo = None #(56, 58)  # if None, just using first evoked/evoked combo
 site = 'TAR010c'
 batch = 289
+site = 'AMT020a'
+batch = 331
 
 # ================================= load recording ==================================
-X, sp_bins, X_pup, pup_mask, X_raw, pup_mask_raw = decoding.load_site(site=site, batch=batch, 
+X, sp_bins, X_pup, pup_mask = decoding.load_site(site=site, batch=batch, 
                                                                         sim_first_order=sim1,
                                                                         sim_second_order=sim2,
                                                                         regress_pupil=regress_pupil,
-                                                                        verbose=True)
+                                                                        verbose=False)
 ncells = X.shape[0]
 nreps = X.shape[1]
 nstim = X.shape[2]
@@ -62,6 +64,9 @@ spont_bins = np.argwhere(sp_bins[0, 0, :])
 spont_combos = [c for c in all_combos if (c[0] in spont_bins) & (c[1] in spont_bins)]
 ev_ev_combos = [c for c in all_combos if (c[0] not in spont_bins) & (c[1] not in spont_bins)]
 spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in spont_combos)]
+
+if combo is None:
+    combo = ev_ev_combos[0]
 
 # Define xtrain/test, do dim reduction, project stim A and stim B
 est = est[jk_set][:, :, [combo[0], combo[1]]]
