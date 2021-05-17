@@ -1,6 +1,6 @@
 import nems.db as nd
 
-batch = 331 # 294, 289 || 323 (PEG) | 331 (CPN)
+batch = 294 # 294, 289 || 323 (PEG) | 331 (CPN)
 force_rerun = True
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/single_cell_models/fit_script.py'

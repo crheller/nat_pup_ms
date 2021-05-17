@@ -121,7 +121,7 @@ if not regression_method2:
         if rec.meta['cells_to_extract'] is not None:
             log.info("Extracting cellids: {0}".format(rec.meta['cells_to_extract']))
             rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
-    if batch == 294:
+    if (batch == 294) | (batch==331):
         epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_' in epoch]
     else:
         epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
@@ -130,7 +130,7 @@ if not regression_method2:
 
 else:
     log.info("Load recording from xforms model {}".format(xforms_modelname))
-    rec_path = '/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/'
+    rec_path = f'/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/{batch}/'
     rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modelname, cellids=cellid, 
                                         siteid=site,
                                         cache_path=rec_path, recache=False)
