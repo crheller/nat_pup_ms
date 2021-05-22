@@ -2,6 +2,7 @@ import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
 batches = [289, 294, 331]
+batches = [331]
 force_rerun = True
 boxcar = True
 evoked = True
