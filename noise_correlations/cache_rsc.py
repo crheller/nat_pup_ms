@@ -10,8 +10,9 @@ Compute noise correlations for the following conditions:
 import nems.db as nd
 import nems.xforms as xforms
 import nems_lbhb.baphy as nb
-from nems_lbhb.preprocessing import mask_high_repetion_stims, create_pupil_mask
+from nems_lbhb.preprocessing import mask_high_repetion_stims, create_pupil_mask, fix_cpn_epochs
 import nems_lbhb.baphy_io as io
+from nems_lbhb.baphy_experiment import BAPHYExperiment
 from nems.recording import Recording
 import sys
 sys.path.append('/auto/users/hellerc/code/projects/nat_pupil_ms/')
@@ -54,6 +55,7 @@ batch = sys.argv[2]
 # third system argument in the modelname
 modelname = sys.argv[3]
 
+perstim = 'perstim' in modelname
 pupil_regress = 'pr' in modelname
 lv_regress = 'lvr' in modelname
 balanced = 'bal' in modelname
@@ -112,15 +114,22 @@ cellid, _ = io.parse_cellid({'batch': batch, 'cellid': site})
 
 if not regression_method2:
     # only load model fit if using for regression
-    options = {'cellid': site, 'rasterfs': fs, 'batch': batch, 'pupil': True, 'stim': False}
-    if batch == 294:
-        options['runclass'] = 'VOC'
-    rec = nb.baphy_load_recording_file(**options)
+    if batch != 331:
+        options = {'cellid': site, 'rasterfs': fs, 'batch': batch, 'pupil': True, 'stim': False}
+        if batch == 294:
+            options['runclass'] = 'VOC'
+        rec = nb.baphy_load_recording_file(**options)
+    else:
+        manager = BAPHYExperiment(cellid=site, batch=batch)
+        options = {'rasterfs': fs, 'pupil': True, 'stim': False, 'resp': True}
+        rec = manager.get_recording(**options)
     rec['resp'] = rec['resp'].rasterize()
     if 'cells_to_extract' in rec.meta.keys():
         if rec.meta['cells_to_extract'] is not None:
             log.info("Extracting cellids: {0}".format(rec.meta['cells_to_extract']))
             rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
+    if batch == 331:
+        rec = fix_cpn_epochs(rec)
     if (batch == 294) | (batch==331):
         epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_' in epoch]
     else:
@@ -215,11 +224,33 @@ real_dict_all = rec['resp'].extract_epochs(eps)
 real_dict_small = rec_sp['resp'].extract_epochs(eps, mask=rec_sp['mask'])
 real_dict_big = rec_bp['resp'].extract_epochs(eps, mask=rec_bp['mask'])
 
-df_all = nc.compute_rsc(real_dict_all, chans=rec['resp'].chans)
-df_big = nc.compute_rsc(real_dict_big, chans=rec['resp'].chans)
-df_small = nc.compute_rsc(real_dict_small, chans=rec['resp'].chans)
+if perstim:
+    for idx, stim in enumerate(eps):
+        for b in range(real_dict_all[stim].shape[-1]):
+            _df_all = nc.compute_rsc({stim: real_dict_all[stim][:, :, [b]]}, chans=rec['resp'].chans)
+            _df_big = nc.compute_rsc({stim: real_dict_big[stim][:, :, [b]]}, chans=rec['resp'].chans)
+            _df_small = nc.compute_rsc({stim: real_dict_small[stim][:, :, [b]]}, chans=rec['resp'].chans)      
+            _df_all['stim'] = stim+'_'+str(b)
+            _df_big['stim'] = stim+'_'+str(b)
+            _df_small['stim'] = stim+'_'+str(b)
+            if idx==0:
+                df_all = _df_all
+                df_big = _df_big
+                df_small = _df_small      
+            else:
+                df_all = pd.concat([df_all, _df_all])
+                df_big = pd.concat([df_big, _df_big])
+                df_small = pd.concat([df_small, _df_small])
 
-cols = ['all', 'p_all', 'bp', 'p_bp', 'sp', 'p_sp', 'site']
+else:
+    df_all = nc.compute_rsc(real_dict_all, chans=rec['resp'].chans)
+    df_big = nc.compute_rsc(real_dict_big, chans=rec['resp'].chans)
+    df_small = nc.compute_rsc(real_dict_small, chans=rec['resp'].chans)
+    df_all['stim'] = 'all'
+    df_big['stim'] = 'all'
+    df_small['stim'] = 'all'
+
+cols = ['all', 'p_all', 'bp', 'p_bp', 'sp', 'p_sp', 'site', 'stim']
 df = pd.DataFrame(columns=cols, index=df_all.index)
 df['all'] = df_all['rsc']
 df['p_all'] = df_all['pval']
@@ -228,7 +259,21 @@ df['p_bp'] = df_big['pval']
 df['sp'] = df_small['rsc']
 df['p_sp'] = df_small['pval']
 df['site'] = site
+df['stim'] = df_all['stim']
 df['mean_pupil_range'] = mean_pupil_range
+
+dtypes = {
+    'all': 'float64',
+    'bp': 'float64',
+    'sp': 'float64',
+    'p_all': 'float64',
+    'p_bp': 'float64',
+    'p_sp': 'float64',
+    'site': 'object',
+    'stim': 'object',
+    'mean_pupil_range': 'float64'
+}
+df = df.astype(dtypes)
 
 log.info("save noise corr results for model: {0}, batch: {1}, site: {2}".format(modelname, batch, site))
 
