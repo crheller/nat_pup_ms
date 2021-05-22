@@ -17,19 +17,20 @@ from nems.xform_helper import load_model_xform
 load = False
 sites = ['DRX008b.e65:128'] #HIGHR_SITES #'TAR010c'
 sites = CPN_SITES
-sites = HIGHR_SITES
+#sites = HIGHR_SITES
 batches = [331]*len(CPN_SITES)
-batches = [289]*len(CPN_SITES)
+#batches = [289]*len(HIGHR_SITES)
 
 decoder = 'dprime_jk10_zscore_nclvz_fixtdr2'
 #decoder = 'dprime_pca-4-psth-whiten_jk10_nclvz_fixtdr2'
 #decoder = 'dprime_pca-4-psth-whiten_jk10_nclvz_fixtdr2'
 norm_diff = True
-plot_individual = False
+plot_individual = True
 
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2"
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss3"
+modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
@@ -45,6 +46,8 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     if batch == 289:
         batch2 = 289
         batch = 289
+    elif batch == 331:
+        batch = batch2 = 331
 
     if load:
         xf, ctx = load_model_xform(modelname=modelname, batch=batch, cellid=site)

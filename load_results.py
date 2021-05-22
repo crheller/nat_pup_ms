@@ -3,10 +3,10 @@ import os
 import numpy as np
 import sys
 
-def load_noise_correlation(modelname, xforms_model=None, path=None):
+def load_noise_correlation(modelname, xforms_model='NULL', path=None, batch=None):
 
     if path is None:
-        path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
+        path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations_final/'
     else:
         pass
 
@@ -15,21 +15,36 @@ def load_noise_correlation(modelname, xforms_model=None, path=None):
     else:
         pass
 
-    sites = os.listdir(path)
-
+    if batch is None:
+        batch = [289, 294, 331]
+    elif type(batch) != list:
+        batch = [batch]
+    else:
+        pass
+    
     dfs = []
-    for s in sites:
-        if s in ['BOL005c', 'BOL006b']:
-            xf_model = xforms_model.replace('fs4.pup', 'fs4.pup.voc')
-        else:
-            xf_model = xforms_model
-        try:
-            if ('fft' in modelname) | (xforms_model=='NULL'):
-                dfs.append(pd.read_csv(path+s+'/'+modelname+'.csv', index_col=[0]))               
+    for bat in batch:
+
+        sites = os.listdir(os.path.join(path, str(bat)))
+
+        for s in sites:
+            if s in ['BOL005c', 'BOL006b']:
+                xf_model = xforms_model.replace('fs4.pup', 'fs4.pup.voc')
+            elif bat == 331:
+                xf_model = xforms_model.replace('-hrc', '-epcpn-hrc')
             else:
-                dfs.append(pd.read_csv(path+s+'/'+xf_model+'/'+modelname+'.csv', index_col=0))
-        except:
-            print("no results found for site: {0}, model: {1}".format(s, modelname))
+                xf_model = xforms_model
+            try:
+                if ('fft' in modelname) | (xforms_model=='NULL'):
+                    df = pd.read_csv(path+str(bat)+'/'+s+'/'+modelname+'.csv', index_col=[0])
+                    df['batch'] = bat
+                    dfs.append(df)               
+                else:
+                    df = pd.read_csv(path+str(bat)+'/'+s+'/'+xf_model+'/'+modelname+'.csv', index_col=0)
+                    df['batch'] = bat
+                    dfs.append(df)
+            except:
+                print("no results found for site: {0}, model: {1}".format(s, modelname))
     
     df = pd.concat(dfs)
 

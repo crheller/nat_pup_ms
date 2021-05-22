@@ -29,10 +29,13 @@ modellist = [
 ]
 
 # independent noise only model
-modellist += [
-    "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3",
-    "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
-]
+# modellist += [
+#    "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3",
+#    "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
+#]
+
+# slow drift control models
+modellist = [m.replace('.pvp0', '').replace('.pvp', '').replace('st.pup0-', 'st.drf.pup0-').replace('st.pup-', 'st.drf.pup-') for m in modellist]
 
 # queue up a batch of jobs
 force_rerun = True

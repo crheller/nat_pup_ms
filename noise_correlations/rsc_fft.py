@@ -44,7 +44,6 @@ for c in corr:
     print('loading {}'.format(c))
     corr_results.append(ld.load_noise_correlation(c))
 
-
 # plot results
 xvals = range(len(raw_results))
 raw_nc = [r['all'].mean() for r in raw_results]

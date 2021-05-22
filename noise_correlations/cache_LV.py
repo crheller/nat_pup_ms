@@ -6,7 +6,7 @@ decreased noise correlations.
 These get loaded by the decoding analysis (if specified in the modelname)
 """
 
-from global_settings import ALL_SITES, PEG_SITES, CPN_SITES
+from global_settings import ALL_SITES, PEG_SITES, CPN_SITES, HIGHR_SITES
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,8 +26,8 @@ from nems_lbhb.preprocessing import create_pupil_mask
 import nems.db as nd
 
 # A1 data
-sites = ALL_SITES + PEG_SITES + CPN_SITES
-batches = [289]*len(ALL_SITES) + [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
+sites = HIGHR_SITES + PEG_SITES + CPN_SITES
+batches = [289]*len(HIGHR_SITES) + [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
 zscore = True
 
 lv_dict = {}
@@ -46,7 +46,7 @@ for batch, site in zip(batches, sites):
         xmodel = xmodel.replace('ns.fs4.pup', 'ns.fs4.pup.voc')
     elif batch == 331:
         xmodel = xmodel.replace('-hrc', '-epcpn-hrc')
-        recache = True
+        recache = False
     path = f'/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/{batch}/'
 
     if not os.path.isdir(path):
@@ -135,6 +135,7 @@ for batch, site in zip(batches, sites):
     # do beta2 analysis 20 times on shuffled pupil to determine if first eval is significant pup dimension
     np.random.seed(123)
     shuffled_eval1 = []
+    shuffled_evals_all = []
     niters = 20
     for k in range(niters):
         pupil = rec['pupil']._data.copy().squeeze()
@@ -173,13 +174,31 @@ for batch, site in zip(batches, sites):
         shuf_evals, shuf_evecs = np.linalg.eig(shuf_diff)
         shuf_evals = shuf_evals[np.argsort(shuf_evals)[::-1]]
 
+        shuffled_evals_all.append(shuf_evals)
         shuffled_eval1.append(shuf_evals[0])
 
     mean_shuf_beta2_lambda = np.mean(shuffled_eval1)
+    mean_all = np.mean(np.stack(shuffled_evals_all), axis=0)
+    sem_all = np.std(np.stack(shuffled_evals_all), axis=0) / np.sqrt(niters)
     sem_shuf_beta2_lambda = np.std(shuffled_eval1) / np.sqrt(niters)
 
     lv_dict[site+str(batch)]['shuf_beta2_lambda'] = mean_shuf_beta2_lambda
     lv_dict[site+str(batch)]['shuf_beta2_lambda_sem'] = sem_shuf_beta2_lambda
+
+    # plot and save for quick inspection of sites
+    f, ax = plt.subplots(1, 1, figsize=(5, 5))
+
+    ax.plot(evals, '.-', label='True diff')
+    ax.fill_between(range(len(mean_all)), mean_all+sem_all, mean_all-sem_all, color='tab:orange', alpha=0.8, label='Shuff. Pupil')
+    ax.set_ylabel(r"$\lambda$")
+    ax.set_xlabel(r"component (PC)")
+    ax.set_title(f"Eigenspectrum of diff covariance \n site: {site}, batch: {batch}")
+    ax.legend(frameon=False)
+    f.tight_layout()
+
+    figpath = f'/auto/users/hellerc/results/nat_pupil_ms/LV/figures/{batch}_{site}.png'
+    f.savefig(figpath)
+    plt.close('all')
 
     # figure out if dim is significant
     if (lv_dict[site+str(batch)]['beta2_lambda'] - lv_dict[site+str(batch)]['shuf_beta2_lambda']) > lv_dict[site+str(batch)]['shuf_beta2_lambda_sem']: lv_dict[site+str(batch)]['beta2_sig'] = True

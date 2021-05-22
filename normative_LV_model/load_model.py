@@ -29,7 +29,7 @@ import charlieTools.nat_sounds_ms.decoding as decoding
 
 # bad sites: AMT021b (no pupil variability), AMT005e (no pupil variability), CRD005b (no pupil variability), CRD019b (no pupil variability), 
 
-site = 'ARM029a'
+site = 'ARM031a'
 batch = 331
 
 res = decoding.DecodingResults()
@@ -37,8 +37,9 @@ data = res.load_results(f"/auto/users/hellerc/results/nat_pupil_ms/dprime_final/
 
 df = data.numeric_results
 df[['bp_dp', 'sp_dp', 'bp_dU_mag', 'sp_dU_mag']].head()
-combo = (0, 10)
+combo = (0, 11)
 decoding.plot_stimulus_pair(site, batch, combo, pup_split=True, ellipse=True) #, ylim=(-5, 5), xlim=(-5, 5))
+plt.axis('equal')
 plt.show()
 
 for site in CPN_SITES:
