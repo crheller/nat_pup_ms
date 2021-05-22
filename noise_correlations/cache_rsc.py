@@ -225,6 +225,7 @@ real_dict_small = rec_sp['resp'].extract_epochs(eps, mask=rec_sp['mask'])
 real_dict_big = rec_bp['resp'].extract_epochs(eps, mask=rec_bp['mask'])
 
 if perstim:
+    log.info("Computing noise correlations separately for each stimulus bin")
     for idx, stim in enumerate(eps):
         for b in range(real_dict_all[stim].shape[-1]):
             _df_all = nc.compute_rsc({stim: real_dict_all[stim][:, :, [b]]}, chans=rec['resp'].chans)
