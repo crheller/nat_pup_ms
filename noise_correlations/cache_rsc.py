@@ -256,14 +256,17 @@ else:
     df_big['stim'] = 'all'
     df_small['stim'] = 'all'
 
-cols = ['all', 'p_all', 'bp', 'p_bp', 'sp', 'p_sp', 'site', 'stim']
+cols = ['all', 'p_all', 'gm_all', 'bp', 'p_bp', 'gm_bp', 'sp', 'p_sp', 'gm_sp', 'site', 'stim']
 df = pd.DataFrame(columns=cols, index=df_all.index)
 df['all'] = df_all['rsc']
 df['p_all'] = df_all['pval']
+df['gm_all'] = df_all['gmean']
 df['bp'] = df_big['rsc']
 df['p_bp'] = df_big['pval']
+df['gm_bp'] = df_big['gmean']
 df['sp'] = df_small['rsc']
 df['p_sp'] = df_small['pval']
+df['gm_sp'] = df_small['gmean']
 df['site'] = site
 df['stim'] = df_all['stim']
 df['mean_pupil_range'] = mean_pupil_range

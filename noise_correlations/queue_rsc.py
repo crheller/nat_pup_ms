@@ -7,6 +7,7 @@ force_rerun = True
 boxcar = True
 evoked = True
 slow = False
+perstim = True
 custom = False  # run a subset of jobs
 for batch in batches:
 
@@ -65,6 +66,9 @@ for batch in batches:
 
     if slow:
         modelnames = [m.replace('fft', 'fs4_fft') for m in modelnames]
+    
+    if perstim:
+        modelnames = [m+'_perstim' for m in modelnames]
 
     if batch == 289:
         sites = [s for s in HIGHR_SITES if s not in ['BOL005c', 'BOL006b']]  
