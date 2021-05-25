@@ -138,11 +138,15 @@ if not regression_method2:
     rec = rec.apply_mask(reset_epochs=True)
 
 else:
+    recache=False
+    if batch == 331:
+        recache=False
+        xforms_modelname = xforms_modelname.replace('-hrc', '-epcpn-hrc')
     log.info("Load recording from xforms model {}".format(xforms_modelname))
     rec_path = f'/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/{batch}/'
     rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modelname, cellids=cellid, 
                                         siteid=site,
-                                        cache_path=rec_path, recache=False)
+                                        cache_path=rec_path, recache=recache)
 
 # filtering / pupil regression must always go first!
 if pupil_regress & lv_regress:
@@ -227,6 +231,7 @@ real_dict_big = rec_bp['resp'].extract_epochs(eps, mask=rec_bp['mask'])
 if perstim:
     log.info("Computing noise correlations separately for each stimulus bin")
     for idx, stim in enumerate(eps):
+        log.info(f"Epoch {idx+1} / {len(eps)}")
         for b in range(real_dict_all[stim].shape[-1]):
             _df_all = nc.compute_rsc({stim: real_dict_all[stim][:, :, [b]]}, chans=rec['resp'].chans)
             _df_big = nc.compute_rsc({stim: real_dict_big[stim][:, :, [b]]}, chans=rec['resp'].chans)
@@ -251,14 +256,17 @@ else:
     df_big['stim'] = 'all'
     df_small['stim'] = 'all'
 
-cols = ['all', 'p_all', 'bp', 'p_bp', 'sp', 'p_sp', 'site', 'stim']
+cols = ['all', 'p_all', 'gm_all', 'bp', 'p_bp', 'gm_bp', 'sp', 'p_sp', 'gm_sp', 'site', 'stim']
 df = pd.DataFrame(columns=cols, index=df_all.index)
 df['all'] = df_all['rsc']
 df['p_all'] = df_all['pval']
+df['gm_all'] = df_all['gmean']
 df['bp'] = df_big['rsc']
 df['p_bp'] = df_big['pval']
+df['gm_bp'] = df_big['gmean']
 df['sp'] = df_small['rsc']
 df['p_sp'] = df_small['pval']
+df['gm_sp'] = df_small['gmean']
 df['site'] = site
 df['stim'] = df_all['stim']
 df['mean_pupil_range'] = mean_pupil_range
