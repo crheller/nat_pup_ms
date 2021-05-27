@@ -11,8 +11,8 @@ from sklearn.cluster import KMeans
 path = '/auto/users/hellerc/results/nat_pupil_ms/'
 cellids_cache = path + 'celltypes.csv'
 
-cellids = pd.DataFrame(pd.concat([nd.get_batch_cells(289), nd.get_batch_cells(294)]).cellid)
-iso_query = f"SELECT cellid, isolation from gSingleRaw WHERE cellid in {tuple([x for x in cellids.cellid])}"
+cellids = pd.DataFrame(pd.concat([nd.get_batch_cells(289), nd.get_batch_cells(294), nd.get_batch_cells(331)]).cellid)
+iso_query = f"SELECT cellid, rawid, isolation from gSingleRaw WHERE cellid in {tuple([x for x in cellids.cellid])}"
 isolation = nd.pd_query(iso_query)
 cellids = pd.DataFrame(data=isolation[isolation.isolation>=95].cellid.unique(), columns=['cellid'])
 
@@ -45,7 +45,7 @@ cellids['type'] = km.labels_
 f, ax = plt.subplots(1, 1, figsize=(5, 5))
 g = sns.scatterplot(x='spike_width', y='end_slope', hue='type', data=cellids, s=25, ax=ax)
 
-ax.set_xlabel('Spike Width (s)')
+ax.set_xlabel('Spike Width (ms)')
 ax.set_ylabel('Spike endslope (dV / dt)')
 ax.set_title(r"$n_{type=1} = %s / %s$" % (cellids['type'].sum(), cellids.shape[0]))
 
