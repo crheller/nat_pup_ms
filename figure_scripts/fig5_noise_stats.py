@@ -40,6 +40,7 @@ recache = False
 ALL_TRAIN_DATA = False  # use training data for all analysis (even if high rep count site / cross val)
                        # in this case, est = val so doesn't matter if you load _test results or _train results
 sites = HIGHR_SITES
+batches = [289] * len(HIGHR_SITES)
 path = DPRIME_DIR
 fig_fn = PY_FIGURES_DIR + 'fig5_something.svg' 
 loader = decoding.DecodingResults()
@@ -57,27 +58,29 @@ y_cut = None #NOISE_INTERFERENCE_CUT
 
 df = []
 df_pr = []
-for site in sites:
+for batch, site in zip(batches, sites):
+    if site in ['BOL005c', 'BOL006b']:
+        batch = 294
     if (site in LOWR_SITES) | (ALL_TRAIN_DATA): mn = modelname.replace('_jk10', '_jk1_eev') 
     else: mn = modelname
-    fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+    fn = os.path.join(path, str(batch), site, mn+'_TDR.pickle')
+    results = loader.load_results(fn, cache_path=None, recache=recache)
     _df = results.numeric_results
     stim = results.evoked_stimulus_pairs
     _df = _df.loc[_df.index.get_level_values('combo').isin(stim)]
-    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
-    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
+    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=(0,0))[0]
+    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=(0,0))[0]
     _df['state_diff'] = (_df[bp_dp] - _df[sp_dp]) / _df['dp_opt_test']
     _df['state_diff_abs'] = (_df[bp_dp] - _df[sp_dp])
     _df['state_MI'] = (_df[bp_dp] - _df[sp_dp]) / (_df[bp_dp] + _df[sp_dp])
-    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
-    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
-    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=[0, 0])[0]
-    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=[0, 0])[0]
+    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=(0,0))[0]
+    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=(0,0))[0]
+    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=(0,0))[0]
+    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=(0,0))[0]
     _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=evals_idx)[0]
     _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=evals_idx)[0]
-    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
-    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
+    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=(0,0))[0]
+    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=(0,0))[0]
     _df['snr_diff'] = _df['bp_evec_snr'] - _df['sp_evec_snr']
     _df['site'] = site
     df.append(_df)
@@ -85,24 +88,24 @@ for site in sites:
     # pupil-corrected results:
     if (site in LOWR_SITES) | (ALL_TRAIN_DATA): mn = modelname_pr.replace('_jk10', '_jk1_eev') 
     else: mn = modelname_pr
-    fn = os.path.join(path, site, mn+'_TDR.pickle')
-    results = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
+    fn = os.path.join(path, str(batch), site, mn+'_TDR.pickle')
+    results = loader.load_results(fn, cache_path=None, recache=recache)
     _df = results.numeric_results
     stim = results.evoked_stimulus_pairs
     _df = _df.loc[_df.index.get_level_values('combo').isin(stim)]
-    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=[0, 0])[0]
-    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=[0, 0])[0]
+    _df['cos_dU_evec_test'] = results.slice_array_results('cos_dU_evec_test', stim, n_components, idx=(0,0))[0]
+    _df['cos_dU_evec_train'] = results.slice_array_results('cos_dU_evec_train', stim, n_components, idx=(0,0))[0]
     _df['state_diff'] = (_df[bp_dp] - _df[sp_dp]) / _df['dp_opt_test']
     _df['state_diff_abs'] = (_df[bp_dp] - _df[sp_dp])
     _df['state_MI'] = (_df[bp_dp] - _df[sp_dp]) / (_df[bp_dp] + _df[sp_dp])
-    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
-    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=[0, 0])[0]
-    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=[0, 0])[0]
-    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=[0, 0])[0]
+    _df['bp_dU_dot_evec_sq'] = results.slice_array_results('bp_dU_dot_evec_sq', stim, 2, idx=(0,0))[0]
+    _df['sp_dU_dot_evec_sq'] = results.slice_array_results('sp_dU_dot_evec_sq', stim, 2, idx=(0,0))[0]
+    _df['bp_evec_snr'] = results.slice_array_results('bp_evec_snr', stim, 2, idx=(0, 0))[0]
+    _df['sp_evec_snr'] = results.slice_array_results('sp_evec_snr', stim, 2, idx=(0, 0))[0]
     _df['bp_lambda'] = results.slice_array_results('bp_evals', stim, 2, idx=evals_idx)[0]
     _df['sp_lambda'] = results.slice_array_results('sp_evals', stim, 2, idx=evals_idx)[0]
-    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
-    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=[0, 0])[0]
+    _df['bp_cos_dU_evec'] = results.slice_array_results('bp_cos_dU_evec', stim, 2, idx=(0,0))[0]
+    _df['sp_cos_dU_evec'] = results.slice_array_results('sp_cos_dU_evec', stim, 2, idx=(0,0))[0]
     _df['snr_diff'] = _df['bp_evec_snr'] - _df['sp_evec_snr']
     _df['site'] = site
     df_pr.append(_df)

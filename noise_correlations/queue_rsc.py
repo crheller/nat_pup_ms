@@ -2,13 +2,13 @@ import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
 batches = [289, 294, 331]
-batches = [289, 294]
 force_rerun = True
 boxcar = True
 evoked = True
 slow = False
-perstim = False
+perstim = True
 custom = False  # run a subset of jobs
+
 if custom:
     modelnames = ['rsc_pr_rm1', 
                 'rsc_pr_rm1_fft0-0.05',
@@ -68,7 +68,10 @@ if slow:
 if perstim:
     modelnames = [m+'_perstim' for m in modelnames]
 
+modelnames = [m for m in modelnames if '_pr' in m]
+
 for batch in batches:
+
     if batch == 289:
         sites = [s for s in HIGHR_SITES if s not in ['BOL005c', 'BOL006b']]  
     if batch == 294:

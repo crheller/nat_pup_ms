@@ -3,6 +3,9 @@ Noticed that for the cpn data, there are some sites that seem to be "backwards" 
 
 Investigate the cause here. Hypothesis is that this is due to very low responses during small pupil leading to small noise correlations.
 If that's the case, show that under "normal" conditions, noise correlation does in fact decrease with pupil, as expected.
+
+Noticed, also, that mean firing rates seem to generally be higher for NAT data. Possible due to differences in how Mateo and I sort data.
+He keeps more low FR cells than I do?
 """
 from global_settings import CPN_SITES, HIGHR_SITES
 import colors
@@ -11,11 +14,13 @@ import load_results as ld
 import scipy.stats as ss
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # load perstim noise correlations and keep only batch 331
 #df = ld.load_noise_correlation('rsc_ev_pr_rm2_perstim')
 df = ld.load_noise_correlation('rsc_ev_perstim')
 df = df[df.site.isin(CPN_SITES+HIGHR_SITES)]
+df = df[df.site.isin(HIGHR_SITES)]
 celltypes = pd.read_csv('/auto/users/hellerc/results/nat_pupil_ms/celltypes.csv', index_col=0)
 celltypes.index = celltypes.cellid
 
@@ -29,6 +34,35 @@ df['delta_rsc'] = df.sp - df.bp
 for k in ['gm_all', 'gm_bp', 'gm_sp']:
     m = df[k].isna()
     df[k][m] = 0
+
+# plot per site before / after removing low resp pairs
+f, ax = plt.subplots(1, 3, figsize=(12, 4))
+
+for s in df.site.unique():
+    ax[0].plot([0, 1], [df[df.site==s]['sp'].mean(), df[df.site==s]['bp'].mean()], label=s)
+ax[0].set_xticks([0, 1])
+ax[0].set_xticklabels(['sp', 'bp'])
+ax[0].set_title("All pairs")
+ax[0].legend(frameon=False, fontsize=6, bbox_to_anchor=(1, 1), loc='upper left')
+
+_df = df[(df.gm_bp>1) & (df.gm_sp>1)]
+for s in df.site.unique():
+    ax[1].plot([0, 1], [_df[_df.site==s]['sp'].mean(), _df[_df.site==s]['bp'].mean()], label=s)
+ax[1].set_xticks([0, 1])
+ax[1].set_xticklabels(['sp', 'bp'])
+ax[1].set_title("Remove low FR pairs")
+
+ax[2].scatter(df.groupby(by='site').mean()['sp']-df.groupby(by='site').mean()['bp'],
+                _df.groupby(by='site').mean()['sp']-_df.groupby(by='site').mean()['bp'], edgecolor='white')
+ax[2].set_title("Delta noise corr.")
+ax[2].set_xlabel("All pairs")
+ax[2].set_ylabel("Remove low FR pairs")
+mi, ma = (np.min(ax[2].get_ylim()+ax[2].get_xlim()), np.max(ax[2].get_ylim()+ax[2].get_xlim()))
+ax[2].plot([mi, ma], [mi, ma], 'k--')
+ax[2].axhline(0, linestyle='--', color='k')
+ax[2].axvline(0, linestyle='--', color='k')
+f.tight_layout()
+plt.show()
 
 '''
 df['type'] = np.nan
@@ -45,14 +79,13 @@ for pair in df.index:
 '''
 # plot big / small pupil noise correlation as function of bp/sp/delta geo mean
 df = df[(df.gm_bp<3) & (df.gm_sp<3)]
-f, ax = plt.subplots(1, 2, figsize=(6, 3))
+f, ax = plt.subplots(1, 2, figsize=(6, 3), sharex=True, sharey=True)
 
 df.plot.hexbin(
     x='gm_bp',
     y='gm_sp',
     C=None, 
     cmap='Reds',
-    scale='log',
     vmin=0,
     vmax=None,
     gridsize=20,
@@ -81,6 +114,8 @@ ax[1].set_ylabel(r"Small Pupil Geo. Mean")
 ax[1].plot([mi, ma], [mi, ma], 'k--')
 
 f.tight_layout()
+
+plt.show()
 
 # plot above for each site alone
 for site in df.site.unique():
