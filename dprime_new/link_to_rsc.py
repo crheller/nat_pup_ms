@@ -28,8 +28,8 @@ batches = [331]*len(CPN_SITES)
 #sites = HIGHR_SITES
 #batches = [289] * len(HIGHR_SITES)
 modelname = 'dprime_pr_rm2_jk10_zscore_nclvz_fixtdr2'
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2_noiseDim3'
-ndim = 5
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2'
+ndim = 2
 modelname = modelname.replace('loadpred', 'loadpred.cpn')
 
 rsc = ld.load_noise_correlation('rsc_ev_perstim')
@@ -40,7 +40,9 @@ rsc = rsc[(rsc.gm_bp>1) & (rsc.gm_sp>1)]
 rsc['delta_gm'] = rsc.gm_bp - rsc.gm_sp
 rsc['delta_rsc'] = rsc.sp - rsc.bp
 
-for batch, site in zip(batches, sites):
+sim = []
+f, ax = plt.subplots(len(sites), 1, figsize=(6, 8))
+for i, (batch, site) in enumerate(zip(batches, sites)):
     if (site in LOWR_SITES) & (batch != 331):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
@@ -75,6 +77,20 @@ for batch, site in zip(batches, sites):
     _df['rsc_epoch2_delta'] = _df['rsc_epoch2_small'] - _df['rsc_epoch2_big']
     _df['rsc_mean_delta'] = (_df['rsc_epoch1_delta'] + _df['rsc_epoch2_delta']) / 2
     df_all.append(_df)
+    
+    du=np.stack(results.array_results['dU_all_test'].loc[pd.IndexSlice[stim, ndim], 'mean'].apply(lambda x: x/np.linalg.norm(x)).values).squeeze()
+    print(du.shape)
+    _sim = np.abs(du.dot(du.T)[np.tril_indices(du.shape[0], -1)])
+    ax[i].hist(_sim, bins=np.arange(-0.2, 1, 0.05), histtype='step', density=False, label=site+f" std: {round(np.std(_sim), 3)}", lw=1)
+    ax[i].legend(frameon=False, bbox_to_anchor=(1, 1), loc='upper left')
+    
+    #plt.imshow(du.dot(du.T), vmin=-1, vmax=1, cmap='bwr')
+    #plt.colorbar()
+    #plt.title(site)
+    #plt.show()
+
+f.tight_layout()
+plt.show()
 
 df = pd.concat(df_all)
 df['delta_noise'] = (df['sp_noise_mag'] - df['bp_noise_mag']) / (df['sp_noise_mag'] + df['bp_noise_mag'])
@@ -91,7 +107,7 @@ ax[0].axvline(0, linestyle='--', color='k')
 ax[0].set_xlabel('Mean noise corr. change')
 ax[0].set_ylabel('dDR noise change')
 
-df.plot.hexbin(
+df[mask].plot.hexbin(
     x='rsc_mean_delta',
     y='delta_noise',
     C='delta_dprime',
