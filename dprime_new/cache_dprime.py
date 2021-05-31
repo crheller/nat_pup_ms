@@ -79,6 +79,7 @@ pca_lv = False
 nc_lv = False
 nc_lv_z = False
 fix_tdr2 = False
+ddr2_method = 'pca'  # use PCA to ID the noise axis, by default
 gain_only = False
 dc_only = False
 est_equal_val = False  # for low rep sites where can't perform cross-validation
@@ -144,8 +145,12 @@ for op in options:
         nc_lv = True
     if op == 'nclvz':
         nc_lv_z = True
-    if op == 'fixtdr2':
+    if op.startswith('fixtdr2'):
         fix_tdr2 = True
+        try:
+            ddr2_method = op.split('-')[1]
+        except:
+            ddr2_method = 'pca'
     if op == 'eev':
         est_equal_val = True
     if op == 'loocv':
@@ -312,7 +317,7 @@ else:
 # use raw data for this.
 if fix_tdr2:
     log.info("Finding first noise dimension for each est set using raw data")
-    tdr2_axes = nat_preproc.get_first_pc_per_est(est_raw)
+    tdr2_axes = nat_preproc.get_first_pc_per_est(est_raw, method=ddr2_method)
 else:
     tdr2_axes = [None] * len(val)
 # set up data frames to save results (wait to preallocate space on first

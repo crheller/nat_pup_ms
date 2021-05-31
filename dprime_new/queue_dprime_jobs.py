@@ -14,6 +14,16 @@ pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
 pc_keys = ['pca-4-psth-whiten']
 zscore = True
 
+temp_subset = False # for exculding subset of models/sites for faster run time on jobs
+
+nc_lv = True        # beta defined using nc LV method
+fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
+ddr2_method = 'fa'
+sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
+loocv = False         # leave-one-out cross validation
+n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+NOSIM = True   # If true, don't run simulations
+
 # each of these corresponds to an xforms LV model. If modelname = model-LV-modelname, 
 # "resp" will be loaded from the pred of "modelname", then decoding will be performed.
 lvmodelnames = {
@@ -67,15 +77,6 @@ lvmodelnames = {
     "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3",
     "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
 }
-
-temp_subset = False # for exculding subset of models/sites for faster run time on jobs
-
-nc_lv = True        # beta defined using nc LV method
-fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
-sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
-loocv = False         # leave-one-out cross validation
-n_additional_noise_dims = 3 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
-NOSIM = True   # If true, don't run simulations
 
 if no_crossval & loocv:
     raise ValueError("loocv implies no_crossval (eev). Only set one or the other true")
@@ -137,7 +138,10 @@ if nc_lv:
     modellist = [m.replace('zscore', 'zscore_nclvz') for m in modellist]
 
 if fix_tdr2:
-    modellist = [m+'_fixtdr2' for m in modellist]
+    if (ddr2_method=='pca') | (ddr2_method is None):
+        modellist = [m+'_fixtdr2' for m in modellist]
+    else:
+        modellist = [m+f'_fixtdr2-{ddr2_method}' for m in modellist]
 
 if temp_subset:
     sites = [s for s in sites if 'CRD' in s]
