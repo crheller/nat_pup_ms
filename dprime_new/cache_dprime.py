@@ -160,7 +160,7 @@ for op in options:
         loocv = True
     if 'noiseDim' in op:
         n_noise_axes = int(op[8:])
-    if op=='rmlowFR':
+    if op.startswith('rmlowFR'):
         exclude_low_fr = True
         try:
             threshold = int(op.split('-')[1])
