@@ -164,7 +164,7 @@ for op in options:
         exclude_low_fr = True
         try:
             threshold = int(op.split('-')[1])
-        else:
+        except:
             threshold = 1 # 1Hz mean firing rate across entire experiment
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
