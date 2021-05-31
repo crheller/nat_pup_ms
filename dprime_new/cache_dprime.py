@@ -85,6 +85,8 @@ dc_only = False
 est_equal_val = False  # for low rep sites where can't perform cross-validation
 n_noise_axes = 0    # whether or not to go beyond TDR = 2 dimensions. e.g. if this is 2, Will compute a 4D TDR space (2 more noise dimensions)
 loocv = False    # leave-one-out cross validation
+exclude_low_fr = False
+threshold = None
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -158,6 +160,12 @@ for op in options:
         loocv = True
     if 'noiseDim' in op:
         n_noise_axes = int(op[8:])
+    if op=='rmlowFR':
+        exclude_low_fr = True
+        try:
+            threshold = int(op.split('-')[1])
+        else:
+            threshold = 1 # 1Hz mean firing rate across entire experiment
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
     raise DeprecationWarning("Updates have been made since this was last used. Make sure behavior is as expected")
@@ -207,7 +215,9 @@ X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch,
                                        gain_only=gain_only,
                                        dc_only=dc_only,
                                        use_xforms=use_xforms,
-                                       return_epoch_list=True)
+                                       return_epoch_list=True,
+                                       exclude_low_fr=exclude_low_fr,
+                                       threshold=threshold)
 ncells = X.shape[0]
 nreps_raw = X.shape[1]
 nstim = X.shape[2]

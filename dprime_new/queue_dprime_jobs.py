@@ -19,6 +19,8 @@ temp_subset = False # for exculding subset of models/sites for faster run time o
 nc_lv = True        # beta defined using nc LV method
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
 ddr2_method = 'fa'
+exclude_lowFR = True
+thresh = 4 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
@@ -162,6 +164,9 @@ if lvmodels:
 
 if zscore == False:
     modellist = [m.replace('_zscore', '') for m in modellist]
+
+if exclude_lowFR:
+    modellist = [m+f'_rmlowFR-{thresh}' for m in modellist]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
