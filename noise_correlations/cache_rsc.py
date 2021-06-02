@@ -192,7 +192,12 @@ if evoked:
         rec = rec.create_mask(True)
     rec['mask'] = rec['mask']._modified_copy(rec['mask']._data.astype(bool))
     rec = rec.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
-
+    if batch != 331:
+        nspont_bins = rec['resp'].extract_epoch('PreStimSilence').shape[-1]
+    else:
+        nspont_bins = 0
+else:
+    nspont_bins = 0
 rec = rec.apply_mask(reset_epochs=True)
 
 # get the pupil range for each stimulus pair, then save the mean of this for the site
@@ -236,10 +241,10 @@ if perstim:
             _df_all = nc.compute_rsc({stim: real_dict_all[stim][:, :, [b]]}, chans=rec['resp'].chans)
             _df_big = nc.compute_rsc({stim: real_dict_big[stim][:, :, [b]]}, chans=rec['resp'].chans)
             _df_small = nc.compute_rsc({stim: real_dict_small[stim][:, :, [b]]}, chans=rec['resp'].chans)      
-            _df_all['stim'] = stim+'_'+str(b)
-            _df_big['stim'] = stim+'_'+str(b)
-            _df_small['stim'] = stim+'_'+str(b)
-            if idx==0:
+            _df_all['stim'] = stim+'_'+str(b+nspont_bins)
+            _df_big['stim'] = stim+'_'+str(b+nspont_bins)
+            _df_small['stim'] = stim+'_'+str(b+nspont_bins)
+            if (idx==0) & (b==0):
                 df_all = _df_all
                 df_big = _df_big
                 df_small = _df_small      

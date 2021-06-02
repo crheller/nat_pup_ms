@@ -26,8 +26,8 @@ from nems_lbhb.preprocessing import create_pupil_mask
 import nems.db as nd
 
 # A1 data
-sites = HIGHR_SITES + PEG_SITES + CPN_SITES
-batches = [289]*len(HIGHR_SITES) + [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
+sites = HIGHR_SITES + CPN_SITES #+ PEG_SITES + CPN_SITES
+batches = [289]*len(HIGHR_SITES) + [331]*len(CPN_SITES) #+ [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
 zscore = True
 
 lv_dict = {}
@@ -58,9 +58,6 @@ for batch, site in zip(batches, sites):
     rec = rec.apply_mask(reset_epochs=True)
     pupil = rec['pupil']._data.squeeze()
     epochs = [e for e in rec.epochs.name.unique() if 'STIM' in e]
-
-    rec['resp2'] = rec['resp']._modified_copy(rec['resp']._data)
-    rec['pupil2'] = rec['pupil']._modified_copy(rec['pupil']._data)
 
     # ===================================== perform analysis on raw data =======================================
     rec_bp = rec.copy()
@@ -136,7 +133,7 @@ for batch, site in zip(batches, sites):
     np.random.seed(123)
     shuffled_eval1 = []
     shuffled_evals_all = []
-    niters = 20
+    niters = 100
     for k in range(niters):
         pupil = rec['pupil']._data.copy().squeeze()
         np.random.shuffle(pupil)
@@ -166,10 +163,8 @@ for batch, site in zip(batches, sites):
                 shuf_matrix_small = np.concatenate((shuf_matrix_small, np.transpose(shuf_dict_small[k], [1, 0, -1]).reshape(nCells, -1)), axis=-1)
                 shuf_matrix_big = np.concatenate((shuf_matrix_big, np.transpose(shuf_dict_big[k], [1, 0, -1]).reshape(nCells, -1)), axis=-1)
 
-        shuf_small = np.corrcoef(shuf_matrix_small)
-        shuf_small = np.nan_to_num(shuf_small, 0)
-        shuf_big = np.corrcoef(shuf_matrix_big)
-        shuf_big = np.nan_to_num(shuf_big, 0)
+        shuf_small = np.cov(shuf_matrix_small)
+        shuf_big = np.cov(shuf_matrix_big)
         shuf_diff = shuf_small - shuf_big
         shuf_evals, shuf_evecs = np.linalg.eig(shuf_diff)
         shuf_evals = shuf_evals[np.argsort(shuf_evals)[::-1]]
@@ -179,11 +174,11 @@ for batch, site in zip(batches, sites):
 
     mean_shuf_beta2_lambda = np.mean(shuffled_eval1)
     mean_all = np.mean(np.stack(shuffled_evals_all), axis=0)
-    sem_all = np.std(np.stack(shuffled_evals_all), axis=0) / np.sqrt(niters)
-    sem_shuf_beta2_lambda = np.std(shuffled_eval1) / np.sqrt(niters)
+    sem_all = np.std(np.stack(shuffled_evals_all), axis=0) #/ np.sqrt(niters)
+    sem_shuf_beta2_lambda = np.std(shuffled_eval1) #/ np.sqrt(niters)
 
     lv_dict[site+str(batch)]['shuf_beta2_lambda'] = mean_shuf_beta2_lambda
-    lv_dict[site+str(batch)]['shuf_beta2_lambda_sem'] = sem_shuf_beta2_lambda
+    lv_dict[site+str(batch)]['shuf_beta2_lambda_sd'] = sem_shuf_beta2_lambda
 
     # plot and save for quick inspection of sites
     f, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -198,11 +193,16 @@ for batch, site in zip(batches, sites):
 
     figpath = f'/auto/users/hellerc/results/nat_pupil_ms/LV/figures/{batch}_{site}.png'
     f.savefig(figpath)
-    plt.close('all')
 
     # figure out if dim is significant
-    if (lv_dict[site+str(batch)]['beta2_lambda'] - lv_dict[site+str(batch)]['shuf_beta2_lambda']) > lv_dict[site+str(batch)]['shuf_beta2_lambda_sem']: lv_dict[site+str(batch)]['beta2_sig'] = True
+    if (lv_dict[site+str(batch)]['beta2_lambda'] - lv_dict[site+str(batch)]['shuf_beta2_lambda']) > lv_dict[site+str(batch)]['shuf_beta2_lambda_sd']: lv_dict[site+str(batch)]['beta2_sig'] = True
     else: lv_dict[site+str(batch)]['beta2_sig'] = False
+
+    # get significance with sign test rather than using standard deviation
+    if ss.wilcoxon(lv_dict[site+str(batch)]['beta2_lambda']-np.stack(shuffled_evals_all)[:, 0]).pvalue<0.05:
+        lv_dict[site+str(batch)]['beta2_sig_wilcox'] = True
+    else:
+        lv_dict[site+str(batch)]['beta2_sig_wilcox'] = False
 
     # use model pred to get beta1
     residual = rec['psth']._data - rec['psth_sp']._data
@@ -239,6 +239,8 @@ for batch, site in zip(batches, sites):
 
     # get largest PC 
 
+#plt.show()   
+plt.close('all')
 # pickle the results
 fn = '/auto/users/hellerc/results/nat_pupil_ms/LV/nc_based_lvs.pickle'
 
