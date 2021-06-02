@@ -18,7 +18,7 @@ temp_subset = False # for exculding subset of models/sites for faster run time o
 
 nc_lv = True        # beta defined using nc LV method
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
-ddr2_method = 'fa'
+ddr2_method = 'nclv'  # None, 'fa', 'nclv'
 exclude_lowFR = False
 thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.

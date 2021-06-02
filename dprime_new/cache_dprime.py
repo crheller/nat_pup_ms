@@ -326,8 +326,14 @@ else:
 # than stimulus specific first noise PC (this method seems too noisy). Always
 # use raw data for this.
 if fix_tdr2:
-    log.info("Finding first noise dimension for each est set using raw data")
-    tdr2_axes = nat_preproc.get_first_pc_per_est(est_raw, method=ddr2_method)
+    if ddr2_method=='nclv':
+        log.info("Loading cached delta noise correlation axis as ddr2 noise axis")
+        lvdict = pickle.load(open('/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle', 'rb'))
+        nc_ax = lvdict[site+str(batch)]['beta2']
+        tdr2_axes = [nc_ax] * len(val)
+    else:
+        log.info("Finding first noise dimension for each est set using raw data")
+        tdr2_axes = nat_preproc.get_first_pc_per_est(est_raw, method=ddr2_method)
 else:
     tdr2_axes = [None] * len(val)
 # set up data frames to save results (wait to preallocate space on first
