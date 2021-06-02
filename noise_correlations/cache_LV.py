@@ -14,6 +14,7 @@ from sklearn.decomposition import PCA
 import pickle
 import pandas as pd 
 import os 
+import scipy.stats as ss
 
 from charlieTools.preprocessing import generate_state_corrected_psth, bandpass_filter_resp, sliding_window
 import charlieTools.nat_sounds_ms.decoding as decoding
@@ -203,6 +204,11 @@ for batch, site in zip(batches, sites):
         lv_dict[site+str(batch)]['beta2_sig_wilcox'] = True
     else:
         lv_dict[site+str(batch)]['beta2_sig_wilcox'] = False
+
+    if (sum(lv_dict[site+str(batch)]['beta2_lambda']>np.stack(shuffled_evals_all)[:,0]) / niters) > 0.95:
+        lv_dict[site+str(batch)]['beta_sig_shufTest'] = True
+    else:
+        lv_dict[site+str(batch)]['beta_sig_shufTest'] = False
 
     # use model pred to get beta1
     residual = rec['psth']._data - rec['psth_sp']._data
