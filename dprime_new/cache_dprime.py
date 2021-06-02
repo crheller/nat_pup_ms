@@ -329,7 +329,7 @@ if fix_tdr2:
     if ddr2_method=='nclv':
         log.info("Loading cached delta noise correlation axis as ddr2 noise axis")
         lvdict = pickle.load(open('/auto/users/hellerc/results/nat_pupil_ms/LV/nc_zscore_lvs.pickle', 'rb'))
-        nc_ax = lvdict[site+str(batch)]['beta2']
+        nc_ax = lvdict[site+str(batch)]['beta2'].T
         tdr2_axes = [nc_ax] * len(val)
     else:
         log.info("Finding first noise dimension for each est set using raw data")
