@@ -2,7 +2,7 @@ import nems.db as nd
 import numpy as np
 from global_settings import CPN_SITES
 
-batch = 331
+batch = 294
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
