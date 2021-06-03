@@ -68,7 +68,7 @@ if slow:
 if perstim:
     modelnames = [m+'_perstim' for m in modelnames]
 
-modelnames = [m for m in modelnames if '_pr' in m]
+modelnames = [m for m in modelnames if ('fft' not in m)]
 
 for batch in batches:
 

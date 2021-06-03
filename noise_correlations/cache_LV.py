@@ -15,6 +15,7 @@ import pickle
 import pandas as pd 
 import os 
 import scipy.stats as ss
+import scipy.ndimage.filters as sf
 
 from charlieTools.preprocessing import generate_state_corrected_psth, bandpass_filter_resp, sliding_window
 import charlieTools.nat_sounds_ms.decoding as decoding
@@ -107,6 +108,11 @@ for batch, site in zip(batches, sites):
     beta2 = evecs[:, [0]]
     beta2_lambda = evals[0]
 
+    # ==============  save all the "raw" results (new 6.2.2021) for post hoc significance testing etc. ==========
+    lv_dict[site+str(batch)]['raw'] = {}
+    lv_dict[site+str(batch)]['raw']['evecs'] = evecs
+    lv_dict[site+str(batch)]['raw']['evals'] = evals
+
     lv_dict[site+str(batch)]['beta2'] = beta2
     lv_dict[site+str(batch)]['beta2_lambda'] = evals[0]
 
@@ -134,10 +140,15 @@ for batch, site in zip(batches, sites):
     np.random.seed(123)
     shuffled_eval1 = []
     shuffled_evals_all = []
+    shuffled_evecs_all = []
     niters = 100
     for k in range(niters):
-        pupil = rec['pupil']._data.copy().squeeze()
-        np.random.shuffle(pupil)
+        #pupil = rec['pupil']._data.copy().squeeze()
+        #np.random.shuffle(pupil)
+        # generate random smooth process
+        data = np.random.normal(0, 1, rec['pupil'].shape[-1])
+        pupil = sf.gaussian_filter1d(data, sigma=16)
+
         rec['pupil'] = rec['pupil']._modified_copy(pupil[np.newaxis, :])
 
         rec_bp = rec.copy()
@@ -165,13 +176,21 @@ for batch, site in zip(batches, sites):
                 shuf_matrix_big = np.concatenate((shuf_matrix_big, np.transpose(shuf_dict_big[k], [1, 0, -1]).reshape(nCells, -1)), axis=-1)
 
         shuf_small = np.cov(shuf_matrix_small)
+        np.fill_diagonal(shuf_small, 0)
         shuf_big = np.cov(shuf_matrix_big)
+        np.fill_diagonal(shuf_big, 0)
         shuf_diff = shuf_small - shuf_big
         shuf_evals, shuf_evecs = np.linalg.eig(shuf_diff)
-        shuf_evals = shuf_evals[np.argsort(shuf_evals)[::-1]]
 
-        shuffled_evals_all.append(shuf_evals)
+        sortidx = np.argsort(shuf_evals)[::-1]
+
+        shuffled_evecs_all.append(shuf_evecs[:, sortidx])
+        shuffled_evals_all.append(shuf_evals[sortidx])
         shuffled_eval1.append(shuf_evals[0])
+
+    # ==============  save all the "raw" results (new 6.2.2021) for post hoc significance testing etc. ==========
+    lv_dict[site+str(batch)]['raw']['evecs_shuff'] = np.stack(shuffled_evecs_all)
+    lv_dict[site+str(batch)]['raw']['evals_shuff'] = np.stack(shuffled_evals_all)
 
     mean_shuf_beta2_lambda = np.mean(shuffled_eval1)
     mean_all = np.mean(np.stack(shuffled_evals_all), axis=0)
@@ -242,8 +261,6 @@ for batch, site in zip(batches, sites):
         g = [g for g in g]
 
     lv_dict[site+str(batch)]['b2_corr_gain'] = np.corrcoef(g, evecs[:, 0])[0, 1]
-
-    # get largest PC 
 
 #plt.show()   
 plt.close('all')
