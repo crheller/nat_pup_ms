@@ -60,7 +60,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{modelname}_TDR.pickle')
     lvres = loader.load_results(fn, cache_path=None, recache=recache)
     #fn = os.path.join(DPRIME_DIR, str(batch), site, 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'+'_TDR.pickle')
-    fn = fn.replace('st.pup.pvp', 'st.pup0.pvp0')
+    fn = fn.replace('st.pup.pvp', 'st.pup.pvp0')
     lvres0 = loader.load_results(fn, cache_path=None, recache=recache)
 
     if 'jk10' in decoder:

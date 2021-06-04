@@ -159,7 +159,11 @@ for op in options:
         est_equal_val = True  # do the "jacknifing within the function in this case"
         loocv = True
     if 'noiseDim' in op:
-        n_noise_axes = int(op[8:])
+        if op.split('-')[1]=='dU':
+            # delta mu decoding
+            n_noise_axes = -1
+        else:
+            n_noise_axes = int(op[8:])
     if op.startswith('rmlowFR'):
         exclude_low_fr = True
         try:
