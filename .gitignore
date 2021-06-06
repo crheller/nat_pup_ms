@@ -5,3 +5,5 @@ path_settings.py
 
 # pycache
 __pycache__/
+
+.vscode/

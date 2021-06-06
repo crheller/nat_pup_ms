@@ -11,15 +11,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 site = 'AMT020a'
-site = 'AMT026a'
-site = 'ARM029a'
+#site = 'AMT026a'
+#site = 'ARM029a'
 #site = 'ARM031a'
 #site = 'ARM032a'
 #site = 'ARM033a'
 #site = 'CRD018d'
 batch = 331
+#site = 'TAR010c'
+#batch = 322
 
-modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
+modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t6.ss1"
+modelname = 'psth.fs4.pup-loadpred.cpn-st.drf.pup-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t6.ss1'
+if batch == 322:
+    modelname = modelname.replace('.cpn', '')
 
 xf, ctx = load_model_xform(site, batch, modelname=modelname)
 rec = ctx['rec'].copy()
@@ -27,14 +32,14 @@ rec = ctx['rec'].copy()
 # measure both predicted and raw delta noise correlation axes
 zscore = True
 
-if batch == 289:
+if batch == 322:
     epochs = [e for e in rec['resp'].epochs.name.unique() if e.startswith('STIM_00')]
 else:
     epochs = [e for e in rec['resp'].epochs.name.unique() if e.startswith('STIM_')]
 
 # raw data
-real_dict_small = rec['resp'].extract_epochs(epochs, mask=rec['mask_small'])
-real_dict_big = rec['resp'].extract_epochs(epochs, mask=rec['mask_large'])
+real_dict_small = rec['resp'].extract_epochs(epochs, mask=rec['mask_small'], allow_incomplete=True)
+real_dict_big = rec['resp'].extract_epochs(epochs, mask=rec['mask_large'], allow_incomplete=True)
 real_dict_small = cpreproc.zscore_per_stim(real_dict_small, d2=real_dict_small, with_std=zscore)
 real_dict_big = cpreproc.zscore_per_stim(real_dict_big, d2=real_dict_big, with_std=zscore)
 eps = list(real_dict_big.keys())
@@ -62,8 +67,8 @@ real_evecs = evecs
 real_evals = evals
 
 # pred data
-pred_dict_small = rec['pred'].extract_epochs(epochs, mask=rec['mask_small'])
-pred_dict_big = rec['pred'].extract_epochs(epochs, mask=rec['mask_large'])
+pred_dict_small = rec['pred'].extract_epochs(epochs, mask=rec['mask_small'], allow_incomplete=True)
+pred_dict_big = rec['pred'].extract_epochs(epochs, mask=rec['mask_large'], allow_incomplete=True)
 pred_dict_small = cpreproc.zscore_per_stim(pred_dict_small, d2=pred_dict_small, with_std=zscore)
 pred_dict_big = cpreproc.zscore_per_stim(pred_dict_big, d2=pred_dict_big, with_std=zscore)
 eps = list(pred_dict_big.keys())

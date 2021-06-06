@@ -61,6 +61,8 @@ for batch, site in zip(batches, sites):
     pupil = rec['pupil']._data.squeeze()
     epochs = [e for e in rec.epochs.name.unique() if 'STIM' in e]
 
+    rec = rec.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
+
     # ===================================== perform analysis on raw data =======================================
     rec_bp = rec.copy()
     ops = {'state': 'big', 'method': 'median', 'epoch': ['REFERENCE'], 'collapse': True}
@@ -69,8 +71,8 @@ for batch, site in zip(batches, sites):
     rec_sp = rec.copy()
     rec_sp = create_pupil_mask(rec_sp, **ops)
 
-    real_dict_small = rec_sp['resp'].extract_epochs(epochs, mask=rec_sp['mask'])
-    real_dict_big = rec_bp['resp'].extract_epochs(epochs, mask=rec_bp['mask'])
+    real_dict_small = rec_sp['resp'].extract_epochs(epochs, mask=rec_sp['mask'], allow_incomplete=True)
+    real_dict_big = rec_bp['resp'].extract_epochs(epochs, mask=rec_bp['mask'], allow_incomplete=True)
     real_dict_all = rec['resp'].extract_epochs(epochs)
     pred_dict_all = rec['psth'].extract_epochs(epochs)
 
@@ -158,8 +160,8 @@ for batch, site in zip(batches, sites):
         rec_sp = rec.copy()
         rec_sp = create_pupil_mask(rec_sp, **ops)
 
-        shuf_dict_small = rec_sp['resp'].extract_epochs(epochs, mask=rec_sp['mask'])
-        shuf_dict_big = rec_bp['resp'].extract_epochs(epochs, mask=rec_bp['mask'])
+        shuf_dict_small = rec_sp['resp'].extract_epochs(epochs, mask=rec_sp['mask'], allow_incomplete=True)
+        shuf_dict_big = rec_bp['resp'].extract_epochs(epochs, mask=rec_bp['mask'], allow_incomplete=True)
 
         shuf_dict_small = cpreproc.zscore_per_stim(shuf_dict_small, d2=shuf_dict_small, with_std=True)
         shuf_dict_big = cpreproc.zscore_per_stim(shuf_dict_big, d2=shuf_dict_big, with_std=True)

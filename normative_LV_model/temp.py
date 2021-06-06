@@ -21,7 +21,7 @@ sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
 #batches = [289]*len(HIGHR_SITES)
 
-decoder = 'dprime_jk10_zscore_nclvz_fixtdr2'
+decoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa'
 #decoder = 'dprime_pca-4-psth-whiten_jk10_nclvz_fixtdr2'
 #decoder = 'dprime_pca-4-psth-whiten_jk10_nclvz_fixtdr2'
 norm_diff = True
@@ -31,6 +31,7 @@ modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
 modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss3"
 modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
+modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t6.ss1"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
 #modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
@@ -60,7 +61,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{modelname}_TDR.pickle')
     lvres = loader.load_results(fn, cache_path=None, recache=recache)
     #fn = os.path.join(DPRIME_DIR, str(batch), site, 'dprime_simInTDR_sim12_jk10_zscore_nclvz_fixtdr2'+'_TDR.pickle')
-    fn = fn.replace('st.pup.pvp', 'st.pup.pvp0')
+    fn = fn.replace('st.pup.pvp', 'st.pup0.pvp0')
     lvres0 = loader.load_results(fn, cache_path=None, recache=recache)
 
     if 'jk10' in decoder:
@@ -70,13 +71,13 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
         cvres = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
 
     # get the epochs of interest (fit epochs)
-    try:
+    if 0:
         mask_bins = lvres.meta['mask_bins']
         # map these to the dataframe combos
         fb_combos = [k for k, v in lvres.mapping.items() if (('_'.join(v[0].split('_')[:-1]), int(v[0].split('_')[-1])) in mask_bins) & \
                                                         (('_'.join(v[1].split('_')[:-1]), int(v[1].split('_')[-1])) in mask_bins)]
         s = 25
-    except:
+    else:
         fb_combos = lvres.numeric_results.index.get_level_values(0)
         s = 5
 
