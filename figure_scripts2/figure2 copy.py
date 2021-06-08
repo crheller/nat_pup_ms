@@ -9,7 +9,8 @@ from global_settings import HIGHR_SITES, LOWR_SITES
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR2, CACHE_PATH
 import charlieTools.plotting as cplt
 import charlieTools.nat_sounds_ms.decoding as decoding
-import nems_lbhb.baphy as nb
+from nems_lbhb.baphy_experiment import BAPHYExperiment
+from nems_lbhb.preprocessing import fix_cpn_epochs
 from nems_lbhb.plots import plot_weights_64D
 import nems_lbhb.preprocessing as preproc
 import numpy as np
@@ -29,30 +30,31 @@ mpl.rcParams['axes.spines.top'] = False
 savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig2.svg'
 
-e1 = ('STIM_00ferretmixed41.wav', 8)
-e2 = ('STIM_00ferretmixed41.wav', 12)
-e3 = ('STIM_00Oxford_male2b.wav', 12)
+e1 = ('STIM_probe:05_cat173_rec1_giggling_excerpt1', 5)
+e2 = ('STIM_probe:15_cat668_rec1_ferret_fights_Athena-Violet001_excerpt2', 15)
+e3 = ('STIM_probe:11_cat409_rec1_window_blinds_excerpt1', 11)
 
-siteid = 'TAR010c'
-batch = 289
+siteid = 'AMT020a'
+batch = 331
 rasterfs = 1000
 options = {'batch': batch, 'cellid': siteid, 'pupil': True, 'stim': False, 'rasterfs': rasterfs}
-length = 4 * 5.5  # X stims * 5.5 sec (trial len)
+length = 4 * 1  # X stims * 5.5 sec (trial len)
 start = int(rasterfs * 240)
 end = start + int(length * rasterfs)
 twin = (start, end)      # a chunk of data
-prestim = 2 #0.25
-poststim = 0.5 #0.25
-duration = 3
+prestim = 0 
+poststim = 0 
+duration = .75
 #soundpath = '/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalSounds/sounds_set4/'
-soundpath = '/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalSounds/sounds/'
+soundpath = '/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalSounds/sounds_set4/'
 
-rec = nb.baphy_load_recording_file(**options)
-rec = preproc.mask_high_repetion_stims(rec)
-rec = rec.apply_mask(reset_epochs=True)
+manager = BAPHYExperiment(cellid=siteid, batch=batch)
+rec = manager.get_recording(**{'rasterfs': rasterfs, 'stim': False, 'pupil': True, 'resp': True})
 rec['resp'] = rec['resp'].extract_channels(rec.meta['cells_to_extract'])
+rec['resp'] = rec['resp'].rasterize()
+rec = fix_cpn_epochs(rec)
 
-epochs = rec.epochs[rec.epochs.name.str.contains('STIM_')]
+epochs = rec['resp'].epochs[rec['resp'].epochs.name.str.contains('STIM_')]
 epochs = epochs[(epochs.end <= (twin[1] / rasterfs)) & \
                             (epochs.end >= (twin[0] / rasterfs))]
 
@@ -72,8 +74,13 @@ offset = 0
 for i, (epoch, times) in enumerate(zip(stims, t)):
     print(f"Loading data for epoch number {i}, name: {epoch}")
     # get spectrogram for this epoch
-    soundfile = soundpath + epoch.strip('STIM_')
-    fs, data = wavfile.read(soundfile)
+    try:
+        soundfile = soundpath + '_'.join(epoch.strip('STIM_').strip('probe:').split('_')[1:-1])
+        fs, data = wavfile.read(soundfile+'.wav')
+    except:
+        soundfile = soundpath + '_'.join(epoch.strip('STIM_').strip('probe:').split('_')[1:-1])
+        soundfile = soundfile.replace('sounds_set4', 'sounds_set3')
+        fs, data = wavfile.read(soundfile+'.wav')
     # pad / crop data
     data = data[:int(duration * fs)]
     spbins = int(prestim * fs)
@@ -94,7 +101,7 @@ for i, (epoch, times) in enumerate(zip(stims, t)):
     s1 = np.zeros(spec.shape) * np.nan
     s2 = np.zeros(spec.shape) * np.nan
     s3 = np.zeros(spec.shape) * np.nan
-    if epoch == e1[0]:
+    if epoch == (e1[0]+'_'+str(e1[1])):
         nbins = 4 * (prestim + poststim + duration)
         bins = np.linspace(0, nbins, spec.shape[-1])
         sidx = np.argmin(np.abs(e1[1]-bins))
@@ -108,7 +115,7 @@ for i, (epoch, times) in enumerate(zip(stims, t)):
         tspks = np.argwhere((st>=ts) & (st<=te)).squeeze()
         #r1.append((n[tspks], st[tspks]))
         r1.append([ts, te])
-    if epoch == e2[0]:
+    if epoch == (e2[0]+'_'+str(e2[1])):
         nbins = 4 * (prestim + poststim + duration)
         bins = np.linspace(0, nbins, spec.shape[-1])
         sidx = np.argmin(np.abs(e2[1]-bins))
@@ -122,7 +129,7 @@ for i, (epoch, times) in enumerate(zip(stims, t)):
         tspks = np.argwhere((st>=ts) & (st<=te)).squeeze()
         #r2.append((n[tspks], st[tspks]))
         r2.append([ts, te])
-    if epoch == e3[0]:
+    if epoch == (e3[0]+'_'+str(e3[1])):
         nbins = 4 * (prestim + poststim + duration)
         bins = np.linspace(0, nbins, spec.shape[-1])
         sidx = np.argmin(np.abs(e3[1]-bins))
@@ -167,18 +174,18 @@ Xev = X[:, :, ev_bins]
 
 # ============================= DO PCA ================================
 Xu = Xev.mean(axis=1)
-spont = X[:, :, spont_bins.squeeze()].mean(axis=1).mean(axis=-1, keepdims=True)
+spont = 0 #X[:, :, spont_bins.squeeze()].mean(axis=1).mean(axis=-1, keepdims=True)
 Xu_center = Xu - spont # subtract spont
 pca = PCA()
 pca.fit(Xu_center.T)
 
-spont = spont[:, :, np.newaxis] # for subtracting from single trial data
-X_spont = X - spont
+#spont = spont[:, :, np.newaxis] # for subtracting from single trial data
+X_spont = X - 0 #spont
 proj = (X_spont).T.dot(pca.components_[0:2, :].T)
 
-pr1 = proj[np.argwhere(np.array(epochs)==e1[0])[0][0] * nbins + e1[1]]
-pr2 = proj[np.argwhere(np.array(epochs)==e2[0])[0][0] * nbins + e2[1]]
-pr3 = proj[np.argwhere(np.array(epochs)==e3[0])[0][0] * nbins + e3[1]]
+pr1 = proj[np.argwhere(np.array(epochs)==(e1[0]+'_'+str(e1[1])))[0][0] * nbins + e1[1]]
+pr2 = proj[np.argwhere(np.array(epochs)==(e2[0]+'_'+str(e2[1])))[0][0] * nbins + e2[1]]
+pr3 = proj[np.argwhere(np.array(epochs)==(e3[0]+'_'+str(e3[1])))[0][0] * nbins + e3[1]]
 
 # figure out tseries projection to go under raster
 ts = []
