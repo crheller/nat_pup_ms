@@ -26,17 +26,17 @@ decoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa'
 #decoder = 'dprime_pca-4-psth-whiten_jk10_nclvz_fixtdr2'
 norm_diff = True
 plot_individual = True
-
-modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.ss2"
-modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
-modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss3"
 modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
-modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t6.ss1"
-modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t6.ss1"
-#modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
-#modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
-#modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_pcnorm.t6"
-#modelname = "psth.fs4.pup-loadpred.pc4-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6"
+modelname = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
+#modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
+#modelname = "psth.fs4.pup-loadpred-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss3"
+#modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t6.ss2"
+#modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss3"
+#modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t6.ss3"
+
+
+if batches[0] == 289:
+    modelname = modelname.replace('.cpn', '')
 
 all_raw = []
 all_lv = []
@@ -72,11 +72,11 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
         cvres = loader.load_results(fn, cache_path=CACHE_PATH, recache=recache)
 
     # get the epochs of interest (fit epochs)
-    if 0:
-        mask_bins = lvres.meta['mask_bins']
-        # map these to the dataframe combos
-        fb_combos = [k for k, v in lvres.mapping.items() if (('_'.join(v[0].split('_')[:-1]), int(v[0].split('_')[-1])) in mask_bins) & \
+    mask_bins = lvres.meta['mask_bins']
+    fit_combos = [k for k, v in lvres.mapping.items() if (('_'.join(v[0].split('_')[:-1]), int(v[0].split('_')[-1])) in mask_bins) & \
                                                         (('_'.join(v[1].split('_')[:-1]), int(v[1].split('_')[-1])) in mask_bins)]
+    if 0:
+        fit_combos = fit_combos
         s = 25
     else:
         fb_combos = lvres.numeric_results.index.get_level_values(0)
@@ -134,7 +134,8 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     varall = cvres.array_results['evecs_test']['sem'].loc[:,2].apply(lambda x: np.sqrt(sum(x[:,0]**2)))
     var = cvres.array_results['evecs_test']['sem'].loc[fb_combos,2].apply(lambda x: np.sqrt(sum(x[:,0]**2)))
     #bad_flags.extend(list((var>=(2*np.std(varall) + np.median(varall))).values))
-    bad_flags.extend(list((var>=0.05).values))
+    #bad_flags.extend(list((var>=0.05).values))
+    bad_flags.extend([True if e not in fit_combos else False for e in fb_combos])
 
     if load:
         # plot pred responses in dDR space (use first PC of real data as "noise" axis to approximate true ddr space)
