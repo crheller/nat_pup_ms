@@ -15,7 +15,7 @@ zscore = True
 temp_subset = False # for exculding subset of models/sites for faster time on jobs
 nc_lv = True        # beta defined using nc LV method
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
-ddr2_method = None #'nclv'  # None, 'fa', 'nclv'
+ddr2_method = 'fa' #'nclv'  # None, 'fa', 'nclv'
 exclude_lowFR = False
 thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
@@ -27,12 +27,14 @@ lvmodels = True    # run for the simulated, model results from lv xforms models
 if lvmodels:
     # define list of lv models to fit 
     from dprime_new.queue_helpers import additive_models, additive_models_so, gain_models, gain_models_so, indep_noise, indep_noise_so, indep_gain_so
-    lvmodelnames = additive_models_so
-    lvmodelnames = gain_models
-    lvmodelnames = gain_models_so
-    lvmodelnames = indep_noise
-    lvmodelnames = indep_noise_so
+    #lvmodelnames = additive_models_so
+    #lvmodelnames = gain_models
+    #lvmodelnames = gain_models_so
+    #lvmodelnames = indep_noise
+    #lvmodelnames = indep_noise_so
     lvmodelnames = indep_gain_so
+    lvmodelnames = [m.replace('eg', 'e') for m in lvmodelnames]
+    lvmodelnames = [m for m in lvmodelnames if 'e5' not in m]
 
 if no_crossval & loocv:
     raise ValueError("loocv implies no_crossval (eev). Only set one or the other true")

@@ -11,8 +11,8 @@ ALL_SITES = ['BOL005c', 'BOL006b', 'bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', '
             'CRD016d', 'CRD017c']
 
 CPN_SITES = ['AMT020a', 'AMT026a', 'ARM029a', 'ARM031a',
-       'ARM032a', 'ARM033a', 'CRD004a', 'CRD018d'] # (batch 331)
-# bad sites: AMT021b (no pupil variability), AMT005e (no pupil variability), CRD005b (no pupil variability), CRD019b (no pupil variability), 
+       'ARM032a', 'ARM033a', 'CRD018d'] # (batch 331)
+# bad sites: AMT021b (no pupil variability), AMT005e (no pupil variability), CRD005b (no pupil variability), CRD019b (no pupil variability), 'CRD004a' (not much pupil variability)
 
 PEG_SITES = ['AMT028b', 'AMT029a', 'AMT031a', 'AMT032a', 'ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']
 HIGHR_PEG_SITES = ['ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']

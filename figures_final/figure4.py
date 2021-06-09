@@ -33,9 +33,9 @@ site = 'AMT020a'
 batch = 331
 
 # LOAD RAW DATA / MODEL PREDICTIONS
-indep = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
-rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss3"
-plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss3"
+indep = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.so-inoise.3xR_ccnorm.t5.ss1"
+rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss1"
+plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss1"
 
 xf_indep, ctx_indep = load_model_xform(modelname=indep, batch=batch, cellid=site)
 xf_rlv, ctx_rlv = load_model_xform(modelname=rlv, batch=batch, cellid=site)
@@ -47,7 +47,8 @@ rbg, rsm = fhelp.get_cov_matrices(ctx_rlv['val'].copy(), sig='pred')
 pbg, psm = fhelp.get_cov_matrices(ctx_plv['val'].copy(), sig='pred')
 bg, sm = fhelp.get_cov_matrices(ctx_plv['val'].copy(), sig='resp')
 mm = np.abs(np.max(np.concatenate((ibg, ism, rbg, rsm, pbg, psm, bg, sm))))
-dmm=3
+mm=10
+dmm=5
 f, ax = plt.subplots(3, 4, figsize=(8, 6))
 
 ax[0, 0].set_title('Pupil-independent (st.pup0.pvp0)')

@@ -3,8 +3,8 @@ experimental set up, example single trial population responses and pupil pupil t
     Also - gain modulation and delta noise correlation
     Consideration - show scatter plot of model performance, or should this be supplemental?
 """
-from path_settings import PY_FIGURES_DIR2
-from global_settings import ALL_SITES
+from path_settings import PY_FIGURES_DIR2, PY_FIGURES_DIR3
+from global_settings import ALL_SITES, HIGHR_SITES, CPN_SITES
 import colors
 from charlieTools.statistics import get_bootstrapped_sample, get_direct_prob
 import load_results as ld
@@ -25,8 +25,10 @@ mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 #mpl.rcParams.update({'svg.fonttype': 'none'})
 
+sites = HIGHR_SITES + CPN_SITES
+
 savefig = True
-fig_fn = PY_FIGURES_DIR2 + 'fig1_example.svg'
+fig_fn = PY_FIGURES_DIR3 + 'fig1_example.svg'
 mi_bins = np.arange(-0.6, 0.6, 0.05)
 
 f = plt.figure(figsize=(7.5, 3.5))
@@ -50,9 +52,10 @@ rec['resp'] = rec['resp'].rasterize()
 rec['stim'] = rec['stim'].rasterize()
 # extract epochs
 soundfile = '/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalSounds/sounds_set4/00cat668_rec7_ferret_oxford_male_chopped_excerpt1.wav'
-r = rec['resp'].extract_epoch('STIM_00Oxford_male2b.wav')
-spec = rec['stim'].extract_epoch('STIM_00Oxford_male2b.wav')
-p = rec['pupil'].extract_epoch('STIM_00Oxford_male2b.wav')
+epoch = 'STIM_00Oxford_male2b.wav'
+r = rec['resp'].extract_epoch(epoch)
+spec = rec['stim'].extract_epoch(epoch)
+p = rec['pupil'].extract_epoch(epoch)
 
 fs = rasterfs
 psth = sf.gaussian_filter1d(r.mean(axis=(0, 1)), sigma) * fs
@@ -111,6 +114,17 @@ p2ax.set_ylim((0, spec_offset+20))
 time = np.linspace(0, rec['pupil'].shape[-1] / rasterfs, rec['pupil'].shape[-1])
 pdata = rec['pupil']._data.T
 pax.plot(time, pdata, color='k', lw=0.5)
+# add text to figure indicating when different stimulus excerpts played
+epochs = [e for e in rec.epochs.name.unique() if 'STIM_00' in e]
+yl = pax.get_ylim()[-1]
+for l, e in zip(['a', 'b', 'c'], epochs):
+    start = rec['pupil'].get_epoch_indices(e)[:, 0] / rasterfs
+    for s in start:
+        if e==epoch:
+            col = 'lime'
+        else:
+            col = 'k'
+        pax.text(s, yl, l, fontsize=4, color=col)
 pax.spines['bottom'].set_visible(False)
 pax.spines['left'].set_visible(False)
 pax.set_xticks([])
@@ -129,7 +143,7 @@ except:
 
 df = df[df.state_chan=='pupil'].pivot(columns='state_sig', index='cellid', values=['gain_mod', 'dc_mod', 'MI', 'r', 'r_se'])
 df['site'] = [idx[:7] for idx in df.index]
-df = df[df.loc[:, 'site'].isin([s[:7] for s in ALL_SITES])]
+df = df[df.loc[:, 'site'].isin([s[:7] for s in sites])]
 MI = df.loc[:, pd.IndexSlice['MI', 'st.pup']]
 MI = np.array([np.float(x.strip('[]')) if type(x)==str else x for x in MI.values])
 
@@ -148,8 +162,10 @@ p = get_direct_prob(bootsample, np.zeros(len(bootsample)))[0]
 miax.text(mi_bins.min(), miax.get_ylim()[-1]-2, r"p=%s" % round(p, 4))
 
 # plot noise correlation
-rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations/'
-rsc_df = ld.load_noise_correlation('rsc_ev', xforms_model='NULL', path=rsc_path)
+rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations_final/'
+rsc_df = ld.load_noise_correlation('rsc_ev_perstim') #, xforms_model='NULL', path=rsc_path)
+rsc_df = rsc_df[rsc_df.site.isin(sites)]
+#rsc_df = rsc_df[(rsc_df.gm_bp>1) & (rsc_df.gm_sp>1)]
 mask = ~(rsc_df['bp'].isna() | rsc_df['sp'].isna())
 rsc_df = rsc_df[mask]
 d = {s: rsc_df.loc[rsc_df.site==s]['sp'].values - rsc_df.loc[rsc_df.site==s]['bp'].values for s in rsc_df.site.unique()}
