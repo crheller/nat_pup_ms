@@ -198,7 +198,6 @@ ax.legend(frameon=False)
 
 f.tight_layout()
 
-plt.show()
 
 if plot_example:
     # find stimulus pairs where LV model outperforms Indep. Noise model and 
@@ -208,6 +207,7 @@ if plot_example:
     #exdf = exdf[np.abs(cat_val.lv-cat_val.raw)<np.abs(cat_val.indep_noise-cat_val.raw)]
     exdf['indep_err'] = np.abs(exdf['indep_noise'] - exdf['raw'])
     exdf['lv_err'] = np.abs(exdf['lv'] - exdf['raw'])
+    exdf['diff'] = exdf['indep_err']-exdf['lv_err']
     #pair = (5, 11)
     #site = 'ARM029a'
     pair = (0, 9)
@@ -216,27 +216,28 @@ if plot_example:
     #pair = (2, 7)
     #site = 'ARM032a'
     figpath = '/auto/users/hellerc/temp/'
-    for i in range(50):
+    exdf = exdf.sort_values(by='diff', ascending=False)
+    for i in range(exdf.shape[0]):
         temp = figpath+f'_{i}.png'
-        site = exdf.sort_values(by='diff', ascending=False)['site'].iloc[i]
-        pair = exdf.sort_values(by='diff', ascending=False).index.get_level_values(0)[i]
+        site = exdf['site'].iloc[i]
+        pair = exdf.index.get_level_values(0)[i]
         pair = tuple([int(x) for x in pair.split('_')])
         f, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True)
         rand_ax = None #np.random.normal(0, 1, 19)
         plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[0],
                                     xforms_modelname=ind,
-                                    title_string='Indp. Noise',
+                                    title_string=f"Indp. Noise, delta dprime: {round(float(exdf['indep_noise'].iloc[i]), 3)}",
                                     lv_axis=rand_ax)
         plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[1],
                                     xforms_modelname=plv,
-                                    title_string='LV',
+                                    title_string=f"LV, delta dprime: {round(float(exdf['lv'].iloc[i]), 3)}",
                                     lv_axis=rand_ax)
         plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[2],
                                     xforms_modelname=None,
-                                    title_string=f'Raw data -- pair: {pair}, site: {site}',
+                                    title_string=f"Raw data -- pair: {pair}, site: {site}, delta dprime: {round(float(exdf['raw'].iloc[i]), 3)}",
                                     lv_axis=rand_ax)
         
         # set all axes lims the same
