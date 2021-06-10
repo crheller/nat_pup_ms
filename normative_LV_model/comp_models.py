@@ -228,17 +228,17 @@ if plot_example:
                                     ellipse=True, pup_split=True, ax=ax[0],
                                     xforms_modelname=ind,
                                     title_string=f"Indp. Noise, delta dprime: {round(float(exdf['indep_noise'].iloc[i]), 3)}",
-                                    lv_axis=rand_ax)
+                                    lv_axis=rand_ax, s=5)
         plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[1],
                                     xforms_modelname=plv,
                                     title_string=f"LV, delta dprime: {round(float(exdf['lv'].iloc[i]), 3)}",
-                                    lv_axis=rand_ax)
+                                    lv_axis=rand_ax, s=5)
         plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[2],
                                     xforms_modelname=None,
                                     title_string=f"Raw data -- pair: {pair}, site: {site}, delta dprime: {round(float(exdf['raw'].iloc[i]), 3)}",
-                                    lv_axis=rand_ax)
+                                    lv_axis=rand_ax, s=15)
         
         # set all axes lims the same
         for a in ax:
