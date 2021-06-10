@@ -22,10 +22,11 @@ recache = False
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
 
+plot_example = True
 decoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa'
 ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.so-inoise.3xR_ccnorm.t5.ss1"
-rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss1"
-plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss1"
+rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss1"
+plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss1"
 
 results = {
     'fit': {
@@ -82,36 +83,27 @@ for k in results['fit'].keys():
 f, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
 
 # pupil independent model
-ax[0].set_title('Pupil indep. model')
-cc = np.round(np.corrcoef(results['fit']['raw']['delta_dprime'], results['fit']['pup_indep']['delta_dprime'])[0, 1], 3)
-ax[0].scatter(results['fit']['raw']['delta_dprime'],
-                results['fit']['pup_indep']['delta_dprime'], s=25, edgecolor='white', color='tab:orange', label=f"fit: {cc}")
-cc = np.round(np.corrcoef(results['val']['raw']['delta_dprime'], results['val']['pup_indep']['delta_dprime'])[0, 1], 3)
-ax[0].scatter(results['val']['raw']['delta_dprime'],
-                results['val']['pup_indep']['delta_dprime'], s=25, edgecolor='white', color='tab:blue', label=f"val: {cc}")
-
-# independent noise model
-ax[1].set_title('Indep noise')
-cc = np.round(np.corrcoef(results['fit']['raw']['delta_dprime'], results['fit']['indep_noise']['delta_dprime'])[0, 1], 3)
-ax[1].scatter(results['fit']['raw']['delta_dprime'],
-                results['fit']['indep_noise']['delta_dprime'], s=25, edgecolor='white', color='tab:orange', label=f"fit: {cc}")
-cc = np.round(np.corrcoef(results['val']['raw']['delta_dprime'], results['val']['indep_noise']['delta_dprime'])[0, 1], 3)
-ax[1].scatter(results['val']['raw']['delta_dprime'],
-                results['val']['indep_noise']['delta_dprime'], s=25, edgecolor='white', color='tab:blue', label=f"val: {cc}")
-
-# full model
-ax[2].set_title("Full LV model")
-cc = np.round(np.corrcoef(results['fit']['raw']['delta_dprime'], results['fit']['lv']['delta_dprime'])[0, 1], 3)
-ax[2].scatter(results['fit']['raw']['delta_dprime'],
-                results['fit']['lv']['delta_dprime'], s=25, edgecolor='white', color='tab:orange', label=f"fit: {cc}")
-cc = np.round(np.corrcoef(results['val']['raw']['delta_dprime'], results['val']['lv']['delta_dprime'])[0, 1], 3)
-ax[2].scatter(results['val']['raw']['delta_dprime'],
-                results['val']['lv']['delta_dprime'], s=25, edgecolor='white', color='tab:blue', label=f"val: {cc}")
-
-for a in ax:
-    a.axhline(0, linestyle='--', color='k')
-    a.axvline(0, linestyle='--', color='k')
-    a.legend(frameon=False)
+for i, (k, tit) in enumerate(zip(['pup_indep', 'indep_noise', 'lv'], ['Pup. Shuff.', 'Private Noise', 'Shared Noise'])):
+    ax[i].set_title(tit)
+    cc = np.round(np.corrcoef(results['fit']['raw']['delta_dprime'], results['fit'][k]['delta_dprime'])[0, 1], 3)
+    ax[i].scatter(results['fit']['raw']['delta_dprime'],
+                    results['fit'][k]['delta_dprime'], s=25, edgecolor='white', color='tab:orange', label=f"fit: {cc}")
+    cc = np.round(np.corrcoef(results['val']['raw']['delta_dprime'], results['val'][k]['delta_dprime'])[0, 1], 3)
+    ax[i].scatter(results['val']['raw']['delta_dprime'],
+                    results['val'][k]['delta_dprime'], s=25, edgecolor='white', color='tab:blue', label=f"val: {cc}")
+# add unity line / best fit lines
+mm = np.min(ax[i].get_xlim()+ax[i].get_ylim())
+ma = np.max(ax[i].get_xlim()+ax[i].get_ylim())
+for i, k in enumerate(['pup_indep', 'indep_noise', 'lv']):
+    xran = np.arange(mm, ma, 0.01)
+    m, b = np.polyfit(results['fit']['raw']['delta_dprime'], results['fit'][k]['delta_dprime'], 1)
+    ax[i].plot(xran, m*xran + b, color='tab:orange')
+    m, b = np.polyfit(results['val']['raw']['delta_dprime'], results['val'][k]['delta_dprime'], 1)
+    ax[i].plot(xran, m*xran + b, color='tab:blue')
+    ax[i].plot([mm, ma], [mm, ma], 'k--')
+    ax[i].axhline(0, linestyle='--', color='k')
+    ax[i].axvline(0, linestyle='--', color='k')
+    ax[i].legend(frameon=False)
 
 f.tight_layout()
 
@@ -173,7 +165,88 @@ ax[1].set_title("Validation Stimuli")
 
 f.tight_layout()
 
-# find stimulus pairs where LV model outperforms Indep. Noise model
-cat_val[np.abs(cat_val.lv-cat_val.raw)<np.abs(cat_val.indep_noise-cat_val.raw)]
+# plot summary of error per model for validation / fit stimuli
+f, ax = plt.subplots(1, 1, figsize=(4, 4))
+
+ax.errorbar(range(3), y = [
+                        np.abs(cat_val.pup_indep-cat_val.raw).mean(),
+                        np.abs(cat_val.indep_noise-cat_val.raw).mean(),
+                        np.abs(cat_val.lv-cat_val.raw).mean()
+                        ],
+                    yerr=[
+                        np.abs(cat_val.pup_indep-cat_val.raw).sem(),
+                        np.abs(cat_val.indep_noise-cat_val.raw).sem(),
+                        np.abs(cat_val.lv-cat_val.raw).sem()
+                    ],
+                    capsize=2, marker='o', color='k', label='Validation Stim.')
+ax.errorbar(np.arange(3)+0.05, y = [
+                        np.abs(cat_fit.pup_indep-cat_fit.raw).mean(),
+                        np.abs(cat_fit.indep_noise-cat_fit.raw).mean(),
+                        np.abs(cat_fit.lv-cat_fit.raw).mean()
+                        ],
+                    yerr=[
+                        np.abs(cat_fit.pup_indep-cat_fit.raw).sem(),
+                        np.abs(cat_fit.indep_noise-cat_fit.raw).sem(),
+                        np.abs(cat_fit.lv-cat_fit.raw).sem()
+                    ],
+                    capsize=2, marker='o', color='orange', label='Fit Stim.')
+ax.set_ylabel(r"$\Delta d'^2$ error")
+ax.set_xlabel('Model')
+ax.set_xticks(range(3))
+ax.set_xticklabels(['pup indep.', 'private noise', 'shared noise'], rotation=45)
+ax.legend(frameon=False)
+
+f.tight_layout()
 
 plt.show()
+
+if plot_example:
+    # find stimulus pairs where LV model outperforms Indep. Noise model and 
+    # show an example in the decoding space (dDR)
+    exdf = cat_fit.copy()
+    exdf['site'] = results['fit']['raw']['site']
+    #exdf = exdf[np.abs(cat_val.lv-cat_val.raw)<np.abs(cat_val.indep_noise-cat_val.raw)]
+    exdf['indep_err'] = np.abs(exdf['indep_noise'] - exdf['raw'])
+    exdf['lv_err'] = np.abs(exdf['lv'] - exdf['raw'])
+    #pair = (5, 11)
+    #site = 'ARM029a'
+    pair = (0, 9)
+    site = 'AMT026a'
+    # pair=(2, 10), site='AMT020a' -- Great example of where LV helps and delta-dprime is positive
+    #pair = (2, 7)
+    #site = 'ARM032a'
+    figpath = '/auto/users/hellerc/temp/'
+    for i in range(50):
+        temp = figpath+f'_{i}.png'
+        site = exdf.sort_values(by='diff', ascending=False)['site'].iloc[i]
+        pair = exdf.sort_values(by='diff', ascending=False).index.get_level_values(0)[i]
+        pair = tuple([int(x) for x in pair.split('_')])
+        f, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True)
+        rand_ax = None #np.random.normal(0, 1, 19)
+        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+                                    ellipse=True, pup_split=True, ax=ax[0],
+                                    xforms_modelname=ind,
+                                    title_string='Indp. Noise',
+                                    lv_axis=rand_ax)
+        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+                                    ellipse=True, pup_split=True, ax=ax[1],
+                                    xforms_modelname=plv,
+                                    title_string='LV',
+                                    lv_axis=rand_ax)
+        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+                                    ellipse=True, pup_split=True, ax=ax[2],
+                                    xforms_modelname=None,
+                                    title_string=f'Raw data -- pair: {pair}, site: {site}',
+                                    lv_axis=rand_ax)
+        
+        # set all axes lims the same
+        for a in ax:
+            a.axis('equal')
+
+        f.tight_layout()
+
+        f.savefig(temp)
+
+        plt.close('all')
+
+    plt.show()

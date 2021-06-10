@@ -45,13 +45,23 @@ df['raw_delta'] = (df['bp_dp'] - df['sp_dp'])
 stims = (0, 6, 9)
 
 # ====================== Get PC data ======================
-X, sp_bins, X_pup, pup_mask, epochs, spont = decoding.load_site(site=site, 
-                                                         batch=batch, 
-                                                         special=True)
-ncells = X.shape[0]
-nreps = X.shape[1]
-nstim = X.shape[2]
-nbins = X.shape[3]
+xf_model = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss1"
+
+X_raw, sp_bins, X_pup, pup_mask, epochs, spont_raw = decoding.load_site(site=site, 
+                                                        batch=batch, 
+                                                        xforms_modelname=None,
+                                                        special=True)
+if xf_model is not None:
+    X, sp_bins, X_pup, pup_mask, epochs, spont = decoding.load_site(site=site, 
+                                                            batch=batch, 
+                                                            xforms_modelname=xf_model,
+                                                            special=True)
+else:
+    X = X_raw.copy()
+ncells = X_raw.shape[0]
+nreps = X_raw.shape[1]
+nstim = X_raw.shape[2]
+nbins = X_raw.shape[3]
 sp_bins = sp_bins.reshape(1, sp_bins.shape[1], nstim * nbins)
 nstim = nstim * nbins
 
@@ -63,17 +73,19 @@ spont_combos = [c for c in all_combos if (c[0] in spont_bins) & (c[1] in spont_b
 ev_ev_combos = [c for c in all_combos if (c[0] not in spont_bins) & (c[1] not in spont_bins)]
 spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in spont_combos)]
 
+X_raw = X_raw.reshape(ncells, nreps, nstim)
 X = X.reshape(ncells, nreps, nstim)
 pup_mask = pup_mask.reshape(1, nreps, nstim).squeeze()
 ev_bins = list(set(range(X.shape[-1])).difference(set(spont_bins.squeeze())))
 Xev = X[:, :, ev_bins]
-
+Xev_raw = X_raw[:, :, ev_bins]
 # ============================= DO PCA ================================
-Xu = Xev.mean(axis=1)
+# use raw data for PCs
+Xu = Xev_raw.mean(axis=1)
 if batch==331:
-    spont = np.tile(spont, [Xu.shape[-1], 1]).T
+    spont = np.tile(spont_raw, [Xu.shape[-1], 1]).T
 else:
-    spont = X[:, :, spont_bins.squeeze()].mean(axis=1).mean(axis=-1, keepdims=True)
+    spont = X_raw[:, :, spont_bins.squeeze()].mean(axis=1).mean(axis=-1, keepdims=True)
 Xu_center = Xu - spont # subtract spont
 pca = PCA()
 pca.fit(Xu_center.T)
@@ -91,26 +103,64 @@ pr3 = proj[stims[2]]
 
 # ========================= GET SPECTROGRAMS ===========================
 # for each epoch, then highlight the example bins
-spectrogram = []
-for epoch in epochs:
+spectrogram = {}
+for alnum, epoch in zip(list(map(chr, np.arange(97, 97+len(epochs)))), epochs):
     ep_name = epoch.strip('STIM_probe:')
-    soundfile = f'/auto/users/hellerc/code/baphy/Config/SoundObjects/@NaturalPairs/NatPairSounds/{ep_name}.wav'
+    soundfile = f'/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalPairs/NatPairSounds/{ep_name}.wav'
     # spectrogram
     fs, data = wavfile.read(soundfile)
     # pad / crop data
-    data = data[:int(3 * fs)]
-    spbins = int(2 * fs)
-    postbins = int(0.5 * fs)
+    data = data[int(0.25 * fs):int(1 * fs)]
+    spbins = 0
+    postbins = 0
     data = np.concatenate((np.zeros(spbins), data, np.zeros(postbins)))
     spec = gt.gtgram(data, fs, 0.01, 0.002, 100, 0)
-
+    spectrogram[epoch] = {}
+    spectrogram[epoch]['key'] = alnum
+    spectrogram[epoch]['data'] = spec
 
 # ============================== Make figure =========================================
-f = plt.figure(figsize=(6, 2))
+f = plt.figure(figsize=(16, 4))
 
-el_all = plt.subplot2grid((1, 3), (0, 0))
-el_bp = plt.subplot2grid((1, 3), (0, 1))
-el_sp = plt.subplot2grid((1, 3), (0, 2))
+el_all = plt.subplot2grid((4, 4), (0, 1), rowspan=4)
+el_bp = plt.subplot2grid((4, 4), (0, 2), rowspan=4)
+el_sp = plt.subplot2grid((4, 4), (0, 3), rowspan=4)
+
+# plot spectrograms
+cols = plt.cm.get_cmap('tab10')
+mappers = np.unique(np.array([x for x in res.mapping.values()]).flatten()) 
+for i, (ep, spec) in enumerate(spectrogram.items()):
+    ax = plt.subplot2grid((4, 4), (i, 0))
+    ax.imshow(np.sqrt(spec['data']), origin='lower', cmap='Greys')
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_ylabel(spec['key'], rotation=0)
+    if i == 0:
+        ax.set_title("Sound excerpt")
+
+    # find if this corresponds to any of the selected stimuli
+    for j, s in enumerate(stims):
+        try:
+            ek = res.mapping[f'{s}_{s+1}']
+            ek = ek[0]
+        except:
+            ek = res.mapping[f'{s-1}_{s}']
+            ek = ek[1]
+        if '_'.join(ek.split('_')[:-1]) == ep:
+            b = int(ek.split('_')[-1])
+            st = (spec['data'].shape[-1] / 3) * b
+            en = (spec['data'].shape[-1] / 3) * b + (spec['data'].shape[-1] / 3) * (b + 1)
+            ax.axvline(st, color=cols(j), lw=1)
+            ax.axvline(en, color=cols(j), lw=1)
+            yl = ax.get_ylim()[-1]
+            yll = ax.get_ylim()[0]
+            ax.plot([st, en], [yl, yl], color=cols(j))
+            ax.plot([st, en], [yll, yll], color=cols(j))
+ax.set_xlabel("Time (ms)")
+ax.set_xticks(np.linspace(0, spec['data'].shape[-1], 4))
+ax.set_xticklabels([0, 250, 500, 750])
 
 # plot pc ellipse plots
 for i in range(proj.shape[0]):
@@ -168,12 +218,10 @@ el_all.axis('square')
 el_all.set_title("All Trials")
 
 el_bp.set_xlabel(r"Stim. $PC_1$")
-el_bp.set_ylabel(r"Stim. $PC_2$")
 el_bp.axis('square')
 el_bp.set_title("Large pupil trials")
 
 el_sp.set_xlabel(r"Stim. $PC_1$")
-el_sp.set_ylabel(r"Stim. $PC_2$")
 el_sp.axis('square')
 el_sp.set_title("Small pupil trials")
 

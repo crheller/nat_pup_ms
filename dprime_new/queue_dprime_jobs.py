@@ -20,9 +20,9 @@ exclude_lowFR = False
 thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
-n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+n_additional_noise_dims = 1 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 NOSIM = True   # If true, don't run simulations
-lvmodels = True    # run for the simulated, model results from lv xforms models
+lvmodels = False    # run for the simulated, model results from lv xforms models
 
 if lvmodels:
     # define list of lv models to fit 
@@ -32,6 +32,8 @@ if lvmodels:
     #lvmodelnames = gain_models_so
     #lvmodelnames = indep_noise
     #lvmodelnames = indep_noise_so
+
+    #lvmodelnames = gain_models_so
     lvmodelnames = indep_gain_so
     lvmodelnames = [m.replace('eg', 'e') for m in lvmodelnames]
     lvmodelnames = [m for m in lvmodelnames if 'e5' not in m]
@@ -106,7 +108,7 @@ if temp_subset:
     #modellist = [m for m in modellist if ('_sim' in m)]
 
 if n_additional_noise_dims > 0:
-    modellist = [m+'_noiseDim{0}'.format(n_additional_noise_dims) for m in modellist]
+    modellist = [m+'_noiseDim-{0}'.format(n_additional_noise_dims) for m in modellist]
 
 if n_additional_noise_dims < 0:
     modellist = [m+'_noiseDim{0}'.format('-dU') for m in modellist]
