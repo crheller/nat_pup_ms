@@ -46,13 +46,14 @@ stims = (0, 6, 9)
 
 # ====================== Get PC data ======================
 xf_model = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss1"
+xf_model = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
 
 X_raw, sp_bins, X_pup, pup_mask, epochs, spont_raw = decoding.load_site(site=site, 
                                                         batch=batch, 
                                                         xforms_modelname=None,
                                                         special=True)
 if xf_model is not None:
-    X, sp_bins, X_pup, pup_mask, epochs, spont = decoding.load_site(site=site, 
+    X, _, _, _, _, _ = decoding.load_site(site=site, 
                                                             batch=batch, 
                                                             xforms_modelname=xf_model,
                                                             special=True)
@@ -64,6 +65,8 @@ nstim = X_raw.shape[2]
 nbins = X_raw.shape[3]
 sp_bins = sp_bins.reshape(1, sp_bins.shape[1], nstim * nbins)
 nstim = nstim * nbins
+
+X = X[:, :X_raw.shape[1], :, :]
 
 # =========================== generate a list of stim pairs ==========================
 # these are the indices of the decoding results dataframes

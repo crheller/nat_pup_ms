@@ -23,6 +23,8 @@ mpl.rcParams['font.size'] = 6
 recache = False
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
+sites = HIGHR_SITES
+batches = [289]*len(CPN_SITES)
 fit_val = 'val'
 bar = False # if false, do single points w/ error
 aligned = True
@@ -76,16 +78,30 @@ for row, decoder in enumerate(decoders):
             }
         }
 
-        for site in sites:
+        for batch, site in enumerate(sites):
+
+            if site in ['BOL005c', 'BOL006b']:
+                _batch = 294
+            else:
+                _batch = batch
+            
+            if batch in [289, 294]:
+                _r = r.strip('.cpn')
+                _i = i.strip('.cpn')
+                _p = _p.strip('.cpn')
+            else:
+                _r = r
+                _i = i
+                _p = p
 
             loader = decoding.DecodingResults()
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+'_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+'_TDR.pickle')
             raw = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{r}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_r}_TDR.pickle')
             lv0 = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{i}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_i}_TDR.pickle')
             indep = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{p}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_p}_TDR.pickle')
             lv = loader.load_results(fn, cache_path=None, recache=recache)
 
             # get the epochs of interest (fit epochs)
