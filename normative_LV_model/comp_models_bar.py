@@ -23,8 +23,9 @@ mpl.rcParams['font.size'] = 6
 recache = False
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
-fit_val = 'fit'
+fit_val = 'val'
 bar = False # if false, do single points w/ error
+aligned = True
 
 decoders = [
     'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
@@ -35,9 +36,9 @@ decoders = [
 ]
 # then load each of these for each cov. rank
 ranks = [1, 2, 3]
-ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.so-inoise.3xR_ccnorm.t5.ss"
-rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss"
-plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss"
+ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
+rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
+plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
 
 nrows = len(decoders)
 ncols = len(ranks) * 3
@@ -101,6 +102,13 @@ for row, decoder in enumerate(decoders):
                 df = res.numeric_results
                 df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
                 df['site'] = site
+                # filter based on noise alignment
+                try:
+                    if aligned:
+                        df = df[raw.numeric_results.beta2_dot_dU>0.3]
+                except:
+                    # beta2 alignement is not calculated for dU decoding
+                    pass
                 results['fit'][k].append(df.loc[fit_combos])
                 results['val'][k].append(df.loc[val_combos])
 

@@ -25,9 +25,9 @@ mpl.rcParams['font.size'] = 8
 
 modelnames = ['dprime_jk10_zscore_nclvz_fixtdr2_noiseDim-dU',
             'dprime_jk10_zscore_nclvz_fixtdr2-fa',
-            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim1',
-            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim2',
-            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim3'
+            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
+            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
+            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3'
     ]
 ndims = [1, 2, 3, 4, 5]
 
@@ -81,9 +81,9 @@ for i, site in enumerate(overall.site.unique()):
     data = data / data[0]
     ax[1, 0].plot(range(5), data, '-', color=cols(i))
     data = delta[delta.site==site].melt('site').groupby(by='variable').mean()['value']
-    data = data - data[0]
+    data = data #- data[0]
     ax[1, 1].plot(range(5), data, '-', color=cols(i), label=site)
-ax[1, 1].set_ylim((-.1, .1))
+#ax[1, 1].set_ylim((-.1, .1))
 ax[1, 1].legend(bbox_to_anchor=(1, 1), loc='upper left', frameon=False)
 ax[1, 1].set_xlabel(r"$dDR$ Noise Dimensions")
 ax[1, 0].set_xlabel(r"$dDR$ Noise Dimensions")

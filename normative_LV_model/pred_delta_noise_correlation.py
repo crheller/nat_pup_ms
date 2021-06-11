@@ -20,15 +20,15 @@ site = 'AMT020a'
 batch = 331
 #site = 'TAR010c'
 #batch = 322
-
+get_first_order_residual = True
 modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t6.ss1"
 modelname = 'psth.fs4.pup-loadpred.cpn-st.drf.pup-plgsm.eg5.sp-lvnoise.r8-aev_lvnorm.SxR-inoise.2xR_ccnorm.t6.ss1'
-modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss1"
+modelname = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss1"
 if batch == 322:
     modelname = modelname.replace('.cpn', '')
 
 xf, ctx = load_model_xform(site, batch, modelname=modelname)
-rec = ctx['rec'].copy()
+rec = ctx['val'].copy()
 
 # measure both predicted and raw delta noise correlation axes
 zscore = True
@@ -43,6 +43,9 @@ except:
     sp_bins=0
 epochs = np.unique([e[0] for e in rec.meta['mask_bins']]).tolist()
 bins = {e: np.sort([b for ep, b in rec.meta['mask_bins'] if ep==e])-sp_bins for e in epochs}
+
+if get_first_order_residual:
+    rec['resp'] = rec['resp']._modified_copy(rec['resp']._data-rec['pred0']._data)
 
 # raw data
 real_dict_small = rec['resp'].extract_epochs(epochs, mask=rec['mask_small'], allow_incomplete=True)
