@@ -21,12 +21,14 @@ mpl.rcParams['font.size'] = 6
 recache = False
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
+sites = HIGHR_SITES
+batches = [289]*len(HIGHR_SITES)
 
-plot_example = True
+plot_example = False
 decoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa'
-rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss3"
-ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
-plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss3"
+rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
+ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss1"
+plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 
 results = {
     'fit': {
@@ -44,16 +46,27 @@ results = {
 }
 for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['CRD017c', 'CRD016d']]:
     if site in ['BOL006b', 'BOL005c']:
-        batch = batch2 = 294
+        batch2 = 294
+    else:
+        batch2 = batch
+
+    if batch in [289, 294]:
+        _rlv = rlv.replace('.cpn', '')
+        _ind = ind.replace('.cpn', '')
+        _plv = plv.replace('.cpn', '')
+    else:
+        _rlv = rlv
+        _ind = ind
+        _plv = plv
 
     loader = decoding.DecodingResults()
-    fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+'_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+'_TDR.pickle')
     raw = loader.load_results(fn, cache_path=None, recache=recache)
-    fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{rlv}_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_rlv}_TDR.pickle')
     lv0 = loader.load_results(fn, cache_path=None, recache=recache)
-    fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{ind}_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_ind}_TDR.pickle')
     indep = loader.load_results(fn, cache_path=None, recache=recache)
-    fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{plv}_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_plv}_TDR.pickle')
     lv = loader.load_results(fn, cache_path=None, recache=recache)
 
     # get the epochs of interest (fit epochs)
@@ -68,7 +81,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     # fit stims first
     for k, res in zip(['pup_indep', 'indep_noise', 'lv', 'raw'], [lv0, indep, lv, raw]):
         df = res.numeric_results
-        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
+        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) #/ (df['bp_dp'] + df['sp_dp'])
         df['site'] = site
         results['fit'][k].append(df.loc[fit_combos])
         results['val'][k].append(df.loc[val_combos])
@@ -82,15 +95,15 @@ for k in results['fit'].keys():
 # scatter plot of model vs. true for each model
 f, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
 
-# pupil independent model
 for i, (k, tit) in enumerate(zip(['pup_indep', 'indep_noise', 'lv'], ['Pup. Shuff.', 'Private Noise', 'Shared Noise'])):
     ax[i].set_title(tit)
-    cc = np.round(np.corrcoef(results['fit']['raw']['delta_dprime'], results['fit'][k]['delta_dprime'])[0, 1], 3)
-    ax[i].scatter(results['fit']['raw']['delta_dprime'],
-                    results['fit'][k]['delta_dprime'], s=25, edgecolor='white', color='tab:orange', label=f"fit: {cc}")
     cc = np.round(np.corrcoef(results['val']['raw']['delta_dprime'], results['val'][k]['delta_dprime'])[0, 1], 3)
     ax[i].scatter(results['val']['raw']['delta_dprime'],
                     results['val'][k]['delta_dprime'], s=25, edgecolor='white', color='tab:blue', label=f"val: {cc}")
+    cc = np.round(np.corrcoef(results['fit']['raw']['delta_dprime'], results['fit'][k]['delta_dprime'])[0, 1], 3)
+    ax[i].scatter(results['fit']['raw']['delta_dprime'],
+                    results['fit'][k]['delta_dprime'], s=25, edgecolor='white', color='tab:orange', label=f"fit: {cc}")
+
 # add unity line / best fit lines
 mm = np.min(ax[i].get_xlim()+ax[i].get_ylim())
 ma = np.max(ax[i].get_xlim()+ax[i].get_ylim())
@@ -106,6 +119,36 @@ for i, k in enumerate(['pup_indep', 'indep_noise', 'lv']):
     ax[i].legend(frameon=False)
 
 f.tight_layout()
+
+# ========================= LOOK ONLY AT SIGNIFICANT STIMULUS PAIRS =======================
+# i.e. filter for pairs of stimuli where there was a real change in dprime
+dfraw = results['fit']['raw'].copy()
+maskf = abs(dfraw.bp_dp-dfraw.sp_dp)>((dfraw.bp_dp_sem+dfraw.sp_dp_sem)*np.sqrt(1)) 
+
+# scatter plot of model vs. true for each model
+f, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
+
+for i, (k, tit) in enumerate(zip(['pup_indep', 'indep_noise', 'lv'], ['Pup. Shuff.', 'Private Noise', 'Shared Noise'])):
+    ax[i].set_title(tit)
+    cc = np.round(np.corrcoef(results['fit']['raw'][maskf]['delta_dprime'], results['fit'][k][maskf]['delta_dprime'])[0, 1], 3)
+    ax[i].scatter(results['fit']['raw'][maskf]['delta_dprime'],
+                    results['fit'][k][maskf]['delta_dprime'], s=25, edgecolor='white', color='tab:orange', label=f"fit: {cc}")
+
+# add unity line / best fit lines
+mm = np.min(ax[i].get_xlim()+ax[i].get_ylim())
+ma = np.max(ax[i].get_xlim()+ax[i].get_ylim())
+for i, k in enumerate(['pup_indep', 'indep_noise', 'lv']):
+    xran = np.arange(mm, ma, 0.01)
+    m, b = np.polyfit(results['fit']['raw'][maskf]['delta_dprime'], results['fit'][k][maskf]['delta_dprime'], 1)
+    ax[i].plot(xran, m*xran + b, color='tab:orange')
+    ax[i].plot([mm, ma], [mm, ma], 'k--')
+    ax[i].axhline(0, linestyle='--', color='k')
+    ax[i].axvline(0, linestyle='--', color='k')
+    ax[i].legend(frameon=False)
+
+f.tight_layout()
+
+
 
 # ID stim pairs where lv model outperforms indep. noise
 cat_fit = pd.concat((results['fit']['pup_indep']['delta_dprime'], 
@@ -224,45 +267,63 @@ if plot_example:
     # pair=(2, 10), site='AMT020a' -- Great example of where LV helps and delta-dprime is positive
     #pair = (2, 7)
     #site = 'ARM032a'
-    figpath = '/auto/users/hellerc/temp4/'
+    figpath = '/auto/users/hellerc/temp_NAT/'
     exdf = exdf.sort_values(by='diff', ascending=False)
     reshuf = True
-    for i in range(exdf.shape[0]):
+    for i in range(100):
         temp = figpath+f'_{i}.png'
         site = exdf['site'].iloc[i]
         pair = exdf.index.get_level_values(0)[i]
         pair = tuple([int(x) for x in pair.split('_')])
+
+        if site in ['BOL005c', 'BOL006b']:
+            b = 294
+        elif site in HIGHR_SITES:
+            b = 322
+        else:
+            b = 331
+
+        
+        if batch in [289, 294]:
+            _rlv = rlv.replace('.cpn', '')
+            _ind = ind.replace('.cpn', '')
+            _plv = plv.replace('.cpn', '')
+        else:
+            _rlv = rlv
+            _ind = ind
+            _plv = plv
+
         f, ax = plt.subplots(1, 5, figsize=(15, 3), sharex=True)
         rand_ax = None #np.random.normal(0, 1, 19)
-        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+        plot_stimulus_pair(site, b, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[0],
-                                    xforms_modelname=rlv,
+                                    xforms_modelname=_rlv,
                                     xforms_signal='pred0',
                                     reshuf=reshuf,
                                     title_string=f"First order, delta dprime: NA",
                                     lv_axis=rand_ax, s=5)
-        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+        plot_stimulus_pair(site, b, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[1],
-                                    xforms_modelname=rlv,
+                                    xforms_modelname=_rlv,
                                     xforms_signal='pred',
                                     reshuf=reshuf,
                                     title_string=f"Pupil. indep. LV, delta dprime: {round(float(exdf['pup_indep'].iloc[i]), 3)}",
                                     lv_axis=rand_ax, s=5)
-        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+        plot_stimulus_pair(site, b, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[2],
-                                    xforms_modelname=ind,
+                                    xforms_modelname=_ind,
                                     reshuf=reshuf,
                                     xforms_signal='pred',
                                     title_string=f"Indp. Noise, delta dprime: {round(float(exdf['indep_noise'].iloc[i]), 3)}",
                                     lv_axis=rand_ax, s=5)
-        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+        plot_stimulus_pair(site, b, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[3],
-                                    xforms_modelname=plv,
+                                    xforms_modelname=_plv,
                                     reshuf=reshuf,
                                     xforms_signal='pred',
                                     title_string=f"LV, delta dprime: {round(float(exdf['lv'].iloc[i]), 3)}",
                                     lv_axis=rand_ax, s=5)
-        plot_stimulus_pair(site, batch, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
+        plot_stimulus_pair(site, b, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[4],
                                     xforms_modelname=None,
                                     title_string=f"Raw data -- pair: {pair}, site: {site}, delta dprime: {round(float(exdf['raw'].iloc[i]), 3)}",

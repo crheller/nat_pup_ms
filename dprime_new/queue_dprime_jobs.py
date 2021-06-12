@@ -2,7 +2,7 @@ import nems.db as nd
 import numpy as np
 from global_settings import CPN_SITES
 
-batch = 331
+batch = 294
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -22,7 +22,7 @@ sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the
 loocv = False         # leave-one-out cross validation
 n_additional_noise_dims = -1 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 NOSIM = True   # If true, don't run simulations
-lvmodels = True    # run for the simulated, model results from lv xforms models
+lvmodels = False    # run for the simulated, model results from lv xforms models
 
 if lvmodels:
     # define list of lv models to fit 

@@ -25,9 +25,9 @@ sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
 sites = HIGHR_SITES
 batches = [289]*len(CPN_SITES)
-fit_val = 'val'
+fit_val = 'fit'
 bar = False # if false, do single points w/ error
-aligned = True
+aligned = False
 
 decoders = [
     'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
@@ -78,7 +78,7 @@ for row, decoder in enumerate(decoders):
             }
         }
 
-        for batch, site in enumerate(sites):
+        for batch, site in zip(batches, sites):
 
             if site in ['BOL005c', 'BOL006b']:
                 _batch = 294
@@ -86,9 +86,9 @@ for row, decoder in enumerate(decoders):
                 _batch = batch
             
             if batch in [289, 294]:
-                _r = r.strip('.cpn')
-                _i = i.strip('.cpn')
-                _p = _p.strip('.cpn')
+                _r = r.replace('.cpn', '')
+                _i = i.replace('.cpn', '')
+                _p = p.replace('.cpn', '')
             else:
                 _r = r
                 _i = i
