@@ -23,9 +23,11 @@ mpl.rcParams['font.size'] = 6
 recache = False
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
-fit_val = 'val'
+sites = HIGHR_SITES
+batches = [289]*len(CPN_SITES)
+fit_val = 'fit'
 bar = False # if false, do single points w/ error
-aligned = True
+aligned = False
 
 decoders = [
     'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
@@ -76,16 +78,30 @@ for row, decoder in enumerate(decoders):
             }
         }
 
-        for site in sites:
+        for batch, site in zip(batches, sites):
+
+            if site in ['BOL005c', 'BOL006b']:
+                _batch = 294
+            else:
+                _batch = batch
+            
+            if batch in [289, 294]:
+                _r = r.replace('.cpn', '')
+                _i = i.replace('.cpn', '')
+                _p = p.replace('.cpn', '')
+            else:
+                _r = r
+                _i = i
+                _p = p
 
             loader = decoding.DecodingResults()
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+'_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+'_TDR.pickle')
             raw = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{r}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_r}_TDR.pickle')
             lv0 = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{i}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_i}_TDR.pickle')
             indep = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+f'_model-LV-{p}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_p}_TDR.pickle')
             lv = loader.load_results(fn, cache_path=None, recache=recache)
 
             # get the epochs of interest (fit epochs)

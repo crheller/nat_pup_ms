@@ -5,11 +5,13 @@ from global_settings import CPN_SITES
 
 modelnames = [
     'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
-    'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
+    'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
+    'psth.fs4.pup-ld-st.pup-epcpn-mvm-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
+    'psth.fs4.pup-ld-st.pup0-epcpn-mvm-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
 ]
 
 from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models
-force_rerun = False
+force_rerun = True
 #force_rerun=True
 lbhb_user="svd"
 # exacloud settings:
