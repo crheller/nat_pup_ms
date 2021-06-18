@@ -39,6 +39,8 @@ script = '/auto/users/hellerc/code/NEMS/scripts/fit_single.py'
 
 sites = CPN_SITES #+ HIGHR_SITES
 batches = [331] * len(CPN_SITES) #+ [322]*len(HIGHR_SITES)
+sites = HIGHR_SITES
+batches = [322] * len(HIGHR_SITES)
 
 for s, b in zip(sites, batches):
     if s in ['BOL005c', 'BOL006b']:

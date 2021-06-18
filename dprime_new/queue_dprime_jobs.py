@@ -1,8 +1,8 @@
 import nems.db as nd
 import numpy as np
-from global_settings import CPN_SITES
+from global_settings import CPN_SITES, HIGHR_SITES
 
-batch = 331
+batch = 294
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -44,19 +44,8 @@ if no_crossval & loocv:
     raise ValueError("loocv implies no_crossval (eev). Only set one or the other true")
 
 if batch == 289:
-    sites = ['bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', 'BRT034f',  'BRT036b', 'BRT038b',
-            'BRT039c', 'TAR010c', 'TAR017b', 'AMT005c', 'AMT018a', 'AMT019a',
-            'AMT020a', 'AMT021b', 'AMT023d', 'AMT024b',
-            'DRX006b.e1:64', 'DRX006b.e65:128',
-            'DRX007a.e1:64', 'DRX007a.e65:128',
-            'DRX008b.e1:64', 'DRX008b.e65:128', 'CRD016d', 'CRD017c']
-    if subset_289:
-        # list of sites with > 10 reps of each stimulus
-        sites = ['TAR010c', 'TAR017b', 
-                'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
-                'DRX007a.e1:64', 'DRX007a.e65:128', 
-                'DRX008b.e1:64', 'DRX008b.e65:128', 
-                'CRD016d', 'CRD017c']
+    sites = HIGHR_SITES
+    sites = [s for s in sites if s not in ['BOL005c', 'BOL006b']]
             
 elif batch == 294:
     sites = ['BOL005c', 'BOL006b']
