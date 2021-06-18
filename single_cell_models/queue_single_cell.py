@@ -1,6 +1,8 @@
 import nems.db as nd
+from global_settings import CPN_SITES
 
 batch = 294 # 294, 289 || 323 (PEG) | 331 (CPN)
+batch = 331
 force_rerun = True
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/single_cell_models/fit_script.py'
@@ -36,8 +38,12 @@ if batch == 294:
 
 if batch == 331:
     modelnames = [m.replace('-hrc', '-epcpn-hrc') for m in modelnames]
+    modelnames = [m.replace('-epcpn', '-epcpn-mvm') for m in modelnames]
 
 cellids = nd.get_batch_cells(batch).cellid.tolist()
+
+if batch == 331:
+    cellids = [c for c in cellids if c[:7] in CPN_SITES]
 
 if batch == 294:
     cellids = [c for c in cellids if c.split('-')[0] in ['BOL005c', 'BOL006b']]
