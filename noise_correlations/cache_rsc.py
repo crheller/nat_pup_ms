@@ -10,7 +10,7 @@ Compute noise correlations for the following conditions:
 import nems.db as nd
 import nems.xforms as xforms
 import nems_lbhb.baphy as nb
-from nems_lbhb.preprocessing import mask_high_repetion_stims, create_pupil_mask, fix_cpn_epochs
+from nems_lbhb.preprocessing import mask_high_repetion_stims, create_pupil_mask, fix_cpn_epochs, movement_mask
 import nems_lbhb.baphy_io as io
 from nems_lbhb.baphy_experiment import BAPHYExperiment
 from nems.recording import Recording
@@ -73,6 +73,7 @@ keys = modelname.split('_')
 boxcar = False
 evoked = False
 fs4 = False
+move_mask = False
 for k in keys:
     if 'fft' in k:
         low_c = np.float(k.split('-')[0][3:])
@@ -83,6 +84,21 @@ for k in keys:
         evoked = True
     if 'fs4' in k:
         fs4 = True
+    if k.startswith('mvm'):
+        try:
+            threshold = float(op.split('-')[1])
+            if threshold == 1:
+                threshold = 1
+            else:
+                threshold /= 100
+            binsize = float(op.split('-')[2])
+            if binsize > 10:
+                binsize /= 100
+            else:
+                pass
+            move_mask = (threshold, binsize)
+        except:
+            move_mask = (0.25, 1)
 path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations_final/'
 
 log.info('Computing noise correlations for site: {0} with options: \n \
@@ -110,6 +126,9 @@ else:
 if batch == 294:
     xforms_modelname = xforms_modelname.replace('pup-ld', 'pup.voc-ld')
 
+if move_mask != False:
+    xforms_modelname = xforms_modelname.replace('-hrc', '-mvm-hrc')
+
 cellid, _ = io.parse_cellid({'batch': batch, 'cellid': site})
 
 if not regression_method2:
@@ -119,9 +138,11 @@ if not regression_method2:
         if batch == 294:
             options['runclass'] = 'VOC'
         rec = nb.baphy_load_recording_file(**options)
+        if move_mask != False:
+            raise ValueError("Movement mask not set up for batch 289 or 294 yet")
     else:
         manager = BAPHYExperiment(cellid=site, batch=batch)
-        options = {'rasterfs': fs, 'pupil': True, 'stim': False, 'resp': True}
+        options = {'rasterfs': fs, 'pupil': True, 'stim': False, 'resp': True, 'pupil_variable_name': 'area'}
         rec = manager.get_recording(**options)
     rec['resp'] = rec['resp'].rasterize()
     if 'cells_to_extract' in rec.meta.keys():
@@ -135,13 +156,25 @@ if not regression_method2:
     else:
         epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
     rec = rec.and_mask(epochs)
+
+    if (move_mask != False) & (batch in 331):
+        rec = movement_mask(rec, threshold=move_mask[0], binsize=move_mask[1])['rec'] 
+    elif (move_mask != False) & (batch != 331):
+        raise ValueError("Movement mask not set up for batches 289 and 294 yet")
+    else:
+        pass
+
     rec = rec.apply_mask(reset_epochs=True)
+
 
 else:
     recache=False
     if batch == 331:
         recache=False
-        xforms_modelname = xforms_modelname.replace('-hrc', '-epcpn-hrc')
+        if movement_mask != False:
+            xforms_modelname = xforms_modelname.replace('-mvm-hrc', '-epcpn-mvm-hrc')
+        else:
+            xforms_modelname = xforms_modelname.replace('-hrc', '-epcpn-hrc')
     log.info("Load recording from xforms model {}".format(xforms_modelname))
     rec_path = f'/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/{batch}/'
     rec = preproc.generate_state_corrected_psth(batch=batch, modelname=xforms_modelname, cellids=cellid, 

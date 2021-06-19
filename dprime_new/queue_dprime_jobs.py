@@ -2,7 +2,7 @@ import nems.db as nd
 import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
-batch = 294
+batch = 331
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -20,9 +20,10 @@ exclude_lowFR = False
 thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
-n_additional_noise_dims = -1 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 NOSIM = True   # If true, don't run simulations
 lvmodels = False    # run for the simulated, model results from lv xforms models
+movement_mask = (25, 1) # (threshold (in sd*100) and binsize (in sec))
 
 if lvmodels:
     # define list of lv models to fit 
@@ -119,6 +120,9 @@ if zscore == False:
 
 if exclude_lowFR:
     modellist = [m+f'_rmlowFR-{thresh}' for m in modellist]
+
+if movement_mask is not False:
+    modellist = [m.replace('dprime_', f'dprime_mvm-{movement_mask[0]}-{movement_mask[1]}_') for m in modellist]
 
 script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'

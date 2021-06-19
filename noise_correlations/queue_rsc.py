@@ -1,13 +1,14 @@
 import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
-batches = [289, 294, 331]
+batches = [331] #[289, 294, 331]
 force_rerun = True
 boxcar = True
 evoked = True
 slow = False
 perstim = True
 custom = False  # run a subset of jobs
+movement_mask = True
 
 if custom:
     modelnames = ['rsc_pr_rm1', 
@@ -67,6 +68,9 @@ if slow:
 
 if perstim:
     modelnames = [m+'_perstim' for m in modelnames]
+
+if movement_mask:
+    modelnames = [m+'_mvm' for m in modelnames]
 
 modelnames = [m for m in modelnames if ('fft' not in m)]
 
