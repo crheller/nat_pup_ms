@@ -87,6 +87,7 @@ n_noise_axes = 0    # whether or not to go beyond TDR = 2 dimensions. e.g. if th
 loocv = False    # leave-one-out cross validation
 exclude_low_fr = False
 threshold = None
+movement_mask = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -171,6 +172,22 @@ for op in options:
             threshold = int(op.split('-')[1])
         except:
             threshold = 1 # 1Hz mean firing rate across entire experiment
+    
+    if op.startswith('mvm'):
+        try:
+            threshold = float(op.split('-')[1])
+            if threshold == 1:
+                threshold = 1
+            else:
+                threshold /= 100
+            binsize = float(op.split('-')[2])
+            if binsize > 10:
+                binsize /= 100
+            else:
+                pass
+            movement_mask = (threshold, binsize)
+        except:
+            movement_mask = (0.25, 1)
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
     raise DeprecationWarning("Updates have been made since this was last used. Make sure behavior is as expected")
@@ -222,7 +239,8 @@ X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch,
                                        use_xforms=use_xforms,
                                        return_epoch_list=True,
                                        exclude_low_fr=exclude_low_fr,
-                                       threshold=threshold)
+                                       threshold=threshold,
+                                       mask_movement=movement_mask)
 ncells = X.shape[0]
 nreps_raw = X.shape[1]
 nstim = X.shape[2]
