@@ -28,9 +28,10 @@ from nems_lbhb.preprocessing import create_pupil_mask
 import nems.db as nd
 
 # A1 data
-sites = HIGHR_SITES + CPN_SITES #+ PEG_SITES + CPN_SITES
-batches = [289]*len(HIGHR_SITES) + [331]*len(CPN_SITES) #+ [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
+sites = CPN_SITES #+ PEG_SITES + CPN_SITES HIGHR_SITES + 
+batches = [331]*len(CPN_SITES) #[289]*len(HIGHR_SITES) + [331]*len(CPN_SITES) #+ [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
 zscore = True
+move_mask = True
 
 lv_dict = {}
 for batch, site in zip(batches, sites):
@@ -47,7 +48,10 @@ for batch, site in zip(batches, sites):
     if batch == 294:
         xmodel = xmodel.replace('ns.fs4.pup', 'ns.fs4.pup.voc')
     elif batch == 331:
-        xmodel = xmodel.replace('-hrc', '-epcpn-hrc')
+        if move_mask:
+            xmodel = xmodel.replace('-hrc', '-epcpn-mvm-hrc')
+        else:
+            xmodel = xmodel.replace('-hrc', '-epcpn-hrc')
         recache = False
     path = f'/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/{batch}/'
 

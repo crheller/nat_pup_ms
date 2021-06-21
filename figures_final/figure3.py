@@ -32,7 +32,7 @@ mpl.rcParams['font.size'] = 8
 savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
 
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2' #_model-LV-psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1' #
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2-fa' #_model-LV-psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1' #
 #modelname = "dprime_jk10_zscore_nclvz_fixtdr2_model-LV-psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
 recache = False
 site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
@@ -66,7 +66,8 @@ df_all = []
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
 modelname = modelname.replace('loadpred', 'loadpred.cpn')
-
+modelname = modelname.replace('dprime_', 'dprime_mvm-25-1_')
+modelname = modelname.replace('jk10', 'jk50')
 #sites = HIGHR_SITES
 #batches = [289] * len(sites)
 
