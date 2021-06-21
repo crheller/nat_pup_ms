@@ -157,7 +157,7 @@ if not regression_method2:
         epochs = [epoch for epoch in rec.epochs.name.unique() if 'STIM_00' in epoch]
     rec = rec.and_mask(epochs)
 
-    if (move_mask != False) & (batch in 331):
+    if (move_mask != False) & (batch == 331):
         rec = movement_mask(rec, threshold=move_mask[0], binsize=move_mask[1])['rec'] 
     elif (move_mask != False) & (batch != 331):
         raise ValueError("Movement mask not set up for batches 289 and 294 yet")
