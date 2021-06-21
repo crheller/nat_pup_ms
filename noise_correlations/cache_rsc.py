@@ -86,12 +86,12 @@ for k in keys:
         fs4 = True
     if k.startswith('mvm'):
         try:
-            threshold = float(op.split('-')[1])
+            threshold = float(k.split('-')[1])
             if threshold == 1:
                 threshold = 1
             else:
                 threshold /= 100
-            binsize = float(op.split('-')[2])
+            binsize = float(k.split('-')[2])
             if binsize > 10:
                 binsize /= 100
             else:
