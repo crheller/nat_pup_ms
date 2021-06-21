@@ -3,7 +3,7 @@ import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
 batch = 331
-njack = 10
+njack = 50
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)

@@ -15,11 +15,13 @@ import numpy as np
 
 import nems.preprocessing as preproc
 from nems_lbhb.baphy_experiment import BAPHYExperiment
-from nems_lbhb.preprocessing import fix_cpn_epochs, create_pupil_mask
+from nems_lbhb.preprocessing import fix_cpn_epochs, create_pupil_mask, movement_mask
 
-sites = CPN_SITES + HIGHR_SITES
-batches = [331]*len(CPN_SITES) + [289]*len(HIGHR_SITES)
+sites = CPN_SITES #+ HIGHR_SITES
+batches = [331]*len(CPN_SITES) #+ [289]*len(HIGHR_SITES)
 zscore = True
+move_mask = True
+rm_first_order = True
 
 for b, site in zip(batches, sites):
     if site in ['BOL005c', 'BOL006b']:
@@ -27,12 +29,29 @@ for b, site in zip(batches, sites):
     else:
         batch = b
 
-    manager = BAPHYExperiment(cellid=site, batch=batch)
-    options = {'rasterfs': 4, 'resp': True, 'stim': False, 'pupil': True, 'pupil_artifacts': False}
-    rec = manager.get_recording(recache=True, **options)
-    rec['resp'] = rec['resp'].rasterize()
-    if batch==331:
-        rec = fix_cpn_epochs(rec)
+    if rm_first_order:
+        if move_mask:
+            modelname = 'ns.fs4.pup-ld-st.pup-epcpn-mvm-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'
+        else:
+            modelname = 'ns.fs4.pup-ld-st.pup-epcpn-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic'
+        rec_path = f'/auto/users/hellerc/results/nat_pupil_ms/pr_recordings/{batch}/'
+        recache = False
+        rec = cpreproc.generate_state_corrected_psth(batch=batch, modelname=modelname, cellids=site, 
+                                        siteid=site,
+                                        cache_path=rec_path, recache=recache)
+        res = rec['resp']._data - rec['psth']._data
+        cor = rec['psth_sp']._data + res
+        rec['resp'] = rec['resp']._modified_copy(cor)
+    else:
+        manager = BAPHYExperiment(cellid=site, batch=batch)
+        options = {'rasterfs': 4, 'resp': True, 'stim': False, 'pupil': True}
+        rec = manager.get_recording(recache=True, **options)
+        rec['resp'] = rec['resp'].rasterize()
+        if batch==331:
+            rec = fix_cpn_epochs(rec)
+
+        if move_mask:
+            rec = movement_mask(rec)['rec']
     
     # remove epochs
     if batch in [294, 331]:
@@ -40,17 +59,7 @@ for b, site in zip(batches, sites):
     else:
         epochs = [epoch for epoch in rec['resp'].epochs.name.unique() if 'STIM_00' in epoch]
     rec = rec.and_mask(epochs)
-    # if artifacts, make them perectly tile REFs
-    try:
-        art = rec['artifacts'].extract_epochs(epochs)
-        for epoch in epochs:
-            for r in range(art[epoch].shape[0]):
-                if np.any(art[epoch][r]>0):
-                    art[epoch][r] = 1
-        rec['artifacts'] = rec['artifacts'].replace_epochs(art)
-        rec['mask'] = rec['mask']._modified_copy(rec['mask']._data & (rec['artifacts']._data==0))
-    except:
-        pass
+
 
     all_dict = rec['resp'].extract_epochs(epochs, mask=rec['mask'])
     all_dict = cpreproc.zscore_per_stim(all_dict, d2=all_dict, with_std=zscore)
