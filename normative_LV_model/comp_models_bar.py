@@ -23,31 +23,38 @@ mpl.rcParams['font.size'] = 6
 recache = False
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
-sites = HIGHR_SITES
-batches = [289]*len(CPN_SITES)
+#sites = HIGHR_SITES
+#batches = [289]*len(CPN_SITES)
 fit_val = 'fit'
 bar = False # if false, do single points w/ error
 aligned = False
 
 decoders = [
+    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
+    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa',
+    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
+    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
+    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3', 
+]
+lvdecoders = [
     'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
     'dprime_jk10_zscore_nclvz_fixtdr2-fa',
     'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
     'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
-    'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3'
+    'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3',
 ]
 # then load each of these for each cov. rank
 ranks = [1, 2, 3]
-ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
-rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
-plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
+ind = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
+rlv = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
+plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
 
 nrows = len(decoders)
 ncols = len(ranks) * 3
 
 f, ax = plt.subplots(nrows, 1, figsize=(8, 8), sharey=True)
 
-for row, decoder in enumerate(decoders):
+for row, (decoder, lvdecoder) in enumerate(zip(decoders, lvdecoders)):
     nNoiseDims = decoder.split('_')[-1]
     if nNoiseDims.startswith('noiseDim'):
         try:
@@ -97,11 +104,11 @@ for row, decoder in enumerate(decoders):
             loader = decoding.DecodingResults()
             fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+'_TDR.pickle')
             raw = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_r}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, lvdecoder+f'_model-LV-{_r}_TDR.pickle')
             lv0 = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_i}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, lvdecoder+f'_model-LV-{_i}_TDR.pickle')
             indep = loader.load_results(fn, cache_path=None, recache=recache)
-            fn = os.path.join(DPRIME_DIR, str(_batch), site, decoder+f'_model-LV-{_p}_TDR.pickle')
+            fn = os.path.join(DPRIME_DIR, str(_batch), site, lvdecoder+f'_model-LV-{_p}_TDR.pickle')
             lv = loader.load_results(fn, cache_path=None, recache=recache)
 
             # get the epochs of interest (fit epochs)
@@ -116,7 +123,7 @@ for row, decoder in enumerate(decoders):
             # fit stims first
             for k, res in zip(['pup_indep', 'indep_noise', 'lv', 'raw'], [lv0, indep, lv, raw]):
                 df = res.numeric_results
-                df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
+                df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp'])
                 df['site'] = site
                 # filter based on noise alignment
                 try:

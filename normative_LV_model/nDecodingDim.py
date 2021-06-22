@@ -23,11 +23,11 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
-modelnames = ['dprime_jk10_zscore_nclvz_fixtdr2_noiseDim-dU',
-            'dprime_jk10_zscore_nclvz_fixtdr2-fa',
-            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
-            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
-            'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3'
+modelnames = ['dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
+            'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa',
+            'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
+            'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
+            'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3'
     ]
 ndims = [1, 2, 3, 4, 5]
 

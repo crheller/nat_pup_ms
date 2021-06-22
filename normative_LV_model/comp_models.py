@@ -6,6 +6,7 @@ from path_settings import DPRIME_DIR, PY_FIGURES_DIR, PY_FIGURES_DIR2, CACHE_PAT
 import charlieTools.nat_sounds_ms.decoding as decoding
 import figures_final.helpers as fhelp
 from charlieTools.nat_sounds_ms.decoding import plot_stimulus_pair
+from nems_lbhb.analysis.statistics import get_bootstrapped_sample, get_direct_prob
 
 import seaborn as sns
 import scipy.stats as ss
@@ -21,14 +22,15 @@ mpl.rcParams['font.size'] = 6
 recache = False
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
-sites = HIGHR_SITES
-batches = [289]*len(HIGHR_SITES)
+#sites = HIGHR_SITES
+#batches = [289]*len(HIGHR_SITES)
 
 plot_example = False
-decoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa'
-rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
-ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss1"
-plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
+decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3'
+lvdecoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3'
+rlv = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss2"
+ind = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss2"
+plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss2"
 
 results = {
     'fit': {
@@ -62,11 +64,11 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     loader = decoding.DecodingResults()
     fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+'_TDR.pickle')
     raw = loader.load_results(fn, cache_path=None, recache=recache)
-    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_rlv}_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, lvdecoder+f'_model-LV-{_rlv}_TDR.pickle')
     lv0 = loader.load_results(fn, cache_path=None, recache=recache)
-    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_ind}_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, lvdecoder+f'_model-LV-{_ind}_TDR.pickle')
     indep = loader.load_results(fn, cache_path=None, recache=recache)
-    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_plv}_TDR.pickle')
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, lvdecoder+f'_model-LV-{_plv}_TDR.pickle')
     lv = loader.load_results(fn, cache_path=None, recache=recache)
 
     # get the epochs of interest (fit epochs)
@@ -81,7 +83,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     # fit stims first
     for k, res in zip(['pup_indep', 'indep_noise', 'lv', 'raw'], [lv0, indep, lv, raw]):
         df = res.numeric_results
-        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) #/ (df['bp_dp'] + df['sp_dp'])
+        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp']) #(df['bp_dp'] + df['sp_dp'])
         df['site'] = site
         results['fit'][k].append(df.loc[fit_combos])
         results['val'][k].append(df.loc[val_combos])
@@ -123,7 +125,7 @@ f.tight_layout()
 # ========================= LOOK ONLY AT SIGNIFICANT STIMULUS PAIRS =======================
 # i.e. filter for pairs of stimuli where there was a real change in dprime
 dfraw = results['fit']['raw'].copy()
-maskf = abs(dfraw.bp_dp-dfraw.sp_dp)>((dfraw.bp_dp_sem+dfraw.sp_dp_sem)*np.sqrt(1)) 
+maskf = [True] * len(dfraw) #abs(dfraw.bp_dp-dfraw.sp_dp)>((dfraw.bp_dp_sem+dfraw.sp_dp_sem)*np.sqrt(1)) 
 
 # scatter plot of model vs. true for each model
 f, ax = plt.subplots(1, 3, figsize=(12, 4), sharex=True, sharey=True)
@@ -248,6 +250,17 @@ f.tight_layout()
 
 plt.show()
 
+
+exdf = cat_fit.copy()
+exdf['site'] = results['fit']['raw']['site']
+exdf['indep_err'] = np.abs(exdf['indep_noise'] - exdf['raw'])
+exdf['lv_err'] = np.abs(exdf['lv'] - exdf['raw'])
+exdf['rlv_err'] = np.abs(exdf['pup_indep'] - exdf['raw'])
+
+d = {s: exdf[exdf.site==s]['rlv_err'].values-exdf[exdf.site==s]['lv_err'].values for s in exdf['site'].unique()} 
+bootsample = get_bootstrapped_sample(d, metric='mean', even_sample=False, nboot=1000) 
+p = get_direct_prob(bootsample, np.zeros(len(bootsample)))[0]; print(p) 
+
 if plot_example:
     # find stimulus pairs where LV model outperforms Indep. Noise model and 
     # show an example in the decoding space (dDR)
@@ -262,8 +275,8 @@ if plot_example:
     exdf['diff'] = exdf['indep_err']-exdf['lv_err']
     #pair = (5, 11)
     #site = 'ARM029a'
-    pair = (0, 9)
-    site = 'AMT026a'
+    pair = (0, 1)
+    site = 'AMT020a'
     # pair=(2, 10), site='AMT020a' -- Great example of where LV helps and delta-dprime is positive
     #pair = (2, 7)
     #site = 'ARM032a'
@@ -326,6 +339,7 @@ if plot_example:
         plot_stimulus_pair(site, b, pair, axlabs=[r'$\Delta \mu$', 'Noise Dim. 1'], 
                                     ellipse=True, pup_split=True, ax=ax[4],
                                     xforms_modelname=None,
+                                    mask_movement=(0.25, 2),
                                     title_string=f"Raw data -- pair: {pair}, site: {site}, delta dprime: {round(float(exdf['raw'].iloc[i]), 3)}",
                                     lv_axis=rand_ax, s=15)
         

@@ -66,8 +66,8 @@ df_all = []
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
 modelname = modelname.replace('loadpred', 'loadpred.cpn')
-modelname = modelname.replace('dprime_', 'dprime_mvm-25-1_')
-modelname = modelname.replace('jk10', 'jk50')
+#modelname = modelname.replace('dprime_', 'dprime_mvm-25-2_')
+#modelname = modelname.replace('jk10', 'jk50')
 #sites = HIGHR_SITES
 #batches = [289] * len(sites)
 
