@@ -33,6 +33,10 @@ ind = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvno
 #plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 
+rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_ccnorm.r.t5.ss1'
+indep = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.3xR_ccnorm.r.t5.ss1'
+plv = 'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1'
+
 results = {
     'fit': {
         'pup_indep': [],
@@ -84,7 +88,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     # fit stims first
     for k, res in zip(['pup_indep', 'indep_noise', 'lv', 'raw'], [lv0, indep, lv, raw]):
         df = res.numeric_results
-        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) #/ (df['bp_dp'] + df['sp_dp'])#(raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp']) #(df['bp_dp'] + df['sp_dp'])
+        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])#(raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp']) #(df['bp_dp'] + df['sp_dp'])
         df['site'] = site
         results['fit'][k].append(df.loc[fit_combos])
         results['val'][k].append(df.loc[val_combos])

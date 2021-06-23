@@ -2,7 +2,7 @@ import nems.db as nd
 import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
-batch = 289
+batch = 331
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -20,25 +20,30 @@ exclude_lowFR = False
 thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
-n_additional_noise_dims = 5 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+n_additional_noise_dims = -1 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 NOSIM = True   # If true, don't run simulations
-lvmodels = False   # run for the simulated, model results from lv xforms models
+lvmodels = True   # run for the simulated, model results from lv xforms models
 lv_movement_mask = True # for loading LV model with movement mask in place
-movement_mask = False#(25, 2) # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
+movement_mask = (25, 2) # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
 
 if lvmodels:
     # define list of lv models to fit 
-    import dprime_new.queue_helpers as qh #additive_models, additive_models_so, gain_models, gain_models_so, indep_noise, indep_noise_so, indep_gain_so
-    #lvmodelnames = qh.additive_models_so
-    #lvmodelnames = qh.gain_models
-    #lvmodelnames = qh.gain_models_so
-    #lvmodelnames = qh.indep_noise
-    
-    #lvmodelnames = qh.gain_models_so
+    import dprime_new.queue_helpers as qh 
     # DC models
     lvmodelnames = qh.indep_noise_so + qh.additive_models_so
     # gain models
     #lvmodelnames = qh.gain_models_so + qh.indep_gain_so
+
+    # temporary test new LV models
+    lvmodelnames = [
+        'psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1',
+        'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1',
+        'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1',
+        'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.3xR_ccnorm.r.t5.ss1',
+        'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_ccnorm.r.t5.ss1',
+        'psth.fs4.pup-ld-st.pup-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1'
+    ]
+
     lvmodelnames = [m.replace('eg', 'e') for m in lvmodelnames]
     lvmodelnames = [m for m in lvmodelnames if 'e5' not in m]
 
