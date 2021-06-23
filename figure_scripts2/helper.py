@@ -32,11 +32,13 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='ful
     # get matrix max based on length of spectrogram
     extent = int((spectrogram.shape[-1] / stim_fs) * resp_fs)
 
+    n_components = df.index.get_level_values(1)[0]
+
     # fill confusion matrix
     
     cfm = np.nan * np.ones((extent, extent))
     for c in df.index.get_level_values(0):
-        r = df.loc[pd.IndexSlice[c, 2], :]
+        r = df.loc[pd.IndexSlice[c, n_components], :]
         c1 = int(c.split('_')[0])
         c2 = int(c.split('_')[1])
         cfm[c1, c2] = r[metric]
@@ -46,7 +48,7 @@ def plot_confusion_matrix(df, metric, spectrogram, sortby=None, sort_method='ful
 
         cfm_sort = np.nan * np.ones((extent, extent))
         for c in df.index.get_level_values(0):
-            r = df.loc[pd.IndexSlice[c, 2], :]
+            r = df.loc[pd.IndexSlice[c, n_components], :]
             c1 = int(c.split('_')[0])
             c2 = int(c.split('_')[1])
             cfm_sort[c1, c2] = r[sortby[0]]

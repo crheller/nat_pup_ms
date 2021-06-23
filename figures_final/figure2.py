@@ -29,8 +29,9 @@ mpl.rcParams['axes.spines.top'] = False
 savefig = False
 fig_fn = PY_FIGURES_DIR3 + 'fig2.svg'
 recache = False
+use_noise_axis = False
 
-site = 'AMT026a'
+site = 'ARM031a'
 batch = 331
 
 # ========= Load decoding results and pick stimuli ========
@@ -43,14 +44,17 @@ df = res.numeric_results.loc[pd.IndexSlice[res.evoked_stimulus_pairs, ndim], :]
 df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
 df['raw_delta'] = (df['bp_dp'] - df['sp_dp'])
 stims = (0, 6, 9)
+stims = np.random.choice(range(12), 3, replace=False)
+#stims = (2, 8, 11)
 
 # ====================== Get PC data ======================
-xf_model = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t5.ss1"
-xf_model = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
-
+xf_model = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss2"
+#xf_model = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
+xf_model = None
 X_raw, sp_bins, X_pup, pup_mask, epochs, spont_raw = decoding.load_site(site=site, 
                                                         batch=batch, 
                                                         xforms_modelname=None,
+                                                        mask_movement=(25, 2),
                                                         special=True)
 if xf_model is not None:
     X, _, _, _, _, _ = decoding.load_site(site=site, 
@@ -93,12 +97,24 @@ Xu_center = Xu - spont # subtract spont
 pca = PCA()
 pca.fit(Xu_center.T)
 
+# make second PC noise axis
+if use_noise_axis:
+    X_center = X_raw - X_raw.mean(axis=1, keepdims=True)
+    pca2 = PCA()
+    pca2.fit(X_center.reshape(ncells, -1).T)
+    nproj = (np.dot(pca2.components_[0], pca.components_[0].T)) * pca.components_[0]
+    orth_ax = pca2.components_[0] - nproj
+    orth_ax /= np.linalg.norm(orth_ax)
+    weights = np.stack([pca.components_[0], orth_ax])
+else:
+    weights = pca.components_[0:2, :]
+
 spont = spont[:, :, np.newaxis] # for subtracting from single trial data
 if batch==331:
     X_spont = X - spont.transpose(0, 2, 1)
 else:
     X_spont = X - spont
-proj = (X_spont).T.dot(pca.components_[0:2, :].T)
+proj = (X_spont).T.dot(weights.T)
 
 pr1 = proj[stims[0]]
 pr2 = proj[stims[1]]
@@ -154,7 +170,7 @@ for i, (ep, spec) in enumerate(spectrogram.items()):
         if '_'.join(ek.split('_')[:-1]) == ep:
             b = int(ek.split('_')[-1])
             st = (spec['data'].shape[-1] / 3) * b
-            en = (spec['data'].shape[-1] / 3) * b + (spec['data'].shape[-1] / 3) * (b + 1)
+            en = ((spec['data'].shape[-1] / 3) * b) + ((spec['data'].shape[-1] / 3))
             ax.axvline(st, color=cols(j), lw=1)
             ax.axvline(en, color=cols(j), lw=1)
             yl = ax.get_ylim()[-1]

@@ -19,6 +19,8 @@ from path_settings import DPRIME_DIR, PY_FIGURES_DIR, PY_FIGURES_DIR2, CACHE_PAT
 import charlieTools.nat_sounds_ms.decoding as decoding
 import figures_final.helpers as fhelp
 
+import nems.db as nd
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -33,46 +35,124 @@ site = 'AMT020a'
 batch = 331
 
 # LOAD RAW DATA / MODEL PREDICTIONS
-indep = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.so-inoise.3xR_ccnorm.t5.ss1"
-rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss1"
-plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.so-inoise.2xR_ccnorm.t6.ss1"
+indep = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss1"
+rlv = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
+plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 
-xf_indep, ctx_indep = load_model_xform(modelname=indep, batch=batch, cellid=site)
-xf_rlv, ctx_rlv = load_model_xform(modelname=rlv, batch=batch, cellid=site)
-xf_plv, ctx_plv = load_model_xform(modelname=plv, batch=batch, cellid=site)
+reverything = 'psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1'
+indep = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.3xR_ccnorm.r.t5.ss1'
+rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_ccnorm.r.t5.ss1'
+plv = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1'
+
+try:
+    cellid = site
+    xf_indep, ctx_indep = load_model_xform(modelname=indep, batch=batch, cellid=cellid)
+    xf_rlv, ctx_rlv = load_model_xform(modelname=rlv, batch=batch, cellid=cellid)
+    xf_plv, ctx_plv = load_model_xform(modelname=plv, batch=batch, cellid=cellid)
+except:
+    cellid = [c for c in nd.get_batch_cells(batch).cellid if site in c][0]
+    xf_indep, ctx_indep = load_model_xform(modelname=indep, batch=batch, cellid=cellid)
+    xf_rlv, ctx_rlv = load_model_xform(modelname=rlv, batch=batch, cellid=cellid)
+    xf_plv, ctx_plv = load_model_xform(modelname=plv, batch=batch, cellid=cellid)
 
 # GET COV MATRICES
-ibg, ism = fhelp.get_cov_matrices(ctx_indep['val'].copy(), sig='pred')
-rbg, rsm = fhelp.get_cov_matrices(ctx_rlv['val'].copy(), sig='pred')
-pbg, psm = fhelp.get_cov_matrices(ctx_plv['val'].copy(), sig='pred')
-bg, sm = fhelp.get_cov_matrices(ctx_plv['val'].copy(), sig='resp')
+stim = np.arange(10)
+ibg, ism = fhelp.get_cov_matrices(ctx_indep['val'].copy(), sig='pred', sub='psth_sp', stims=stim, ss=0)
+rbg, rsm = fhelp.get_cov_matrices(ctx_rlv['val'].copy(), sig='pred', sub='psth_sp', stims=stim, ss=0)
+pbg, psm = fhelp.get_cov_matrices(ctx_plv['val'].copy(), sig='pred', sub='psth_sp', stims=stim, ss=0)
+bg, sm = fhelp.get_cov_matrices(ctx_plv['val'].copy(), sig='resp', sub='psth_sp', stims=stim, ss=0)
 mm = np.abs(np.max(np.concatenate((ibg, ism, rbg, rsm, pbg, psm, bg, sm))))
 mm=10
-dmm=5
-f, ax = plt.subplots(3, 4, figsize=(8, 6))
+dmm=2
 
-ax[0, 0].set_title('Pupil-independent (st.pup0.pvp0)')
-ax[0, 0].set_ylabel('BIG PUPIL')
-ax[0, 0].imshow(rbg, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[1, 0].imshow(rsm, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[1, 0].set_ylabel('SMALL PUPIL')
-ax[2, 0].imshow(rsm-rbg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
-ax[2, 0].set_ylabel('DIFF')
+# LOAD DECODING RESULTS FOR MODEL / RAW DATA
+recache = False
+sites = CPN_SITES
+batches = [331]*len(CPN_SITES)
+decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
+results = {
+    'fit': {
+        'pup_indep': [],
+        'indep_noise': [],
+        'lv': [],
+        'raw': []
+    },
+    'val': {
+        'pup_indep': [],
+        'indep_noise': [],
+        'lv': [],
+        'raw': []
+    }
+}
+for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['CRD017c', 'CRD016d']]:
+    if site in ['BOL006b', 'BOL005c']:
+        batch2 = 294
+    else:
+        batch2 = batch
 
-ax[0, 1].set_title('Pupil-dependent indep. noise')
-ax[0, 1].imshow(ibg, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[1, 1].imshow(ism, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[2, 1].imshow(ism-ibg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+    if batch in [289, 294]:
+        _rlv = rlv.replace('.cpn', '')
+        _ind = indep.replace('.cpn', '')
+        _plv = plv.replace('.cpn', '')
+    else:
+        _rlv = rlv
+        _ind = indep
+        _plv = plv
 
-ax[0, 2].set_title('Pupil-dependent LV (st.pup.pvp)')
-ax[0, 2].imshow(pbg, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[1, 2].imshow(psm, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[2, 2].imshow(psm-pbg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+    loader = decoding.DecodingResults()
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+'_TDR.pickle')
+    raw = loader.load_results(fn, cache_path=None, recache=recache)
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_rlv}_TDR.pickle')
+    lv0 = loader.load_results(fn, cache_path=None, recache=recache)
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_ind}_TDR.pickle')
+    indep_noise = loader.load_results(fn, cache_path=None, recache=recache)
+    fn = os.path.join(DPRIME_DIR, str(batch2), site, decoder+f'_model-LV-{_plv}_TDR.pickle')
+    lv = loader.load_results(fn, cache_path=None, recache=recache)
 
-ax[0, 3].set_title('Raw data')
-ax[0, 3].imshow(bg, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[1, 3].imshow(sm, aspect='auto', vmin=-mm, vmax=mm, cmap='bwr')
-ax[2, 3].imshow(sm-bg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+    # get the epochs of interest (fit epochs)
+    mask_bins = lv.meta['mask_bins']
+    fit_combos = [k for k, v in lv.mapping.items() if (('_'.join(v[0].split('_')[:-1]), int(v[0].split('_')[-1])) in mask_bins) & \
+                                                        (('_'.join(v[1].split('_')[:-1]), int(v[1].split('_')[-1])) in mask_bins)]
+    all_combos = lv.evoked_stimulus_pairs
+    val_combos = [c for c in all_combos if c not in fit_combos]
+
+    # save results for each model and for divide by fit / not fit stimuli
+    
+    # fit stims first
+    for k, res in zip(['pup_indep', 'indep_noise', 'lv', 'raw'], [lv0, indep_noise, lv, raw]):
+        df = res.numeric_results
+        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) #/ (df['bp_dp'] + df['sp_dp'])#(raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp']) #(df['bp_dp'] + df['sp_dp'])
+        df['site'] = site
+        results['fit'][k].append(df.loc[fit_combos])
+        results['val'][k].append(df.loc[val_combos])
+
+# concatenate data frames
+for k in results['fit'].keys():
+    results['fit'][k] = pd.concat(results['fit'][k])
+    results['val'][k] = pd.concat(results['val'][k])
+
+
+
+# MAKE FIGURE
+dmmr = 2
+dmm = 2
+
+f, ax = plt.subplots(1, 4, figsize=(12, 3))
+
+ax[0].set_title('Pupil-independent (st.pup0.pvp0)')
+ax[0].set_ylabel('BIG PUPIL')
+ax[0].set_ylabel('SMALL PUPIL')
+ax[0].imshow(rsm-rbg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+ax[0].set_ylabel('DIFF')
+
+ax[1].set_title('Independent noise')
+ax[1].imshow(ism-ibg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+
+ax[2].set_title('Pupil-dependent LV (st.pup.pvp0)')
+ax[2].imshow(psm-pbg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+
+ax[3].set_title('Raw data')
+ax[3].imshow(sm-bg, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
 
 f.tight_layout()
 

@@ -99,6 +99,7 @@ for k in keys:
             move_mask = (threshold, binsize)
         except:
             move_mask = (0.25, 1)
+log.info(move_mask)
 path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations_final/'
 
 log.info('Computing noise correlations for site: {0} with options: \n \

@@ -32,7 +32,8 @@ mpl.rcParams['font.size'] = 8
 savefig = False
 fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
 
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2-fa' #_model-LV-psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1' #
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU' #_model-LV-psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1' #
+n_components = 1
 #modelname = "dprime_jk10_zscore_nclvz_fixtdr2_model-LV-psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
 recache = False
 site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
@@ -47,7 +48,6 @@ loader = decoding.DecodingResults()
 fn = os.path.join(DPRIME_DIR, str(batch), site, modelname+'_TDR.pickle')
 results = loader.load_results(fn, cache_path=None, recache=recache)
 df = results.numeric_results.loc[results.evoked_stimulus_pairs]
-df['noiseAlign'] = results.slice_array_results('cos_dU_evec_test', results.evoked_stimulus_pairs, 2, idx=(0, 0))[0]
 
 X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch, return_epoch_list=True)
 ncells = X.shape[0]
@@ -60,7 +60,6 @@ nstim = nstim * nbins
 # ============================= LOAD DPRIME =========================================
 path = DPRIME_DIR
 loader = decoding.DecodingResults()
-n_components = 2
 recache = False
 df_all = []
 sites = CPN_SITES
@@ -75,6 +74,13 @@ for batch, site in zip(batches, sites):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
+    if batch == 331:
+        mn = modelname.replace('loadpred', 'loadpred.cpn')
+        mn = modelname.replace('dprime_', 'dprime_mvm-25-2_')
+        mn = modelname.replace('noiseDim-dU', 'noiseDim-6')
+        n_components = 8
+    else:
+        n_components = 1
     if site in ['BOL005c', 'BOL006b']:
         batch = 294
     try:
@@ -85,7 +91,7 @@ for batch, site in zip(batches, sites):
         print(f"WARNING!! NOT LOADING SITE {site}")
 
     stim = results.evoked_stimulus_pairs
-    _df = _df.loc[pd.IndexSlice[stim, 2], :]
+    _df = _df.loc[pd.IndexSlice[stim, n_components], :]
     _df['site'] = site
     df_all.append(_df)
 
@@ -133,6 +139,7 @@ stim_fs = 500
 
 # ====================== LOAD REGRESSION ANALYSIS ACROSS SITES ==========================
 # for example site alone
+'''
 df['r1'] = [proj[int(idx.split('_')[0]), :, 0].mean() for idx in df.index.get_level_values(0)]
 df['r2'] = [proj[int(idx.split('_')[1]), :, 0].mean() for idx in df.index.get_level_values(0)]
 y = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
@@ -140,7 +147,7 @@ X = df[['r1', 'r2', 'dU_mag_test', 'noiseAlign']]
 X['interaction'] = X['r1'] * X['r2']
 X = sm.add_constant(X)
 model = sm.OLS(y, X).fit()
-
+'''
 
 # ================================== BUILD FIGURE =======================================
 f = plt.figure(figsize=(13, 6))
@@ -225,7 +232,8 @@ cbar = f.colorbar(im, ax=diff, cax=cax, orientation='horizontal', ticks=[-1, 0, 
 # plot dprime results
 nSamples = 2000
 idx = df_all[['bp_dp', 'sp_dp']].max(axis=1) < 100
-nSamples = idx.sum()
+if idx.sum()<nSamples:
+    nSamples = idx.sum()
 sidx = np.random.choice(range(idx.sum()), nSamples, replace=False)
 bp = df_all['bp_dp'].values[idx][sidx]
 sp = df_all['sp_dp'].values[idx][sidx]
