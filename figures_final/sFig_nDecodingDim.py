@@ -1,8 +1,6 @@
-"""
-Compare models with 0, 1, 2, or 3 extra dDR dims for the data with high reps (CPN)
-
-Idea is to show that overall dprime improves, but delta dprime is low dimensional.
-""" 
+'''
+Supplemental figure showing choice of n decoding dimensions
+'''
 import sys
 sys.path.append('/auto/users/hellerc/code/projects/nat_pupil_ms/')
 sys.path.append('/home/charlie/lbhb/code/projects/nat_pup_ms/')
@@ -13,6 +11,7 @@ import load_results as ld
 import nems.db as nd
 import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 
+import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -23,7 +22,8 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
-modelnames = ['dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-nclv_noiseDim-dU',
+display_dU = False
+modelnames = ['dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
             'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa',
             'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
             'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
@@ -37,8 +37,8 @@ ndims = [1, 2, 3, 4, 5, 6, 7, 8]
 path = DPRIME_DIR
 loader = decoding.DecodingResults()
 recache = False
-sites = CPN_SITES
-batches = [331] * len(CPN_SITES)
+sites = HIGHR_SITES + CPN_SITES
+batches = [289] * len(HIGHR_SITES) + [331]*len(CPN_SITES)
 
 df = []; df1 = []; df2 = []; df3 = []; df4 = []; df5 = []; df6 = []; df7 = []
 for i, (batch, site) in enumerate(zip(batches, sites)):
@@ -46,13 +46,25 @@ for i, (batch, site) in enumerate(zip(batches, sites)):
         if site in ['BOL005c', 'BOL006b']:
             batch = 294
         try:
+            if batch in [289, 294]:
+                mn = mn.replace('mvm-25-2_', '')
             fn = os.path.join(path, str(batch), site, mn+'_TDR.pickle')
             results = loader.load_results(fn, cache_path=None, recache=recache)
             _df = results.numeric_results
         except:
             raise ValueError(f"WARNING!! NOT LOADING SITE {site}")
 
-        stim = results.evoked_stimulus_pairs
+        # only use epochs with reliable noise distros
+        if batch in [289, 294]:
+            fn = f'/auto/users/hellerc/results/nat_pupil_ms/reliable_epochs/{batch}/{site}.pickle'
+            reliable_epochs = pickle.load(open(fn, "rb"))
+            reliable_epochs = np.array(reliable_epochs['sorted_epochs'])[reliable_epochs['reliable_mask']]
+            reliable_epochs = ['_'.join(e) for e in reliable_epochs]
+            stim = results.evoked_stimulus_pairs
+            stim = [s for s in stim if (results.mapping[s][0] in reliable_epochs) & (results.mapping[s][1] in reliable_epochs)]
+        else:
+            stim = results.evoked_stimulus_pairs
+
         _df = _df.loc[pd.IndexSlice[stim, ndim], :]
         _df['site'] = site
         _df['batch'] = batch
@@ -70,30 +82,36 @@ delta = pd.concat([df['delta_dprime'], df1['delta_dprime'], df2['delta_dprime'],
                     df5['delta_dprime'], df6['delta_dprime'], df7['delta_dprime'], df['site']], axis=1)
 delta.columns = [r"$\Delta \mu$", r'$dDR$', r'$dDR_1$', r'$dDR_2$', r'$dDR_3$', r'$dDR_4$', r'$dDR_5$', r'$dDR_6$', 'site']
 
-f, ax = plt.subplots(2, 2, figsize=(9, 8))
+if not display_dU:
+    overall = overall[[c for c in overall.columns if c!=r"$\Delta \mu$"]]
+    delta = delta[[c for c in delta.columns if c!=r"$\Delta \mu$"]]
 
-sns.stripplot(data=overall.melt('site'), x='variable', y='value', **{'s': 2}, ax=ax[0, 0], zorder=-1)
-ax[0, 0].set_ylabel(r"$d'^2$")
-ax[0, 0].set_xlabel(r"$dDR$ Noise Dimensions")
+# plot fraction change in dprime for each site as function of dims
+cols = plt.get_cmap('Blues', len(overall.site.unique())+5)
+vals = overall.groupby(by='site').mean().values
+cutoff = 0.05
 
-sns.stripplot(data=delta.melt('site'), x='variable', y='value', **{'s': 2}, ax=ax[0, 1])
-ax[0, 1].set_ylabel(r"$\Delta d'^2$")
-ax[0, 1].set_xlabel(r"$dDR$ Noise Dimensions")
+f, ax = plt.subplots(1, 2, figsize=(6, 3))
+for i in range(vals.shape[0]):
+    ax[0].plot(vals[i, :] / vals[i, 0], color=cols(i+2), zorder=-1)
+    ax[1].plot(np.diff(vals[i, :]) / vals[i, :-1], color=(cols(i+2)), zorder=-1)
 
-cols = plt.get_cmap('tab10', len(overall.site.unique()))
-for i, site in enumerate(overall.site.unique()):
-    data = overall[overall.site==site].melt('site').groupby(by='variable').mean()['value']
-    data = data / data[0]
-    ax[1, 0].plot(range(8), data, 'o-', color=cols(i))
-    data = delta[delta.site==site].melt('site').groupby(by='variable').mean()['value']
-    data = data #- data[0]
-    ax[1, 1].plot(range(8), data, 'o-', color=cols(i), label=site)
-#ax[1, 1].set_ylim((-.1, .1))
-ax[1, 1].legend(bbox_to_anchor=(1, 1), loc='upper left', frameon=False)
-ax[1, 1].set_xlabel(r"$dDR$ Noise Dimensions")
-ax[1, 0].set_xlabel(r"$dDR$ Noise Dimensions")
-ax[1, 0].set_ylabel(r"Normalized $d'^2$")
-ax[1, 1].set_ylabel(r"Normalized $\Delta d'^2$")
+ax[0].errorbar(range(vals.shape[1]), (vals.T / vals[:, 0]).T.mean(axis=0), 
+                                yerr=(vals.T / vals[:, 0]).T.std(axis=0) / np.sqrt(vals.shape[0]),
+                                capsize=2, lw=2, color='k')
+ax[1].errorbar(range(vals.shape[1]-1), (np.diff(vals, axis=1) / vals[:, :-1]).mean(axis=0), 
+                                yerr=(np.diff(vals, axis=1) / vals[:, :-1]).std(axis=0) / np.sqrt(vals.shape[0]),
+                                capsize=2, lw=2, color='k')
+ax[1].axhline(cutoff, color='red', linestyle='--')
+
+ax[0].set_ylabel(r"$d'^2$ (normalized)")
+ax[1].set_ylabel(r"Stepwise fraction improvement in $d'^2$")
+xticks = delta.columns[:-1]
+ax[0].set_xticks(range(vals.shape[1]))
+ax[0].set_xticklabels(xticks)
+ax[1].set_xticks(range(vals.shape[1]-1))
+ax[1].set_xticklabels(xticks[1:])
+
 f.tight_layout()
 
 plt.show()
