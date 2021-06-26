@@ -10,7 +10,7 @@ def get_cov_matrices(rec, sig='resp', sub='pred0', stims=None, ss=0):
         3) stack / compute cov
     """
     r = rec.copy()
-    r = r.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
+    #r = r.and_mask(['PreStimSilence', 'PostStimSilence'], invert=True)
     r = r.apply_mask()
     all_big = [sig for sig in r.signals.keys() if sig.startswith('mask_') & sig.endswith('_lg')]
     all_small = [sig for sig in r.signals.keys() if sig.startswith('mask_') & sig.endswith('_sm')]
@@ -34,9 +34,17 @@ def get_cov_matrices(rec, sig='resp', sub='pred0', stims=None, ss=0):
 
     if ss > 0:
         u,s,vh = np.linalg.svd(np.cov(lg_residual))
-        Ulg = u[:,:ss] @ u[:,:ss].T
+        Ulg = (u[:,:ss] @ u[:,:ss].T)
+        cc = np.cov(lg_residual)
+        cc1lg = np.cov(Ulg @ lg_residual)
+        np.fill_diagonal(cc1lg, np.diag(cc))  
+
         u,s,vh = np.linalg.svd(np.cov(sm_residual))
-        Usm = u[:,:ss] @ u[:,:ss].T
-        return Ulg, Usm
+        Usm = (u[:,:ss] @ u[:,:ss].T)
+        cc = np.cov(sm_residual)
+        cc1sm = np.cov(Usm @ sm_residual)
+        np.fill_diagonal(cc1sm, np.diag(cc))  
+
+        return cc1lg, cc1sm
     else:
         return np.cov(lg_residual), np.cov(sm_residual)

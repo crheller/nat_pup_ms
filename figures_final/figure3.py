@@ -5,7 +5,7 @@ response properties (e.g. PC_1 response variance)
 
 Also, show big /small pupil d-pdrime scatter plot
 """
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR2, CACHE_PATH
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR3, CACHE_PATH
 from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, CPN_SITES
 from regression_helper import fit_OLS_model
 import figure_scripts2.helper as chelp
@@ -14,6 +14,8 @@ import charlieTools.nat_sounds_ms.preprocessing as nat_preproc
 import charlieTools.nat_sounds_ms.decoding as decoding
 from charlieTools.statistics import get_direct_prob, get_bootstrapped_sample
 
+import scipy.stats as ss
+import pickle
 import os
 import pandas as pd
 from scipy.stats import gaussian_kde
@@ -29,12 +31,19 @@ mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
-savefig = False
-fig_fn = PY_FIGURES_DIR2 + 'fig3.svg'
+np.random.seed(123)
+savefig = True
+fig_fn = PY_FIGURES_DIR3 + 'fig3.svg'
+figS2 = PY_FIGURES_DIR3 + 'S2_fig3.svg'
+S3 = False # this is for delta dprime vs. delta signal + delta noise regression. It's slow, and not really necessary.
+sig_pairs_only = True # if true, only load stim pairs with reliable epochs for 294 / 289 data
+if sig_pairs_only:
+    fig_fn = fig_fn.replace('.svg', '_sigEpochsOnly.svg').replace('fig3', 'S1_fig3')
 
-modelname = 'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU' #_model-LV-psth.fs4.pup-loadpred-st.pup.pvp-plgsm.e5.sp-lvnoise.r8-aev_lvnorm.SxR.d-inoise.2xR_ccnorm.t5.pc1' #
-n_components = 1
-#modelname = "dprime_jk10_zscore_nclvz_fixtdr2_model-LV-psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d-inoise.3xR_ccnorm.t5.ss3"
+modelname = 'dprime_jk10_zscore_nclvz_fixtdr2-fa'
+nComponents = 2
+modelname331 = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
+nComponents331 = 8
 recache = False
 site = 'DRX008b.e65:128' #'DRX007a.e65:128' #'DRX008b.e65:128' #'DRX007a.e65:128'
 batch = 289
@@ -64,22 +73,21 @@ recache = False
 df_all = []
 sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
-#modelname = modelname.replace('jk10', 'jk50')
 sites = HIGHR_SITES
 batches = [289] * len(sites)
-
+sites = CPN_SITES + HIGHR_SITES
+batches = [331] * len(CPN_SITES) + [289] * len(HIGHR_SITES)
 for batch, site in zip(batches, sites):
     if (site in LOWR_SITES) & (batch != 331):
         mn = modelname.replace('_jk10', '_jk1_eev')
     else:
         mn = modelname
     if batch == 331:
-        mn = modelname.replace('loadpred', 'loadpred.cpn')
-        mn = modelname.replace('dprime_', 'dprime_mvm-25-2_')
-        mn = modelname.replace('noiseDim-dU', 'noiseDim-6')
-        n_components = 8
+        mn = modelname331
+        n_components = nComponents331
     else:
-        n_components = 1
+        mn = modelname
+        n_components = nComponents
     if site in ['BOL005c', 'BOL006b']:
         batch = 294
     try:
@@ -89,8 +97,21 @@ for batch, site in zip(batches, sites):
     except:
         print(f"WARNING!! NOT LOADING SITE {site}")
 
-    stim = results.evoked_stimulus_pairs
+    if (batch in [289, 294]) & (sig_pairs_only):
+        fn = f'/auto/users/hellerc/results/nat_pupil_ms/reliable_epochs/{batch}/{site}.pickle'
+        reliable_epochs = pickle.load(open(fn, "rb"))
+        reliable_epochs = np.array(reliable_epochs['sorted_epochs'])[reliable_epochs['reliable_mask']]
+        reliable_epochs = ['_'.join(e) for e in reliable_epochs]
+        stim = results.evoked_stimulus_pairs
+        stim = [s for s in stim if (results.mapping[s][0] in reliable_epochs) & (results.mapping[s][1] in reliable_epochs)]
+    else:
+        stim = results.evoked_stimulus_pairs
     _df = _df.loc[pd.IndexSlice[stim, n_components], :]
+    if S3:
+        bpnoise = results.slice_array_results('bp_evals', stim, n_components, idx=None)[0].apply(lambda x: x.sum())
+        spnoise = results.slice_array_results('sp_evals', stim, n_components, idx=None)[0].apply(lambda x: x.sum())
+        _df['delta_noise'] = bpnoise - spnoise
+        _df['delta_dU_mag'] = _df['bp_dU_mag'] - _df['sp_dU_mag']
     _df['site'] = site
     df_all.append(_df)
 
@@ -229,7 +250,7 @@ cbar = f.colorbar(im, ax=diff, cax=cax, orientation='horizontal', ticks=[-1, 0, 
 
 # plot scatter plot of delta dprime results
 # plot dprime results
-nSamples = 2000
+nSamples = 3000
 idx = df_all[['bp_dp', 'sp_dp']].max(axis=1) < 100
 if idx.sum()<nSamples:
     nSamples = idx.sum()
@@ -268,5 +289,101 @@ print(f"Fraction of stimlulus pairs with decreases per site: {np.mean(frac)}, se
 
 if savefig:
     f.savefig(fig_fn)
+
+
+################################################# SUPPLEMENTAL FIGS ##########################################################
+# mainly control analyses
+# S1 - rerun this script with sig_pairs_only = True to only use stimuli that had reliable noise estimates (or, could just only use CPN data...?)
+# S2 - delta dprime does not depend on absolute dprime
+# S3 - variance can go up / down, signal magnitde always goes up, both contribute to delta dprime (current fig5 regression)
+# 
+
+# S2 - perform regression to test for overall dprime vs. delta dprime relationship. Do this for each site.
+# try median split and look at fraction -- regression method get complicated for baseline normalization reasons
+lg_pos_fract = []
+lg_neg_fract = []
+sm_pos_fract = []
+sm_neg_fract = []
+f, ax = plt.subplots(1, 1, figsize=(2.5, 3))
+for s in df_all.site.unique():
+    dfr = df_all[df_all.site==s].reset_index()
+    if dfr.shape[0] >= 20:
+        mask = dfr['dp_opt_test'] > np.median(dfr['dp_opt_test'])
+        lg_pos = (dfr[mask]['delta'] > 0).sum() / mask.sum(); lg_pos_fract.append(lg_pos)
+        lg_neg = (dfr[mask]['delta'] < 0).sum() / mask.sum(); lg_neg_fract.append(lg_neg)
+        sm_pos = (dfr[~mask]['delta'] > 0).sum() / (~mask).sum(); sm_pos_fract.append(sm_pos)
+        sm_neg = (dfr[~mask]['delta'] < 0).sum() / (~mask).sum(); sm_neg_fract.append(sm_neg)
+        if s in CPN_SITES:
+            ax.plot([0, 1], [sm_pos, lg_pos], color='tab:blue')
+        else:
+            ax.plot([0, 1], [sm_pos, lg_pos], color='tab:orange')
+ax.bar([0, 1], [np.mean(sm_pos_fract), np.mean(lg_pos_fract)], lw=2, color='none', edgecolor='k')
+ax.set_ylabel("Prop. stim. pairs where "+r"$\Delta d'^2>0$")
+ax.set_xticks([0, 1])
+ax.set_xticklabels(["Small", "Large"])
+ax.set_xlabel(r"Baseline discriminability ($d'^2$)")
+
+stat, p = ss.wilcoxon(lg_pos_fract, sm_pos_fract)
+ax.text(0.1, ax.get_ylim()[1], r"p=%s"%round(p, 3))
+
+f.tight_layout()
+if savefig:
+    if sig_pairs_only:
+        f.savefig(figS2.replace('.svg', '_sigEpochsOnly.svg'))
+    else:
+        f.savefig(figS2)
+
+if S3:
+    # S3 - variance can go up / down, signal magnitde always goes up, both contribute to delta dprime (current fig5 regression)
+    # For figure - heatmap of delta dprime vs. delta noise / delta signal (maybe call them noise / gain or something)
+    # add marginal histograms for each
+    # Forest plots for regression results
+    print("Running bootstrapped regressions for each site, takes a moment...")
+    df_all['delta_norm'] = (df_all['bp_dp'] - df_all['sp_dp']) / (df_all['bp_dp'] + df_all['sp_dp'])
+    r2 = []
+    cil = []
+    ciu = []
+    betal_du = []
+    betau_du = []
+    beta_du = []
+    betal_noise = []
+    betau_noise = []
+    beta_noise = []
+    for s in df_all.site.unique():
+        dfr = df_all[df_all.site==s].reset_index()
+        if dfr.shape[0] >= 20:
+            X = dfr[['delta_dU_mag', 'delta_noise']].copy()
+            X -= X.mean()
+            X /= X.std()
+            X = sm.add_constant(X)
+            y = dfr['delta_norm'].copy()
+            y -= y.mean()
+            y /= y.std()
+            rr = fit_OLS_model(X, y, replace=True, nboot=100, njacks=5)
+            r2.append(rr['r2']['full'])
+            cil.append(rr['ci']['full'][0])
+            ciu.append(rr['ci']['full'][1])
+            betal_du.append(rr['ci_coef']['delta_dU_mag'][0])
+            betau_du.append(rr['ci_coef']['delta_dU_mag'][1])
+            beta_du.append(rr['coef']['delta_dU_mag'])
+            betal_noise.append(rr['ci_coef']['delta_noise'][0])
+            betau_noise.append(rr['ci_coef']['delta_noise'][1])
+            beta_noise.append(rr['coef']['delta_noise'])
+
+    # plot CI of regression coefficients on "forest" plot
+    # title with the model name
+    f, ax = plt.subplots(1, 1, figsize=(2, 3))
+
+    for i in range(len(beta)):
+        ax.plot([betal_du[i], betau_du[i]], [i, i], color='tab:blue', zorder=-1)
+        ax.scatter(beta_du[i], i, color='white', edgecolor='tab:blue')
+    ax.axvline(0, linestyle='--', color='k', zorder=-1)
+    ax.set_yticks([])
+    ax.set_xlabel(r"$\beta$ estimate")
+    ax.set_title(r"$\Delta d'^2$ ~ $\beta d'^2$")
+    # group pvalue
+    ss.wilcoxon(r2)
+
+    f.tight_layout()
 
 plt.show()

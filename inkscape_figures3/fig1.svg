@@ -262,9 +262,9 @@
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="1.3562701"
-     inkscape:cx="296.89858"
-     inkscape:cy="201.18925"
+     inkscape:zoom="2.7125402"
+     inkscape:cx="348.14763"
+     inkscape:cy="112.87163"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -41981,23 +41981,23 @@
   </g>
   <g
      id="line2d_14"
-     style="stroke-linecap:butt;stroke-linejoin:round"
+     style="stroke-linecap:butt;stroke-linejoin:round;stroke:#ff9530;stroke-opacity:1"
      transform="matrix(1,0,0,0.81626462,22.5,40.046963)">
     <path
        clip-path="url(#p1e7364339e)"
        d="M 128.84701,217.96 V 94.56256"
-       style="fill:none;stroke:#00ff00;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.6;stroke-dashoffset:0"
+       style="fill:none;stroke:#ff9530;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.60000000000000009;stroke-dashoffset:0;stroke-opacity:1"
        id="path70017"
        inkscape:connector-curvature="0" />
   </g>
   <g
      id="line2d_15"
-     style="stroke-linecap:butt;stroke-linejoin:round"
+     style="stroke-linecap:butt;stroke-linejoin:round;stroke:#ff9530;stroke-opacity:1"
      transform="matrix(1,0,0,0.81626462,22.5,40.046963)">
     <path
        clip-path="url(#p1e7364339e)"
        d="M 204.99403,217.96 V 94.56256"
-       style="fill:none;stroke:#00ff00;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.6;stroke-dashoffset:0"
+       style="fill:none;stroke:#ff9530;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.60000000000000009;stroke-dashoffset:0;stroke-opacity:1"
        id="path70020"
        inkscape:connector-curvature="0" />
   </g>
@@ -74577,23 +74577,23 @@
   </g>
   <g
      id="line2d_28"
-     style="stroke-linecap:butt;stroke-linejoin:round"
+     style="stroke-linecap:butt;stroke-linejoin:round;stroke:#ff9530;stroke-opacity:1"
      transform="matrix(1,0,0,0.81626462,-10.5,40.046963)">
     <path
        clip-path="url(#pd2ff4bebb3)"
        d="M 315.53989,217.96 V 94.56256"
-       style="fill:none;stroke:#00ff00;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.6;stroke-dashoffset:0"
+       style="fill:none;stroke:#ff9530;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.60000000000000009;stroke-dashoffset:0;stroke-opacity:1"
        id="path78300"
        inkscape:connector-curvature="0" />
   </g>
   <g
      id="line2d_29"
-     style="stroke-linecap:butt;stroke-linejoin:round"
+     style="stroke-linecap:butt;stroke-linejoin:round;stroke:#ff9530;stroke-opacity:1"
      transform="matrix(1,0,0,0.81626462,-10.5,40.046963)">
     <path
        clip-path="url(#pd2ff4bebb3)"
        d="M 391.68691,217.96 V 94.56256"
-       style="fill:none;stroke:#00ff00;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.6;stroke-dashoffset:0"
+       style="fill:none;stroke:#ff9530;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:3.7, 1.60000000000000009;stroke-dashoffset:0;stroke-opacity:1"
        id="path78303"
        inkscape:connector-curvature="0" />
   </g>
@@ -78614,7 +78614,7 @@
   <g
      id="text_25-0-9"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <defs
        id="defs42513-0">
@@ -78623,7 +78623,7 @@
          id="path93684" />
     </defs>
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,109.27863,12.50602)"
        id="g42517-8">
       <use
@@ -78632,16 +78632,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_26-9-8"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,122.22087,12.50602)"
        id="g42522-0">
       <use
@@ -78650,16 +78651,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_27-3-0"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,163.7179,12.50602)"
        id="g42527-9">
       <use
@@ -78668,16 +78670,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_28-6-9"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,165.43787,12.50602)"
        id="g42532-6">
       <use
@@ -78686,16 +78689,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_29-0-5"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,166.28882,12.50602)"
        id="g42537-4">
       <use
@@ -78704,16 +78708,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_30-9"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,168.00707,12.50602)"
        id="g42542-9">
       <use
@@ -78722,16 +78727,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_31-6-6"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,174.92798,12.50602)"
        id="g42547-0">
       <use
@@ -78740,16 +78746,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_32-2-0"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,186.16746,12.50602)"
        id="g42552-2">
       <use
@@ -78758,16 +78765,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_33-4"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,200.09518,12.50602)"
        id="g42557-3">
       <use
@@ -78776,16 +78784,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_34-1"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,214.7713,12.50602)"
        id="g42562-7">
       <use
@@ -78794,16 +78803,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_35-3"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,220.75219,12.50602)"
        id="g42567-1">
       <use
@@ -78812,16 +78822,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_36-6-6"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,252.83886,12.50602)"
        id="g42572-9">
       <use
@@ -78830,16 +78841,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_37-1-2"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,267.57106,12.50602)"
        id="g42577-2">
       <use
@@ -78848,16 +78860,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_38-8-4"
      transform="translate(5.079907,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,274.44033,12.50602)"
        id="g42582-1">
       <use
@@ -78866,16 +78879,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_39-7-8"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,281.35264,12.50602)"
        id="g42587-8">
       <use
@@ -78884,16 +78898,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_40-9-2"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,288.4151,12.50602)"
        id="g42592-8">
       <use
@@ -78902,16 +78917,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_41-2-8"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,296.32407,12.50602)"
        id="g42597-6">
       <use
@@ -78920,16 +78936,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_42-3"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,319.01243,12.50602)"
        id="g42602-8">
       <use
@@ -78938,16 +78955,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_43-3"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,321.57719,12.50602)"
        id="g42607-3">
       <use
@@ -78956,16 +78974,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_44-0"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,323.30074,12.50602)"
        id="g42612-4">
       <use
@@ -78974,16 +78993,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_45-6"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,348.55027,12.50602)"
        id="g42617-8">
       <use
@@ -78992,16 +79012,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_46-0"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,351.98132,12.50602)"
        id="g42622-6">
       <use
@@ -79010,16 +79031,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_47-7"
      transform="translate(2.6638416,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,380.75584,12.50602)"
        id="g42627-9">
       <use
@@ -79028,16 +79050,17 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_48-3"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- b -->
     <g
-       style="fill:#00ff00"
+       style="fill:#ff9530;fill-opacity:1"
        transform="matrix(0.04,0,0,-0.04,383.35272,12.50602)"
        id="g42632-3">
       <use
@@ -79046,7 +79069,8 @@
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
@@ -79177,35 +79201,39 @@
   <g
      id="text_56-4"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#000000;fill-opacity:1">
     <!-- c -->
     <g
        transform="matrix(0.04,0,0,-0.04,172.34429,12.50602)"
-       id="g42675-7">
+       id="g42675-7"
+       style="fill:#000000;fill-opacity:1">
       <use
          xlink:href="#DejaVuSans-99-0"
          id="use42673-9"
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#000000;fill-opacity:1" />
     </g>
   </g>
   <g
      id="text_57-3"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#010000;fill-opacity:1">
     <!-- c -->
     <g
        transform="matrix(0.04,0,0,-0.04,196.63688,12.50602)"
-       id="g42680-9">
+       id="g42680-9"
+       style="fill:#010000;fill-opacity:1">
       <use
          xlink:href="#DejaVuSans-99-0"
          id="use42678-2"
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#010000;fill-opacity:1" />
     </g>
   </g>
   <g
@@ -79381,18 +79409,20 @@
   <g
      id="text_68-2"
      transform="translate(4.2254,-1.1371)"
-     style="stroke-linecap:butt;stroke-linejoin:round">
+     style="stroke-linecap:butt;stroke-linejoin:round;fill:#ff9530;fill-opacity:1">
     <!-- c -->
     <g
        transform="matrix(0.04,0,0,-0.04,322.44319,12.50602)"
-       id="g42735-5">
+       id="g42735-5"
+       style="fill:#ff9530;fill-opacity:1">
       <use
          xlink:href="#DejaVuSans-99-0"
          id="use42733-3"
          x="0"
          y="0"
          width="100%"
-         height="100%" />
+         height="100%"
+         style="fill:#ff9530;fill-opacity:1" />
     </g>
   </g>
   <g
@@ -79474,7 +79504,7 @@
        x="155.26114"
        y="87.644783"
        style="stroke-width:0.75">Sound excerpt <tspan
-   style="fill:#00f600;fill-opacity:1"
+   style="fill:#ff9530;fill-opacity:1"
    id="tspan94110">b</tspan>, rep 14</tspan></text>
   <text
      xml:space="preserve"
@@ -79487,7 +79517,7 @@
        x="307.56616"
        y="87.644783"
        style="stroke-width:0.75">Sound excerpt <tspan
-   style="fill:#00f900;fill-opacity:1"
+   style="fill:#ff9530;fill-opacity:1"
    id="tspan94112">b</tspan>, rep 23</tspan></text>
   <text
      xml:space="preserve"

@@ -12,15 +12,13 @@ import numpy as np
 from charlieTools.noise_correlations import compute_rsc
 
 manager = BAPHYExperiment(cellid='ARM029a', batch=331)
-manager = BAPHYExperiment(cellid='ARM033a', batch=331)
-manager = BAPHYExperiment(cellid='AMT026a', batch=331)
-manager = BAPHYExperiment(cellid='CRD018d', batch=331)
-manager = BAPHYExperiment(cellid='AMT020a', batch=331)
-manager = BAPHYExperiment(cellid='ARM031a', batch=331)
+#manager = BAPHYExperiment(cellid='ARM033a', batch=331)
+#manager = BAPHYExperiment(cellid='AMT026a', batch=331)
+#manager = BAPHYExperiment(cellid='CRD018d', batch=331)
+#manager = BAPHYExperiment(cellid='AMT020a', batch=331)
+#manager = BAPHYExperiment(cellid='ARM031a', batch=331)
 r = manager.get_recording(recache=True, **{'rasterfs': 4, 'resp': True, 'pupil': True, 'stim': False, 
-                                            'pupil_variable_name': 'area',
-                                            'pupil_offset': 0.25,
-                                            'pupil_deblink_dur': 1})      
+                                            'pupil_variable_name': 'area'})      
 r['resp'] = r['resp'].rasterize() 
 r = fix_cpn_epochs(r)
 r = generate_psth_from_resp(r)

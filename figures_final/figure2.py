@@ -25,42 +25,44 @@ import copy
 import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
+mpl.rcParams['font.size'] = 8
 
 savefig = False
 fig_fn = PY_FIGURES_DIR3 + 'fig2.svg'
 recache = False
 use_noise_axis = False
 
-site = 'ARM031a'
+site = 'AMT026a'
 batch = 331
 
 # ========= Load decoding results and pick stimuli ========
-decoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa'
+decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
+ndim = 8
 loader = decoding.DecodingResults()
 fn = os.path.join(DPRIME_DIR, str(batch), site, decoder+'_TDR.pickle')
 res = loader.load_results(fn, cache_path=None, recache=recache)
-ndim = 2
 df = res.numeric_results.loc[pd.IndexSlice[res.evoked_stimulus_pairs, ndim], :]
 df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
 df['raw_delta'] = (df['bp_dp'] - df['sp_dp'])
-stims = (0, 6, 9)
-stims = np.random.choice(range(12), 3, replace=False)
+stims = (1, 8, 9)
+stims = (0, 1, 9)
+#stims = (5, 6, 9) # pretty good example, but numerically doesn't hold up
+#stims = np.sort(np.random.choice(range(12), 3, replace=False))
+combos = ['_'.join([str(i) for i in x]) for x in list(combinations(stims, 2))]
 #stims = (2, 8, 11)
 
 # ====================== Get PC data ======================
-xf_model = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss2"
-#xf_model = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
 xf_model = None
 X_raw, sp_bins, X_pup, pup_mask, epochs, spont_raw = decoding.load_site(site=site, 
                                                         batch=batch, 
                                                         xforms_modelname=None,
-                                                        mask_movement=(25, 2),
+                                                        mask_movement=(.25, 1),
                                                         special=True)
 if xf_model is not None:
     X, _, _, _, _, _ = decoding.load_site(site=site, 
-                                                            batch=batch, 
-                                                            xforms_modelname=xf_model,
-                                                            special=True)
+                                            batch=batch, 
+                                            xforms_modelname=xf_model,
+                                            special=True)
 else:
     X = X_raw.copy()
 ncells = X_raw.shape[0]
@@ -139,7 +141,7 @@ for alnum, epoch in zip(list(map(chr, np.arange(97, 97+len(epochs)))), epochs):
     spectrogram[epoch]['data'] = spec
 
 # ============================== Make figure =========================================
-f = plt.figure(figsize=(16, 4))
+f = plt.figure(figsize=(12, 3))
 
 el_all = plt.subplot2grid((4, 4), (0, 1), rowspan=4)
 el_bp = plt.subplot2grid((4, 4), (0, 2), rowspan=4)
@@ -150,7 +152,7 @@ cols = plt.cm.get_cmap('tab10')
 mappers = np.unique(np.array([x for x in res.mapping.values()]).flatten()) 
 for i, (ep, spec) in enumerate(spectrogram.items()):
     ax = plt.subplot2grid((4, 4), (i, 0))
-    ax.imshow(np.sqrt(spec['data']), origin='lower', cmap='Greys')
+    ax.imshow(np.sqrt(spec['data']), origin='lower', cmap='Greys', zorder=-1)
     ax.spines['bottom'].set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.set_xticks([])
@@ -175,25 +177,25 @@ for i, (ep, spec) in enumerate(spectrogram.items()):
             ax.axvline(en, color=cols(j), lw=1)
             yl = ax.get_ylim()[-1]
             yll = ax.get_ylim()[0]
-            ax.plot([st, en], [yl, yl], color=cols(j))
-            ax.plot([st, en], [yll, yll], color=cols(j))
+            ax.plot([st, en], [yl, yl], color=cols(j), lw=1)
+            ax.plot([st, en], [yll, yll], color=cols(j), lw=1)
 ax.set_xlabel("Time (ms)")
 ax.set_xticks(np.linspace(0, spec['data'].shape[-1], 4))
 ax.set_xticklabels([0, 250, 500, 750])
 
 # plot pc ellipse plots
+ms = 2
+lw = 2
 for i in range(proj.shape[0]):
     if i in ev_bins:
         el = cplt.compute_ellipse(proj[i, :, 0], proj[i, :, 1])
-        el_all.plot(el[0], el[1], color='lightgrey', lw=0.5, zorder=-1)
+        el_all.plot(el[0], el[1], color='lightgrey', lw=1, zorder=-1)
         bp = pup_mask[:, i]
         el = cplt.compute_ellipse(proj[i, bp, 0], proj[i, bp, 1])
-        el_bp.plot(el[0], el[1], color='lightgrey', lw=0.5, zorder=-1)
+        el_bp.plot(el[0], el[1], color='lightgrey', lw=1, zorder=-1)
         el = cplt.compute_ellipse(proj[i, ~bp, 0], proj[i, ~bp, 1])
-        el_sp.plot(el[0], el[1], color='lightgrey', lw=0.5, zorder=-1)
+        el_sp.plot(el[0], el[1], color='lightgrey', lw=1, zorder=-1)
 
-ms = 2
-lw = 1
 el1 = cplt.compute_ellipse(pr1[:, 0], pr1[:, 1])
 el_all.plot(el1[0], el1[1], color='tab:blue', lw=lw)
 el_all.scatter(pr1[:, 0], pr1[:, 1], color='tab:blue', s=ms)
@@ -202,6 +204,8 @@ el1 = cplt.compute_ellipse(pr1[bp, 0], pr1[bp, 1])
 el_bp.plot(el1[0], el1[1], color='tab:blue', lw=lw)
 el1 = cplt.compute_ellipse(pr1[~bp, 0], pr1[~bp, 1])
 el_sp.plot(el1[0], el1[1], color='tab:blue', lw=lw)
+el_bp.scatter(pr1[bp, 0], pr1[bp, 1], color='tab:blue', s=ms)
+el_sp.scatter(pr1[~bp, 0], pr1[~bp, 1], color='tab:blue', s=ms)
 
 el2 = cplt.compute_ellipse(pr2[:, 0], pr2[:, 1])
 el_all.plot(el2[0], el2[1], color='tab:orange', lw=lw)
@@ -211,6 +215,8 @@ el2 = cplt.compute_ellipse(pr2[bp, 0], pr2[bp, 1])
 el_bp.plot(el2[0], el2[1], color='tab:orange', lw=lw)
 el2 = cplt.compute_ellipse(pr2[~bp, 0], pr2[~bp, 1])
 el_sp.plot(el2[0], el2[1], color='tab:orange', lw=lw)
+el_bp.scatter(pr2[bp, 0], pr2[bp, 1], color='tab:orange', s=ms)
+el_sp.scatter(pr2[~bp, 0], pr2[~bp, 1], color='tab:orange', s=ms)
 
 el3 = cplt.compute_ellipse(pr3[:, 0], pr3[:, 1])
 el_all.plot(el3[0], el3[1], color='tab:green', lw=lw)
@@ -220,6 +226,8 @@ el3 = cplt.compute_ellipse(pr3[bp, 0], pr3[bp, 1])
 el_bp.plot(el3[0], el3[1], color='tab:green', lw=lw)
 el3 = cplt.compute_ellipse(pr3[~bp, 0], pr3[~bp, 1])
 el_sp.plot(el3[0], el3[1], color='tab:green', lw=lw)
+el_bp.scatter(pr3[bp, 0], pr3[bp, 1], color='tab:green', s=ms)
+el_sp.scatter(pr3[~bp, 0], pr3[~bp, 1], color='tab:green', s=ms)
 
 
 el_all.axhline(0, linestyle='--', color='k', zorder=-1)
@@ -235,6 +243,7 @@ el_all.set_xlabel(r"Stim. $PC_1$")
 el_all.set_ylabel(r"Stim. $PC_2$")
 el_all.axis('square')
 el_all.set_title("All Trials")
+el_all.legend(frameon=False)
 
 el_bp.set_xlabel(r"Stim. $PC_1$")
 el_bp.axis('square')
@@ -254,5 +263,7 @@ f.tight_layout()
 
 if savefig:
     f.savefig(fig_fn, dpi=400)
+
+print(df.loc[pd.IndexSlice[combos, ndim], ['dp_opt_test', 'bp_dp', 'sp_dp']])
 
 plt.show()
