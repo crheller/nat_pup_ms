@@ -94,7 +94,7 @@ for batch, site in zip(batches, sites): #[s for s in HIGHR_SITES if s not in ['C
     # fit stims first
     for k, res in zip(['pup_indep', 'indep_noise', 'lv', 'lv2', 'raw'], [lv0, indep_noise, lv, lv2, raw]):
         df = res.numeric_results
-        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])#(raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp']) #(df['bp_dp'] + df['sp_dp'])
+        df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp'])
         df['site'] = site
         results['fit'][k].append(df.loc[fit_combos])
         results['val'][k].append(df.loc[val_combos])
@@ -111,7 +111,7 @@ cmap = {
     'pup_indep': 'tab:blue',
     'indep_noise': 'tab:orange',
     'lv': 'tab:green',
-    'lv2': 'k'
+    'lv2': 'tab:purple'
 }
 axlim = (-1, 1)
 f, ax = plt.subplots(1, 4, figsize=(6.5, 1.9))

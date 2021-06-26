@@ -14,7 +14,7 @@
    version="1.1"
    id="svg124774"
    inkscape:version="1.0.2 (1.0.2+r75+1)"
-   sodipodi:docname="S2_fig_sigEpochsOnly.svg">
+   sodipodi:docname="S2_fig3_sigEpochsOnly.svg">
   <defs
      id="defs124768">
     <style
@@ -11173,14 +11173,6 @@
    id="tspan183865">d'<tspan
    style="font-size:65%;baseline-shift:super"
    id="tspan183867">2</tspan></tspan></tspan></text>
-    <g
-       id="patch_2"
-       transform="matrix(0.20325846,0,0,0.20325846,47.700204,3.0517375)">
-      <path
-         d="M 43.706,177.784 H 168.84 V 14.4 H 43.706 Z"
-         style="fill:#ffffff"
-         id="path203995" />
-    </g>
     <g
        id="patch_3"
        transform="matrix(0.20325846,0,0,0.20325846,47.700204,3.0517375)">

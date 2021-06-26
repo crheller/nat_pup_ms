@@ -4,7 +4,7 @@ Supplemental figure showing choice of n decoding dimensions
 import sys
 sys.path.append('/auto/users/hellerc/code/projects/nat_pupil_ms/')
 sys.path.append('/home/charlie/lbhb/code/projects/nat_pup_ms/')
-from path_settings import DPRIME_DIR, PY_FIGURES_DIR2, CACHE_PATH
+from path_settings import DPRIME_DIR, PY_FIGURES_DIR3, CACHE_PATH
 from global_settings import ALL_SITES, LOWR_SITES, HIGHR_SITES, CPN_SITES
 import charlieTools.nat_sounds_ms.decoding as decoding
 import load_results as ld
@@ -21,6 +21,9 @@ import matplotlib as mpl
 mpl.rcParams['axes.spines.right'] = False
 mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
+
+savefig = True
+fig_fn = PY_FIGURES_DIR3 + 'S_nDecodingDims.svg'
 
 display_dU = False
 modelnames = ['dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
@@ -86,32 +89,60 @@ if not display_dU:
     overall = overall[[c for c in overall.columns if c!=r"$\Delta \mu$"]]
     delta = delta[[c for c in delta.columns if c!=r"$\Delta \mu$"]]
 
-# plot fraction change in dprime for each site as function of dims
-cols = plt.get_cmap('Blues', len(overall.site.unique())+5)
-vals = overall.groupby(by='site').mean().values
-cutoff = 0.05
-
-f, ax = plt.subplots(1, 2, figsize=(6, 3))
-for i in range(vals.shape[0]):
-    ax[0].plot(vals[i, :] / vals[i, 0], color=cols(i+2), zorder=-1)
-    ax[1].plot(np.diff(vals[i, :]) / vals[i, :-1], color=(cols(i+2)), zorder=-1)
-
-ax[0].errorbar(range(vals.shape[1]), (vals.T / vals[:, 0]).T.mean(axis=0), 
+# plot fraction change in dprime for each site as function of dims, split into subplots by CPN / NAT data
+f, ax = plt.subplots(2, 2, figsize=(4.2, 4), sharex=True)
+for i, site in enumerate(overall.site.unique()):
+    vals = overall[overall.site==site].mean().values
+    if site in CPN_SITES:
+        ax[0, 0].plot(vals / vals[0], color='tab:blue', alpha=0.5, zorder=-1)
+    else:
+        ax[0, 1].plot(vals / vals[0], color='tab:orange', alpha=0.5, zorder=-1)
+vals = overall[overall.site.isin(CPN_SITES)].groupby(by='site').mean().values
+ax[0, 0].errorbar(range(vals.shape[1]), (vals.T / vals[:, 0]).T.mean(axis=0), 
                                 yerr=(vals.T / vals[:, 0]).T.std(axis=0) / np.sqrt(vals.shape[0]),
-                                capsize=2, lw=2, color='k')
-ax[1].errorbar(range(vals.shape[1]-1), (np.diff(vals, axis=1) / vals[:, :-1]).mean(axis=0), 
-                                yerr=(np.diff(vals, axis=1) / vals[:, :-1]).std(axis=0) / np.sqrt(vals.shape[0]),
-                                capsize=2, lw=2, color='k')
-ax[1].axhline(cutoff, color='red', linestyle='--')
+                                capsize=3, lw=2, color='k')
+vals = overall[~overall.site.isin(CPN_SITES)].groupby(by='site').mean().values
+ax[0, 1].errorbar(range(vals.shape[1]), (vals.T / vals[:, 0]).T.mean(axis=0), 
+                                yerr=(vals.T / vals[:, 0]).T.std(axis=0) / np.sqrt(vals.shape[0]),
+                                capsize=3, lw=2, color='k')
 
-ax[0].set_ylabel(r"$d'^2$ (normalized)")
-ax[1].set_ylabel(r"Stepwise fraction improvement in $d'^2$")
+ax[0, 0].set_ylabel(r"$d'^2$ (normalized)")
+ax[0, 1].set_ylabel(r"$d'^2$ (normalized)")
 xticks = delta.columns[:-1]
-ax[0].set_xticks(range(vals.shape[1]))
-ax[0].set_xticklabels(xticks)
-ax[1].set_xticks(range(vals.shape[1]-1))
-ax[1].set_xticklabels(xticks[1:])
+ax[0, 0].set_xticks(range(vals.shape[1]))
+ax[0, 0].set_xticklabels(np.arange(1, vals.shape[1]+1))
+ax[0, 1].set_xticks(range(vals.shape[1]))
+ax[0, 1].set_xticklabels(np.arange(1, vals.shape[1]+1))
+
+# Now plot delta dprime for each site in the same way (but not normalized)
+for i, site in enumerate(overall.site.unique()):
+    vals = delta[delta.site==site].mean().values
+    if site in CPN_SITES:
+        ax[1, 0].plot(vals, color='tab:blue', alpha=0.5, zorder=-1)
+    else:
+        ax[1, 1].plot(vals, color='tab:orange', alpha=0.5, zorder=-1)
+vals = delta[delta.site.isin(CPN_SITES)].groupby(by='site').mean().values
+ax[1, 0].errorbar(range(vals.shape[1]), (vals.T).T.mean(axis=0), 
+                                yerr=(vals.T).T.std(axis=0) / np.sqrt(vals.shape[0]),
+                                capsize=3, lw=2, color='k')
+vals = delta[~delta.site.isin(CPN_SITES)].groupby(by='site').mean().values
+ax[1, 1].errorbar(range(vals.shape[1]), (vals.T).T.mean(axis=0), 
+                                yerr=(vals.T).T.std(axis=0) / np.sqrt(vals.shape[0]),
+                                capsize=3, lw=2, color='k')
+
+ax[1, 0].set_ylabel(r"$\Delta d'^2$")
+ax[1, 1].set_ylabel(r"$\Delta d'^2$")
+xticks = delta.columns[:-1]
+ax[1, 0].set_xticks(range(vals.shape[1]))
+ax[1, 0].set_xticklabels(np.arange(1, vals.shape[1]+1))
+ax[1, 1].set_xticks(range(vals.shape[1]))
+ax[1, 1].set_xticklabels(np.arange(1, vals.shape[1]+1))
+ax[1, 0].set_xlabel("Number of noise dimensions")
+ax[1, 1].set_xlabel("Number of noise dimensions")
 
 f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
 
 plt.show()
