@@ -8,7 +8,7 @@ evoked = True
 slow = False
 perstim = True
 custom = False  # run a subset of jobs
-movement_mask = True
+movement_mask = (25, 1) #True
 
 if custom:
     modelnames = ['rsc_pr_rm1', 
@@ -69,10 +69,13 @@ if slow:
 if perstim:
     modelnames = [m+'_perstim' for m in modelnames]
 
-if movement_mask:
-    modelnames = [m+'_mvm' for m in modelnames]
+if movement_mask != False:
+    if type(movement_mask)==tuple:
+        modelnames = [m+f'_mvm-{movement_mask[0]}-{movement_mask[1]}' for m in modelnames]
+    else:
+        modelnames = [m+'_mvm' for m in modelnames]
 
-modelnames = [m for m in modelnames if ('fft' not in m)]
+modelnames = [m for m in modelnames if ('fft' not in m) & ('pr' not in m)]
 
 for batch in batches:
 
