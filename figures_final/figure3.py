@@ -32,7 +32,7 @@ mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['font.size'] = 8
 
 np.random.seed(123)
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR3 + 'fig3.svg'
 figS2 = PY_FIGURES_DIR3 + 'S2_fig3.svg'
 S3 = False # this is for delta dprime vs. delta signal + delta noise regression. It's slow, and not really necessary.
