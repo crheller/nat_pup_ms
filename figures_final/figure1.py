@@ -11,6 +11,7 @@ import load_results as ld
 
 import nems_lbhb.baphy as nb
 from nems_lbhb.plots import plot_weights_64D
+from nems_lbhb.baphy_experiment import BAPHYExperiment
 
 import os
 import pandas as pd
@@ -42,19 +43,17 @@ ncax = plt.subplot2grid((6, 9), (3, 7), colspan=2, rowspan=3)
 site = 'TAR010c'
 batch = 289
 rasterfs = 1000
-options = {'batch': batch, 'cellid': site, 'pupil': True, 'stim': True, 'rasterfs': rasterfs}
 sigma = 30
 rep1 = -12
 rep2 = -2
 
-rec = nb.baphy_load_recording_file(**options)
+manager = BAPHYExperiment(batch=batch, cellid=site)
+rec = manager.get_recording(**{'rasterfs': rasterfs, 'pupil': True, 'resp': True})
 rec['resp'] = rec['resp'].rasterize()
-rec['stim'] = rec['stim'].rasterize()
 # extract epochs
 soundfile = '/auto/users/hellerc/code/baphy/Config/lbhb/SoundObjects/@NaturalSounds/sounds_set4/00cat668_rec7_ferret_oxford_male_chopped_excerpt1.wav'
 epoch = 'STIM_00Oxford_male2b.wav'
 r = rec['resp'].extract_epoch(epoch)
-spec = rec['stim'].extract_epoch(epoch)
 p = rec['pupil'].extract_epoch(epoch)
 
 fs = rasterfs
@@ -81,8 +80,8 @@ plot_weights_64D(np.ones(len(rec['resp'].chans)), rec['resp'].chans,
 
 # rasters
 lim = 40
-p1ax.plot((spk_times1[1] / rasterfs) - 2, lim + (spk_times1[0] / 1), '|', color='k', markersize=0.75, alpha=0.5)
-p2ax.plot((spk_times2[1] / rasterfs) - 2, lim + (spk_times2[0] / 1), '|', color='k', markersize=0.75, alpha=0.5)
+p1ax.plot((spk_times1[1] / rasterfs) - 2, lim + (spk_times1[0] / 1), '|', color='k', markersize=0.75, alpha=0.5, rasterized=True)
+p2ax.plot((spk_times2[1] / rasterfs) - 2, lim + (spk_times2[0] / 1), '|', color='k', markersize=0.75, alpha=0.5, rasterized=True)
 
 spec_offset = lim + ((spk_times1[0] / 1)).max() + 2
 # spectrogram
@@ -134,7 +133,8 @@ pax.set_ylim((pdata.min(), pdata.max()))
 # plot MI
 path = '/auto/users/hellerc/results/nat_pupil_ms/first_order_model_results/'
 df = pd.concat([pd.read_csv(os.path.join(path,'d_289_pup_sdexp.csv'), index_col=0),
-                pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0)])
+                pd.read_csv(os.path.join(path,'d_294_pup_sdexp.csv'), index_col=0),
+                pd.read_csv(os.path.join(path,'d_331_pup_sdexp.csv'), index_col=0)])
 try:
     df['r'] = [np.float(r.strip('[]')) for r in df['r'].values]
     df['r_se'] = [np.float(r.strip('[]')) for r in df['r_se'].values]
@@ -163,29 +163,33 @@ miax.text(mi_bins.min(), miax.get_ylim()[-1]-2, r"p=%s" % round(p, 4))
 
 # plot noise correlation
 rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations_final/'
-rsc_df = ld.load_noise_correlation('rsc_ev_perstim') #, xforms_model='NULL', path=rsc_path)
+rsc_df = ld.load_noise_correlation('rsc_ev_perstim_mvm-25-1') #, xforms_model='NULL', path=rsc_path)
+rsc_df = rsc_df[rsc_df.site.isin(CPN_SITES)]
+rsc_df = pd.concat([rsc_df, ld.load_noise_correlation('rsc_ev_perstim')])
 rsc_df = rsc_df[rsc_df.site.isin(sites)]
 #rsc_df = rsc_df[(rsc_df.gm_bp>1) & (rsc_df.gm_sp>1)]
-mask = ~(rsc_df['bp'].isna() | rsc_df['sp'].isna())
+mask = ~(rsc_df['bp'].isna() | rsc_df['sp'].isna()) & (rsc_df['gm_bp']>1) & (rsc_df['gm_sp']>1)
 rsc_df = rsc_df[mask]
 d = {s: rsc_df.loc[rsc_df.site==s]['sp'].values - rsc_df.loc[rsc_df.site==s]['bp'].values for s in rsc_df.site.unique()}
 bootsample = get_bootstrapped_sample(d, even_sample=False, nboot=1000)
 p = get_direct_prob(bootsample, np.zeros(len(bootsample)))[0]
 
-ncax.bar([0, 1], [rsc_df['bp'].mean(), rsc_df['sp'].mean()], 
-                yerr=[rsc_df['bp'].sem(), rsc_df['sp'].sem()],
-                color=[colors.LARGE, colors.SMALL], edgecolor='k', width=0.5)
+ncax.bar([0, 1], [rsc_df.groupby(by='site').mean()['bp'].mean(), rsc_df.groupby(by='site').mean()['sp'].mean()], 
+                yerr=[rsc_df.groupby(by='site').mean()['bp'].sem(), rsc_df.groupby(by='site').mean()['sp'].sem()],
+                color='none', edgecolor=[colors.LARGE, colors.SMALL], width=0.5)
 ncax.set_ylabel('Noise correlation')
+for s in sites:
+    ncax.plot([0, 1], [rsc_df[rsc_df.site==s]['bp'].mean(), rsc_df[rsc_df.site==s]['sp'].mean()], 'grey')
 ncax.text(ncax.get_xlim()[0], ncax.get_ylim()[-1], r"p=%s" % round(p, 4))
 
-print(f"Mean rsc small: {rsc_df['sp'].mean()}, sem: {rsc_df['sp'].std() / np.sqrt(rsc_df.shape[0])}")
-print(f"Mean rsc large: {rsc_df['bp'].mean()}, sem: {rsc_df['bp'].std() / np.sqrt(rsc_df.shape[0])}")
+print(f"Mean rsc small: {rsc_df.groupby(by='site').mean()['sp'].mean()}, sem: {rsc_df.groupby(by='site').mean()['sp'].std() / np.sqrt(len(sites))}")
+print(f"Mean rsc large: {rsc_df.groupby(by='site').mean()['bp'].mean()}, sem: {rsc_df.groupby(by='site').mean()['bp'].std() / np.sqrt(len(sites))}")
 print(f"Mean unit pairs per session: {np.mean([len(x) for k, x in d.items()])}, sem: {np.std([len(x) for k, x in d.items()]) / len(d.keys())} ")
 
 f.tight_layout()
 
 if savefig:
-    f.savefig(fig_fn, dpi=400)
+    f.savefig(fig_fn, dpi=1000)
 
 plt.show()
 
