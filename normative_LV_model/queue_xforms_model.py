@@ -6,7 +6,13 @@ import nems.db as nd
 
 from global_settings import HIGHR_SITES, CPN_SITES
 
-movement_mask = 'mvm.25.2' # False
+movement_mask = True # False
+epochs = 'e12'
+
+# try to build a model string that fits first order state model + LV model in the same job
+'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w2-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
+'psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_init.ff1-ccnorm.r.t5.ss1'
+'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_init.ff1-ccnorm.r.t5.ss1'
 
 # LV models
 modellist = [
@@ -28,8 +34,17 @@ modellist += [
     "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
 ]
 
+# testing new...
+modellist = [
+    "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it5000-ccnorm.f0.ss1",
+    "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it5000",
+    "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it5000-ccnorm.f0.ss1-ccnorm.r.ss1"
+]
+##########################3
+
 # replace 'good' epoch fits with random subset for more fair validation metric
-modellist = [m.replace('eg', 'e') for m in modellist]
+modellist = [m.replace('eg10', epochs) for m in modellist]
+#modellist = [m.replace('e10', 'e5') for m in modellist]
 
 # slow drift control models
 # modellist = [m.replace('.pvp0', '').replace('.pvp', '').replace('st.pup0-', 'st.drf.pup0-').replace('st.pup-', 'st.drf.pup-') for m in modellist]

@@ -2,8 +2,9 @@
 First order models for all cells simultaneously. Used to feed into LV models
 """
 from global_settings import CPN_SITES
+import nems.db as nd
 
-force_rerun = False
+force_rerun = True
 exacloud = False
 batch = 331
 sites = CPN_SITES
@@ -12,8 +13,8 @@ modelnames = [
     'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
     'psth.fs4.pup-ld-st.pup-epcpn-mvm-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
     'psth.fs4.pup-ld-st.pup0-epcpn-mvm-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
-    'psth.fs4.pup-ld-st.pup-epcpn-mvm.25.2-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
-    'psth.fs4.pup-ld-st.pup0-epcpn-mvm.25.2-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
+    'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w2-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
+    'psth.fs4.pup-ld-st.pup0-epcpn-mvm.t25.w2-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
 ]
 
 
@@ -42,4 +43,4 @@ else:
                   script_path=script,
                   user='hellerc',
                   force_rerun=force_rerun,
-                  GPU_job=1)
+                  GPU_job=0)
