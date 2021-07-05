@@ -88,6 +88,7 @@ loocv = False    # leave-one-out cross validation
 exclude_low_fr = False
 threshold = None
 movement_mask = False
+use_old_cpn = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -188,6 +189,11 @@ for op in options:
             movement_mask = (threshold, binsize)
         except:
             movement_mask = (0.25, 1)
+    
+    if op == 'oldCPN':
+        # use old (buggy) cpn epoch fixing
+        use_old_cpn = True
+
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
     raise DeprecationWarning("Updates have been made since this was last used. Make sure behavior is as expected")
@@ -240,7 +246,8 @@ X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch,
                                        return_epoch_list=True,
                                        exclude_low_fr=exclude_low_fr,
                                        threshold=threshold,
-                                       mask_movement=movement_mask)
+                                       mask_movement=movement_mask,
+                                       use_old_cpn=use_old_cpn)
 ncells = X.shape[0]
 nreps_raw = X.shape[1]
 nstim = X.shape[2]
