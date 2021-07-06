@@ -20,12 +20,12 @@ exclude_lowFR = False
 thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
-n_additional_noise_dims = 0 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+n_additional_noise_dims = -1 # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 NOSIM = True   # If true, don't run simulations
-lvmodels = False   # run for the simulated, model results from lv xforms models
-lv_movement_mask = True # for loading LV model with movement mask in place
+lvmodels = True   # run for the simulated, model results from lv xforms models
+loadpredkey = 'loadpred.cpnmvm,t25,w1'
 movement_mask = (25, 1) # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
-
+use_old_cpn = False
 if lvmodels:
     # define list of lv models to fit 
     import dprime_new.queue_helpers as qh 
@@ -34,6 +34,7 @@ if lvmodels:
     # gain models
     #lvmodelnames = qh.gain_models_so + qh.indep_gain_so
 
+    '''
     # temporary test new LV models
     lvmodelnames = [
         "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1",
@@ -60,7 +61,7 @@ if lvmodels:
         "psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1-ccnorm.r.psth.ss1",
         "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1-ccnorm.r.psth.ss1"  
     ]
-    '''
+    
     lvmodelnames = [
         'psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1',
         'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_ccnorm.r.t5.ss1',
@@ -167,10 +168,7 @@ if lvmodels:
     modellist = [m for m in modellist if '_pr_' not in m]
     modellist = np.concatenate([[m+f'_model-LV-{lvstr}' for lvstr in lvmodelnames] for m in modellist]).tolist()
     if batch == 331:
-        if lv_movement_mask:
-            modellist = [m.replace('loadpred', 'loadpred.cpnmvm') for m in modellist]
-        else:
-            modellist = [m.replace('loadpred', 'loadpred.cpn') for m in modellist]
+        modellist = [m.replace('loadpred', loadpredkey) for m in modellist]
 
 
 if zscore == False:
@@ -181,6 +179,9 @@ if exclude_lowFR:
 
 if movement_mask is not False:
     modellist = [m.replace('dprime_', f'dprime_mvm-{movement_mask[0]}-{movement_mask[1]}_') for m in modellist]
+
+if use_old_cpn:
+    modellist = [m.replace('dprime_', f'dprime_oldCPN_') for m in modellist]
 
 modellist = [m for m in modellist if '_pr' not in m]
 

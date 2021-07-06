@@ -17,6 +17,19 @@ modelnames = [
     'psth.fs4.pup-ld-st.pup0-epcpn-mvm.t25.w2-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
 ]
 
+modelnames = [
+    'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
+    'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
+    'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
+]
+
+# use old, buggy, cpn epoch creation
+#modelnames = [
+#    'psth.fs4.pup-ld-st.pup-epcpn.old-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
+#    'psth.fs4.pup-ld-st.pup-epcpn.old-mvm.t25.w1-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000',
+#    'psth.fs4.pup-ld-st.pup-epcpn.old-mvm.t25.w1-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
+#]
+
 
 if exacloud:
     from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models

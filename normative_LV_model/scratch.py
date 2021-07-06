@@ -56,3 +56,20 @@ ax.set_title("gain weights for LV")
 f.tight_layout()
 
 plt.show()
+
+import nems.xforms as xforms
+from nems.xform_helper import load_model_xform
+
+# load an old model
+modelpath = '/auto/data/nems_db/results/331/AMT020a/psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev.lvnorm.SxR.d.so-inoise.2xR.ccnorm.t5.ss1.2021-06-21T174425'
+xf, ctx = xforms.load_analysis(modelpath)
+
+# load a new model
+site = 'AMT020a'
+batch = 331
+modelname = "psth.fs4.pup-ld-st.pup.pvp0-epcpn.old-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1"
+xfn, ctxn = load_model_xform(cellid=[c for c in nd.get_batch_cells(batch).cellid if site in c][0], batch=batch, modelname=modelname)
+
+# old/new loadpred models
+modelname = "psth.fs4.pup-loadpred.cpnOldmvm,t25,w1-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
+xfnn, ctxnn = load_model_xform(cellid=site, batch=batch, modelname=modelname)
