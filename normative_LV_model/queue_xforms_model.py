@@ -7,12 +7,7 @@ import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
 movement_mask = True # False
-epochs = 'e12'
-
-# try to build a model string that fits first order state model + LV model in the same job
-'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w2-hrc-psthfr-aev_sdexp2.SxR_newtf.n.lr1e4.cont.et5.i50000'
-'psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_init.ff1-ccnorm.r.t5.ss1'
-'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_init.ff1-ccnorm.r.t5.ss1'
+mask_key = 'cpnOldmvm,t25,w1' #'cpnmvm,t25,w1' # 'cpnOldmvm,t25,w1'
 
 # LV models
 modellist = [
@@ -35,6 +30,7 @@ modellist += [
 ]
 
 # testing new...
+'''
 modellist = [
     "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1",
     "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.3xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1",
@@ -45,6 +41,7 @@ modellist = [
     "psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.psth.f0.ss1",
     "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.psth.f0.ss1"
 ]
+'''
 # add a third stage of fitting where we let everything move -- this seems to work like shit.
 '''
 modellist = [
@@ -68,6 +65,8 @@ modellist = [
 #modellist = [m.replace('eg10', epochs) for m in modellist]
 #modellist = [m.replace('e10', 'e5') for m in modellist]
 
+modellist = [m.replace('eg', 'e') for m in modellist]
+
 # slow drift control models
 # modellist = [m.replace('.pvp0', '').replace('.pvp', '').replace('st.pup0-', 'st.drf.pup0-').replace('st.pup-', 'st.drf.pup-') for m in modellist]
 
@@ -86,7 +85,7 @@ for s, b in zip(sites, batches):
         b = 294
     if b == 331:
         if movement_mask:
-            _modellist = [m.replace('loadpred', 'loadpred.cpnmvm') for m in modellist]
+            _modellist = [m.replace('loadpred', f'loadpred.{mask_key}') for m in modellist]
         else:
             _modellist = [m.replace('loadpred', 'loadpred.cpn') for m in modellist]
     else:
