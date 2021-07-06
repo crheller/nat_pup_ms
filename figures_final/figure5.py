@@ -21,7 +21,7 @@ mpl.rcParams['font.size'] = 6
 
 from nems.xform_helper import load_model_xform
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR3 + 'fig5.svg'
 np.random.seed(123)
 
