@@ -24,11 +24,11 @@ sites = CPN_SITES
 batches = [331]*len(CPN_SITES)
 
 plot_example = False
-decoder = 'dprime_oldCPN_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-5'
-rlv = "psth.fs4.pup-ld-st.pup0.pvp-epcpn.old-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1"
-ind = "psth.fs4.pup-ld-st.pup0.pvp-epcpn.old-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.3xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1"
-plv = "psth.fs4.pup-ld-st.pup.pvp0-epcpn.old-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1"
-plv2 = "psth.fs4.pup-ld-st.pup.pvp-epcpn.old-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_init.xx1.it50000-lvnoise.r8-aev-ccnorm.f0.ss1"
+decoder = 'dprime_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-5' #'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-5'
+rlv = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
+ind = "psth.fs4.pup-loadpred.cpn-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss1"
+plv = "psth.fs4.pup-loadpred.cpn-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
+plv2 = "psth.fs4.pup-loadpred.cpn-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 
 results = {
     'fit': {

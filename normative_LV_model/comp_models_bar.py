@@ -32,19 +32,22 @@ aligned = False
 sig_delta = False
 
 decoders = [
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3', 
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-4', 
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-5'
+    'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
+    'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa',
+    'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
+    'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
+    'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3', 
+    'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-4', 
+    'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-5'
 ]
 # then load each of these for each cov. rank
 ranks = [1, 2, 3]
-ind = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
-rlv = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp0-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
-plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
+rlv = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
+ind = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
+plv = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
+#ind = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
+#rlv = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp0-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
+#plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
 #plv = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp0-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
 
 #indep = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.25.2-hrc-psthfr-plgsm.e10.sp-lvnoise.r8-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.3xR_ccnorm.r.t5.ss'

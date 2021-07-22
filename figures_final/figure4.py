@@ -24,8 +24,9 @@ from nems.xform_helper import load_model_xform
 
 site = 'AMT020a'  # stims 4 / 8 are good examples
 stim = 8  # which stim (or stims) to compute covariance matrix for, since model fit per stimulus
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR3 + 'fig4.svg'
+plot_bg_sm = True
 
 batch = 331
 decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
@@ -48,26 +49,59 @@ bgr1, smr1 = fhelp.get_cov_matrices(ctx_plv['val'].copy(), sig='resp', sub='pred
 
 ############################# MAKE FIGURE #############################
 dmmr = np.max(np.concatenate((np.abs(sm-bg))))
-dmm = 2
+dmm = dmmr
 
-f, ax = plt.subplots(3, 1, figsize=(2, 6))
+if not plot_bg_sm:
+    f, ax = plt.subplots(3, 1, figsize=(2, 6))
 
-ax[0].set_title('Predicted')
-ax[0].imshow(psm-pbg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+    ax[0].set_title('Predicted')
+    ax[0].imshow(psm-pbg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
 
-ax[1].set_title('Rank-1')
-ax[1].imshow(smr1-bgr1, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
+    ax[1].set_title('Rank-1')
+    ax[1].imshow(smr1-bgr1, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
 
-ax[2].set_title('Full-rank')
-ax[2].imshow(sm-bg, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
+    ax[2].set_title('Full-rank')
+    ax[2].imshow(sm-bg, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
 
-for a in ax:
-    a.set_yticks([])
-    a.set_xticks([])
+    for a in ax:
+        a.set_yticks([])
+        a.set_xticks([])
 
-f.tight_layout()
+    f.tight_layout()
 
-if savefig:
-    f.savefig(fig_fn)
+    if savefig:
+        f.savefig(fig_fn)
+
+else:
+    dmm = 4
+    f, ax = plt.subplots(3, 2, figsize=(4, 6))
+
+    ax[0, 0].set_title('Predicted, Large')
+    ax[0, 0].imshow(pbg, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+
+    ax[0, 1].set_title('Predicted, Small')
+    ax[0, 1].imshow(psm, aspect='auto', vmin=-dmm, vmax=dmm, cmap='bwr')
+
+    ax[1, 0].set_title('Rank-1, Large')
+    ax[1, 0].imshow(bgr1, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
+
+    ax[1, 1].set_title('Rank-1, Small')
+    ax[1, 1].imshow(smr1, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
+
+    ax[2, 0].set_title('Full-rank, Large')
+    ax[2, 0].imshow(bg, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
+
+    ax[2, 1].set_title('Full-rank, Small')
+    ax[2, 1].imshow(sm, aspect='auto', vmin=-dmmr, vmax=dmmr, cmap='bwr')
+
+    for a in ax.flatten():
+        a.set_yticks([])
+        a.set_xticks([])
+
+    f.tight_layout()
+
+    if savefig:
+        f.savefig(fig_fn.replace('.svg', '_bgsm.svg'))
+
 
 plt.show()

@@ -6,8 +6,9 @@ import nems.db as nd
 
 from global_settings import HIGHR_SITES, CPN_SITES
 
-movement_mask = True # False
-mask_key = 'cpnOldmvm,t25,w1' #'cpnmvm,t25,w1' # 'cpnOldmvm,t25,w1'
+movement_mask = False # False
+mask_key = 'cpnmvm,t25,w1' #'cpnmvm,t25,w1' # 'cpnOldmvm,t25,w1'
+epochs = 'e10'
 
 # LV models
 modellist = [
@@ -65,7 +66,7 @@ modellist = [
 #modellist = [m.replace('eg10', epochs) for m in modellist]
 #modellist = [m.replace('e10', 'e5') for m in modellist]
 
-modellist = [m.replace('eg', 'e') for m in modellist]
+modellist = [m.replace('eg10', epochs) for m in modellist]
 
 # slow drift control models
 # modellist = [m.replace('.pvp0', '').replace('.pvp', '').replace('st.pup0-', 'st.drf.pup0-').replace('st.pup-', 'st.drf.pup-') for m in modellist]
