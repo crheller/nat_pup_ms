@@ -2,7 +2,7 @@
 Look at delta dprime as a function of the response magnitude (z-scored) for each stimulus.
 
 Idea is that this is a negative result showing that the "goodness" of the stimulus (its ability to drive neurons)
-doesn't predict the diversity.
+doesn't predict the diversity in decoding changes.
 """
 from path_settings import DPRIME_DIR, PY_FIGURES_DIR3
 from global_settings import HIGHR_SITES, CPN_SITES
@@ -31,6 +31,10 @@ modelname331 = 'dprime_mvm-25-1_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
 nComponents331 = 8
 sig_pairs_only = False
 recache = True
+savefig = True
+fig_fn = PY_FIGURES_DIR3 + 'fig7.svg'
+
+np.random.seed(123)
 
 # ============================= LOAD DPRIME =========================================
 path = DPRIME_DIR
@@ -81,24 +85,6 @@ df_all = pd.concat(df_all)
 df_all['delta'] = (df_all['bp_dp'] - df_all['sp_dp']) / (df_all['bp_dp'] + df_all['sp_dp'])
 df_all['delta_dU'] = df_all['bp_dU_mag'] - df_all['sp_dU_mag']
 
-bins = 40
-mm = 0.75
-f, ax = plt.subplots(1, 2, figsize=(6, 3))
-
-df_all.plot.hexbin(x='r1mag_test',
-                   y='r2mag_test',
-                   C='delta',
-                   gridsize=bins,
-                   vmin=-mm, vmax=mm, cmap='bwr', ax=ax[0])
-
-# color by site
-sns.scatterplot(data=df_all, x='r1mag_test', y='r2mag_test', hue='site', ax=ax[1])
-
-f.tight_layout()
-
-np.random.seed(123)
-r2 = []
-ci = []
 c1 = []
 c2 = []
 c12 = []
@@ -129,22 +115,39 @@ for s in sites:
     c12.append(res['coef']['interaction'])
     c12_ci.append(res['ci_coef']['interaction'])
 
-# plot regression results for each site
-f, ax = plt.subplots(1, 1, figsize=(2, 4))
+bins = 40
+mm = 0.75
+f, ax = plt.subplots(1, 2, figsize=(5, 2))
 
-ax.scatter(c1, np.arange(0, len(c1)), edgecolor='tab:blue', color='white')
-ax.scatter(c2, np.arange(0.15, len(c1)+0.15), edgecolor='tab:orange', color='white')
-ax.scatter(c12, np.arange(0.3, len(c1)+0.3), edgecolor='k', color='white')
+df_all.plot.hexbin(x='r1mag_test',
+                   y='r2mag_test',
+                   C='delta',
+                   gridsize=bins,
+                   vmin=-mm, vmax=mm, cmap='bwr', ax=ax[0])
+ax[0].set_xlabel(r"$|\mathbf{r}_a|$ (normalized)")
+ax[0].set_ylabel(r"$|\mathbf{r}_b|$ (normalized)")
+ax[0].set_title(r"$\Delta d'^2$")
+
+o1 = 0.2
+o2 = 0.4
+s = 10
+ax[1].scatter(c1, np.arange(0, len(c1)), edgecolor='tab:blue', color='white', label=r"$|\mathbf{r}_a|$", s=s)
+ax[1].scatter(c2, np.arange(o1, len(c1)+o1), edgecolor='tab:orange', color='white', label=r"$|\mathbf{r}_b|$", s=s)
+ax[1].scatter(c12, np.arange(o2, len(c1)+o2), edgecolor='k', color='white', label=r"$|\mathbf{r}_a|*|\mathbf{r}_b|$", s=s)
 for i, cf in enumerate(c1_ci):
-    ax.plot([cf[0], cf[1]], [i, i], zorder=-1, color='tab:blue')
-    ax.plot([c2_ci[i][0], c2_ci[i][1]], [i+0.15, i+0.15], zorder=-1, color='tab:orange')
-    ax.plot([c12_ci[i][0], c12_ci[i][1]], [i+0.3, i+0.3], zorder=-1, color='k')
+    ax[1].plot([cf[0], cf[1]], [i, i], zorder=-1, color='tab:blue')
+    ax[1].plot([c2_ci[i][0], c2_ci[i][1]], [i+o1, i+o1], zorder=-1, color='tab:orange')
+    ax[1].plot([c12_ci[i][0], c12_ci[i][1]], [i+o2, i+o2], zorder=-1, color='k')
 
-ax.set_ylabel("Site")
-ax.set_xlabel(r"$coeff$")
-ax.set_title(r"$\Delta d'^2$ vs. resp. strength")
-ax.axvline(0, linestyle='--', color='lightgrey')
+ax[1].legend(frameon=False, bbox_to_anchor=(1, 1), loc='upper left')
+ax[1].set_ylabel("Site")
+ax[1].set_xlabel(r"Regression coefficient")
+ax[1].set_title(r"$\Delta d'^2$ ~ $|\mathbf{r}_a| + |\mathbf{r}_b|$")
+ax[1].axvline(0, linestyle='--', color='lightgrey', zorder=-1)
 
 f.tight_layout()
+
+if savefig:
+    f.savefig(fig_fn)
 
 plt.show()
