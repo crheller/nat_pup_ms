@@ -30,6 +30,25 @@ modellist += [
     "psth.fs4.pup-loadpred-st.pup0.pvp-plgsm.eg10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss3"
 ]
 
+
+# 08.10.2021
+# try fitting models in one go, but using tensorflow fitter
+
+# all four models, ss1, 1sec mvm mask
+modellist = [
+    "psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
+    "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
+    "psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
+    "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1"
+]
+# add ss2 / ss3
+modellist += [m.replace('ss1', 'ss2') for m in modellist]
+modellist += [m.replace('ss1', 'ss3') for m in modellist if 'ss1' in m]
+# 2 sec movement mask
+modellist += [m.replace('-mvm.t25.w1', '-mvm.t25.w2') for m in modellist]
+# no movement mask
+modellist += [m.replace('-mvm.t25.w1', '') for m in modellist if 'w1' in m]
+
 # testing new...
 '''
 modellist = [
@@ -74,6 +93,7 @@ modellist = [m.replace('eg10', epochs) for m in modellist]
 # queue up a batch of jobs
 force_rerun = True
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
+python_path = '/auto/users/hellerc/anaconda3/envs/tf/bin/python'
 script = '/auto/users/hellerc/code/NEMS/scripts/fit_single.py'
 
 sites = CPN_SITES #+ HIGHR_SITES
