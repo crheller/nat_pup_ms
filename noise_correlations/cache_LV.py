@@ -29,7 +29,8 @@ import nems.db as nd
 
 # A1 data
 sites = CPN_SITES #+ PEG_SITES + CPN_SITES HIGHR_SITES + 
-batches = [331]*len(CPN_SITES) #[289]*len(HIGHR_SITES) + [331]*len(CPN_SITES) #+ [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
+sites = [s for s in sites if (s!='TNC013a') & (s!='TNC016a')]
+batches = [331]*len(sites) #[289]*len(HIGHR_SITES) + [331]*len(CPN_SITES) #+ [323]*len(PEG_SITES) + [331]*len(CPN_SITES)
 zscore = True
 move_mask = True
 

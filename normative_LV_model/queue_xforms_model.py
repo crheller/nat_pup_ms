@@ -36,6 +36,7 @@ modellist += [
 
 # all four models, ss1, 1sec mvm mask
 modellist = [
+    "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
     "psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
     "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
     "psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
@@ -91,7 +92,7 @@ modellist = [m.replace('eg10', epochs) for m in modellist]
 # modellist = [m.replace('.pvp0', '').replace('.pvp', '').replace('st.pup0-', 'st.drf.pup0-').replace('st.pup-', 'st.drf.pup-') for m in modellist]
 
 # queue up a batch of jobs
-force_rerun = True
+force_rerun = False
 python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
 python_path = '/auto/users/hellerc/anaconda3/envs/tf/bin/python'
 script = '/auto/users/hellerc/code/NEMS/scripts/fit_single.py'

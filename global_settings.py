@@ -11,7 +11,7 @@ ALL_SITES = ['BOL005c', 'BOL006b', 'bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', '
             'CRD016d', 'CRD017c']
 
 CPN_SITES = ['AMT020a', 'AMT026a', 'ARM029a', 'ARM031a',
-       'ARM032a', 'ARM033a', 'CRD018d'] # (batch 331)
+       'ARM032a', 'ARM033a', 'CRD018d', 'TNC013a', 'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a'] # (batch 331)
 # ARM029 and ARM031 are borderline. Pupil stays pretty big for the whole recording.
 # bad sites: AMT021b (no pupil variability), AMT005e (no pupil variability), CRD005b (no pupil variability), CRD019b (no pupil variability), 'CRD004a' (not much pupil variability)
 

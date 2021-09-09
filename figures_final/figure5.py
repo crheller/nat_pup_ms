@@ -26,6 +26,7 @@ fig_fn = PY_FIGURES_DIR3 + 'fig5.svg'
 np.random.seed(123)
 
 batch = 331
+fit_val = 'val'
 
 # options / models for figure 5 in disseration
 #decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
@@ -39,6 +40,12 @@ rlv = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-
 indep = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss1"
 plv = "psth.fs4.pup-loadpred.cpndmvm,t25,w1-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 plv2 = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
+
+decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2'
+rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+indep = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+plv = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+plv2 = 'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
 
 
 # LOAD DECODING RESULTS FOR MODEL / RAW DATA
@@ -113,6 +120,7 @@ for k in results['fit'].keys():
     results['val'][k] = pd.concat(results['val'][k])
 
 ############################# MAKE FIGURE #############################
+
 s = 5
 edgecolor='none'
 cmap = {
@@ -125,7 +133,7 @@ axlim = (-1, 1)
 f, ax = plt.subplots(1, 4, figsize=(6.5, 1.9))
 
 # Pupil-independent noise
-ax[0].scatter(results['fit']['raw']['delta_dprime'], results['fit']['pup_indep']['delta_dprime'], s=s, edgecolor=edgecolor, color=cmap['pup_indep'])
+ax[0].scatter(results[fit_val]['raw']['delta_dprime'], results[fit_val]['pup_indep']['delta_dprime'], s=s, edgecolor=edgecolor, color=cmap['pup_indep'])
 ax[0].set_ylabel(r"$\Delta d'^2$ Model Prediction")
 ax[0].set_xlabel(r"$\Delta d'^2$ Raw data")
 ax[0].set_title("Pupil-independent\nvariance")
@@ -133,7 +141,7 @@ ax[0].axhline(0, linestyle='--', color='grey', zorder=-1); ax[0].axvline(0, line
 ax[0].plot(axlim, axlim, '--', color='grey', zorder=-1)
 ax[0].set_xlim(axlim); ax[0].set_ylim(axlim)
 # Pupil-dependent single neuron variability
-ax[1].scatter(results['fit']['raw']['delta_dprime'], results['fit']['indep_noise']['delta_dprime'], s=s, edgecolor=edgecolor, color=cmap['indep_noise'])
+ax[1].scatter(results[fit_val]['raw']['delta_dprime'], results[fit_val]['indep_noise']['delta_dprime'], s=s, edgecolor=edgecolor, color=cmap['indep_noise'])
 ax[1].set_xlabel(r"$\Delta d'^2$ Raw data")
 ax[1].set_title("Pupil-dependent\nsingle neuron variance")
 ax[1].axhline(0, linestyle='--', color='grey', zorder=-1); ax[1].axvline(0, linestyle='--', color='grey', zorder=-1)
@@ -141,7 +149,7 @@ ax[1].plot(axlim, axlim, '--', color='grey', zorder=-1)
 ax[1].set_xlim(axlim); ax[1].set_ylim(axlim)
 
 # Pupil-depdendent LV
-ax[2].scatter(results['fit']['raw']['delta_dprime'], results['fit']['lv']['delta_dprime'], s=s, edgecolor=edgecolor, color=cmap['lv'])
+ax[2].scatter(results[fit_val]['raw']['delta_dprime'], results[fit_val]['lv']['delta_dprime'], s=s, edgecolor=edgecolor, color=cmap['lv'])
 ax[2].set_xlabel(r"$\Delta d'^2$ Raw data")
 ax[2].set_title("Pupil-dependent\n"+r"shared modultator ($k=1$)")
 ax[2].axhline(0, linestyle='--', color='grey', zorder=-1); ax[2].axvline(0, linestyle='--', color='grey', zorder=-1)
@@ -149,11 +157,11 @@ ax[2].plot(axlim, axlim, '--', color='grey', zorder=-1)
 ax[2].set_xlim(axlim); ax[2].set_ylim(axlim)
 
 # Model summary
-raw = results['fit']['raw']
+raw = results[fit_val]['raw']
 err = {}
-for i, k in enumerate(results['fit'].keys()):
+for i, k in enumerate(results[fit_val].keys()):
     if k != 'raw':
-        pred = results['fit'][k]
+        pred = results[fit_val][k]
         # get bootstrapped confidence interval
         d = {s: np.abs(raw[raw.site==s]['delta_dprime']-pred[pred.site==s]['delta_dprime']).values for s in raw.site.unique()}
         err[k] = d
