@@ -25,7 +25,7 @@ thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
-lvmodels = False   # run for the simulated, model results from lv xforms models
+lvmodels = True   # run for the simulated, model results from lv xforms models
 loadpredkey = 'loadpred.cpnmvm,t25,w1'
 
 use_old_cpn = False

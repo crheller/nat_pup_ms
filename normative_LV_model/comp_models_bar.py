@@ -23,23 +23,24 @@ mpl.rcParams['font.size'] = 6
 
 recache = False
 sites = CPN_SITES
-batches = [331]*len(CPN_SITES)
+sites = [s for s in sites if (s.startswith('TNC013a')==False) & (s.startswith('TNC016a')==False)]
+batches = [331]*len(sites)
 #sites = HIGHR_SITES
 #batches = [289]*len(CPN_SITES)
-fit_val = 'val'
+fit_val = 'fit'
 bar = False # if false, do single points w/ error
 aligned = False
 sig_delta = False
 
 decoders = [
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-dU',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-1',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-3', 
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-4', 
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-5',
-    'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-dU',
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa',
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-1',
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-2',
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-3', 
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-4', 
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-5',
+    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-6'
 ]
 # then load each of these for each cov. rank
 ranks = [1, 2, 3]

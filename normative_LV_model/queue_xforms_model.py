@@ -6,6 +6,9 @@ import nems.db as nd
 
 from global_settings import HIGHR_SITES, CPN_SITES
 
+subset = True
+
+# old params for the loadpred models, where first order / second order were fit separately
 movement_mask = False # False
 mask_key = 'cpnmvm,t25,w1' #'cpnmvm,t25,w1' # 'cpnOldmvm,t25,w1'
 epochs = 'e10'
@@ -98,7 +101,12 @@ python_path = '/auto/users/hellerc/anaconda3/envs/tf/bin/python'
 script = '/auto/users/hellerc/code/NEMS/scripts/fit_single.py'
 
 sites = CPN_SITES #+ HIGHR_SITES
-batches = [331] * len(CPN_SITES) #+ [322]*len(HIGHR_SITES)
+
+if subset:
+    sites = [s for s in sites if 'TNC' in s]
+    sites = ['ARM032a']
+
+batches = [331] * len(sites) #+ [322]*len(HIGHR_SITES)
 #sites = HIGHR_SITES
 #batches = [322] * len(HIGHR_SITES)
 
