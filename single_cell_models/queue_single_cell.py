@@ -31,7 +31,11 @@ modelnames = ['ns.fs4.pup-ld-st.pup-hrc-psthfr-aev_slogsig.SxR_basic',
 modelnames = ['ns.fs4.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
               'ns.fs4.pup-ld-st.pup0-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
               'ns.fs100.pup-ld-st.pup-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
-              'ns.fs100.pup-ld-st.pup0-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic']
+              'ns.fs100.pup-ld-st.pup0-hrc-psthfr_sdexp.SxR.bound_jk.nf10-basic',
+              'ns.fs4.pup-ld-st.pup-hrc-psthfr_stategain.SxR.bound_jk.nf10-basic',
+              'ns.fs4.pup-ld-st.pup0-hrc-psthfr_stategain.SxR.bound_jk.nf10-basic',
+              'ns.fs100.pup-ld-st.pup-hrc-psthfr_stategain.SxR.bound_jk.nf10-basic',
+              'ns.fs100.pup-ld-st.pup0-hrc-psthfr_stategain.SxR.bound_jk.nf10-basic']
 
 if batch == 294:
     modelnames = [m.replace('pup-ld', 'pup.voc-ld') for m in modelnames]

@@ -26,7 +26,7 @@ fig_fn = PY_FIGURES_DIR3 + 'fig5.svg'
 np.random.seed(123)
 
 batch = 331
-fit_val = 'val'
+fit_val = 'fit'
 
 # options / models for figure 5 in disseration
 #decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-6'
@@ -41,17 +41,18 @@ indep = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8
 plv = "psth.fs4.pup-loadpred.cpndmvm,t25,w1-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 plv2 = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 
-decoder = 'dprime_mvm-25-2_jk10_zscore_nclvz_fixtdr2-fa_noiseDim-2'
-rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
-indep = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
-plv = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
-plv2 = 'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+decoder = 'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-6'
+rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er5.sp-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+indep = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er5.sp-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+plv = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er5.sp-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+plv2 = 'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er5.sp-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
 
 
 # LOAD DECODING RESULTS FOR MODEL / RAW DATA
 recache = False
 sites = CPN_SITES
-batches = [331]*len(CPN_SITES)
+#sites = [s for s in sites if ('TNC' not in s)]
+batches = [331]*len(sites)
 results = {
     'fit': {
         'pup_indep': [],
@@ -164,6 +165,7 @@ for i, k in enumerate(results[fit_val].keys()):
         pred = results[fit_val][k]
         # get bootstrapped confidence interval
         d = {s: np.abs(raw[raw.site==s]['delta_dprime']-pred[pred.site==s]['delta_dprime']).values for s in raw.site.unique()}
+        #d = {s: np.array([np.corrcoef(raw[raw.site==s]['delta_dprime'], pred[pred.site==s]['delta_dprime'])[0,1]]) for s in raw.site.unique()}
         err[k] = d
         bootsamp = get_bootstrapped_sample(d, metric='mean', even_sample=False, nboot=1000)
         low = np.quantile(bootsamp, .025)

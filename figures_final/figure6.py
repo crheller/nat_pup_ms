@@ -18,7 +18,7 @@ mpl.rcParams['font.size'] = 8
 from nems.xform_helper import load_model_xform
 import nems.db as nd
 
-savefig = True
+savefig = False
 fig_fn = PY_FIGURES_DIR3 + 'fig6.svg'
 
 batch = 331
@@ -28,9 +28,15 @@ results = {
     'lv0ax': {},
     'lvbax': {}
 }
+sites = CPN_SITES
+sites = [s for s in sites if ('TNC' not in s)]
 for site in CPN_SITES:
     model = "psth.fs4.pup-loadpred.cpnmvm-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
-    xf, ctx = load_model_xform(cellid=site, modelname=model, batch=331)
+    model = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss3'
+    try:
+        xf, ctx = load_model_xform(cellid=site, modelname=model, batch=batch)
+    except ValueError:
+        xf, ctx = load_model_xform(cellid=[c for c in nd.get_batch_cells(batch).cellid if site in c][0], modelname=model, batch=batch)
 
     # first order prediction -- what's the dimensionality of the residual?
     r0 = ctx['val']

@@ -73,3 +73,10 @@ xfn, ctxn = load_model_xform(cellid=[c for c in nd.get_batch_cells(batch).cellid
 # old/new loadpred models
 modelname = "psth.fs4.pup-loadpred.cpnOldmvm,t25,w1-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss1"
 xfnn, ctxnn = load_model_xform(cellid=site, batch=batch, modelname=modelname)
+
+
+# load a new model
+site = 'ARM032a'
+batch = 331
+modelname = 'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er1-aev_stategain.2xR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss3'
+xfn, ctxn = fit_model_xform(cellid=site, batch=batch, modelname=modelname, returnModel=True)

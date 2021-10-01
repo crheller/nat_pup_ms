@@ -3,19 +3,21 @@ import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
 mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
+mvm_masks = [(25, 1)]
 noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+noise_dims = [0, 1, 2]
 
 batch = 331
 njack = 10
-force_rerun = True
+force_rerun = False
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
-subset_331 = True # specialized subset of 331 data (e.g. only run for a subset of sites that are new data)
-no_crossval = False  # for no cross validation (on the larger 289 set )
+subset_331 = False # specialized subset of 331 data (e.g. only run for a subset of sites that are new data)
+no_crossval = True  # ******** for no cross validation (on the larger 289 set )
 pca = False
 pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
 pc_keys = ['pca-4-psth-whiten']
-zscore = True
+zscore = False     # ********
 temp_subset = False # for exculding subset of models/sites for faster time on jobs
 nc_lv = False        # beta defined using nc LV method (if False, don't bother loading betas -- 09.08.2021, I think this is what we want. nclv isn't super relevant anymore)
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
@@ -25,7 +27,9 @@ thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
-lvmodels = True   # run for the simulated, model results from lv xforms models
+lvmodels = False   # run for the simulated, model results from lv xforms models
+gain_models = True
+fit_epochs = 'er2'
 loadpredkey = 'loadpred.cpnmvm,t25,w1'
 
 use_old_cpn = False
@@ -34,42 +38,43 @@ for movement_mask in mvm_masks:
     for n_additional_noise_dims in noise_dims:
         if lvmodels:
             # define list of lv models to fit 
-            import dprime_new.queue_helpers as qh 
-            # DC models
-            lvmodelnames = qh.indep_noise_so + qh.additive_models_so
-            # gain models
-            #lvmodelnames = qh.gain_models_so + qh.indep_gain_so
 
-            # 08.10.2021
-            # try fitting models in one go, but using tensorflow fitter
-            # all four models, ss1, 1sec mvm mask
+            # 30.09.2021 ID'd a (biggish) problem with the .sp option. Trying these new models
             lvmodelnames = [
-                "psth.fs4.pup-ld-st.pup0.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
-                "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
-                "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
-                "psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1",
-                "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss1"
-            ]
+                'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.2xR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
+                ]
+
             # add ss2 / ss3
             lvmodelnames += [m.replace('ss1', 'ss2') for m in lvmodelnames]
             lvmodelnames += [m.replace('ss1', 'ss3') for m in lvmodelnames if 'ss1' in m]
-            if movement_mask == (25, 1):
+            lvmodelnames = [m for m in lvmodelnames if 'ss3' in m]
+            
+            if movement_mask == (25, 2):
                 # 2 sec movement mask
                 lvmodelnames += [m.replace('-mvm.t25.w1', '-mvm.t25.w2') for m in lvmodelnames]
             elif movement_mask is None:
                 # no movement mask
                 lvmodelnames += [m.replace('-mvm.t25.w1', '') for m in lvmodelnames if 'w1' in m]
-            #############################################333
-
-            lvmodelnames = [m.replace('eg', 'e') for m in lvmodelnames]
-            #lvmodelnames = [m.replace('e10', 'e12') for m in lvmodelnames]
-
-            #lvmodelnames = [lv.replace('sdexp2', 'stategain') for lv in lvmodelnames]
+            
+            lvmodelnames = [m.replace('e10', fit_epochs) for m in lvmodelnames]
+            
+            if gain_models:
+                lvmodelnames = [m.replace('.d.so', '.so') for m in lvmodelnames]
 
             if movement_mask:
                 lvmodelnames = [lv.replace('t25.w1', f't{movement_mask[0]}.w{movement_mask[1]}') for lv in lvmodelnames]
             else:
                 lvmodelnames = [lv.replace('-mvm.t25.w1', '') for lv in lvmodelnames]
+
+            # temp code to pare down modellist for testing
+            lvmodelnames = [m for m in lvmodelnames if ('ss3' in m) & ('stategain.2xR' not in m)]
 
 
         if no_crossval & loocv:

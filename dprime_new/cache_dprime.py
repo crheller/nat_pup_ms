@@ -62,6 +62,7 @@ options = modelname.split('_')
 
 njacks = 10
 zscore = False
+shuffle_trials = False
 regress_pupil = False
 use_xforms = False
 sim1 = False
@@ -94,6 +95,8 @@ for op in options:
         njacks = int(op[2:])
     if 'zscore' in op:
         zscore = True
+    if 'shuffle' in op:
+        shuffle_trials = True
     if op == 'pr':
         regress_pupil = True
     if op == 'prg':
@@ -304,6 +307,16 @@ X = X.reshape(ncells, nreps, nstim)
 X_raw = X_raw.reshape(ncells, nreps_raw, nstim)
 # reshape X_pup
 X_pup = X_pup.reshape(1, nreps_raw, nstim)
+
+# ===================== decide if / how we should shuffle data ===================
+if shuffle_trials:
+    # shuffle trials per neuron within state, so don't break any overall gain changes between large / small pupil
+    if np.any(X!=X_raw):
+        raise ValueError("Right now, we're just set up to do this for raw data. Not sure how you'd do it for sim data")
+    else:
+        log.info("Shuffing trials within pupil condition to break state-dependent changes in correlation")
+        X = decoding.shuffle_trials(X, pup_mask)
+        X_raw = X.copy()
 
 # ============================== get pupil variance ==================================
 # figure out pupil variance per stimulus (this always happens on raw data... X_pup and pup_mask_raw)

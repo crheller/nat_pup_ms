@@ -23,36 +23,41 @@ mpl.rcParams['font.size'] = 6
 
 recache = False
 sites = CPN_SITES
-sites = [s for s in sites if (s.startswith('TNC013a')==False) & (s.startswith('TNC016a')==False)]
+#sites = [s for s in sites if (s.startswith('TNC013a')==False) & (s.startswith('TNC016a')==False)]
 batches = [331]*len(sites)
 #sites = HIGHR_SITES
 #batches = [289]*len(CPN_SITES)
 fit_val = 'fit'
+stat_metric = 'median' # mean / median for bootstrap testing of differences between models
+metric = 'sp_dp'     # value to compare between models (delta dprime / big pupil / small pupil)
+
 bar = False # if false, do single points w/ error
 aligned = False
 sig_delta = False
 
 decoders = [
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-dU',
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa',
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-1',
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-2',
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-3', 
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-4', 
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-5',
-    'dprime_mvm-25-2_jk10_zscore_fixtdr2-fa_noiseDim-6'
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-dU',
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa',
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-1',
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-2',
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-3', 
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-4', 
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-5',
+    'dprime_mvm-25-1_jk10_zscore_fixtdr2-fa_noiseDim-6'
 ]
 # then load each of these for each cov. rank
-ranks = [1, 2, 3]
+ranks = [3]
 rlv = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup0.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
 ind = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup0.pvp-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
 plv = "psth.fs4.pup-loadpred.cpnmvm,t25,w1-st.pup.pvp0-plgsm.e10.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
 
-rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
-ind = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
-plv = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w2-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
+rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
+ind = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
+plv = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-hrc-psthfr-plgsm.e10.sp-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
 
-
+rlv = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er5.sp-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
+ind = 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er5.sp-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
+plv = 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er5.sp-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.f0.ss'
 
 #ind = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.2xR.d.so-inoise.3xR_ccnorm.t5.ss"
 #rlv = "psth.fs4.pup-loadpred.cpnmvm-st.pup0.pvp0-plgsm.e12.sp-lvnoise.r8-aev_lvnorm.SxR.d.so-inoise.2xR_ccnorm.t5.ss"
@@ -144,7 +149,11 @@ for row, decoder in enumerate(decoders):
             # fit stims first
             for k, res in zip(['pup_indep', 'indep_noise', 'lv', 'raw'], [lv0, indep, lv, raw]):
                 df = res.numeric_results
-                df['delta_dprime'] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp']) #(raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp'])
+                if metric=='delta_dprime':
+                    df[metric] = (df['bp_dp'] - df['sp_dp']) / (df['bp_dp'] + df['sp_dp']) #(raw.numeric_results['bp_dp'] + raw.numeric_results['sp_dp'])
+                elif (metric=='bp_dp') | (metric=='sp_dp'):
+                    pass
+                
                 df['site'] = site
                 # filter based on noise alignment
                 try:
@@ -164,48 +173,53 @@ for row, decoder in enumerate(decoders):
         # plot results for these 3 models 
         if bar:
             ax[row].bar(x=[col-0.5], 
-                        height=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['pup_indep']['delta_dprime']).mean()],
-                        yerr=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['pup_indep']['delta_dprime']).sem()],
+                        height=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['pup_indep'][metric]).mean()],
+                        yerr=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['pup_indep'][metric]).sem()],
                         width=0.5, edgecolor='k', lw=1, color='tab:blue', label='Shuff. Pupil')
             ax[row].bar(x=[col], 
-                        height=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['indep_noise']['delta_dprime']).mean()],
-                        yerr=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['indep_noise']['delta_dprime']).sem()],
+                        height=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['indep_noise'][metric]).mean()],
+                        yerr=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['indep_noise'][metric]).sem()],
                         width=0.5, edgecolor='k', lw=1, color='tab:orange', label='Indep. Noise')
             ax[row].bar(x=[col+0.5], 
-                        height=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['lv']['delta_dprime']).mean()],
-                        yerr=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['lv']['delta_dprime']).sem()],
+                        height=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['lv'][metric]).mean()],
+                        yerr=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['lv'][metric]).sem()],
                         width=0.5, edgecolor='k', lw=1, color='tab:green', label='LV Model')
         else:
             ax[row].errorbar(x=[col-0.5], 
-                        y=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['pup_indep']['delta_dprime']).mean()],
-                        yerr=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['pup_indep']['delta_dprime']).sem()],
+                        y=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['pup_indep'][metric]).mean()],
+                        yerr=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['pup_indep'][metric]).sem()],
                         marker='o', capsize=2, lw=1, color='tab:blue', label='Shuff. Pupil')
             ax[row].errorbar(x=[col], 
-                        y=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['indep_noise']['delta_dprime']).mean()],
-                        yerr=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['indep_noise']['delta_dprime']).sem()],
+                        y=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['indep_noise'][metric]).mean()],
+                        yerr=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['indep_noise'][metric]).sem()],
                         marker='o', capsize=2, lw=1, color='tab:orange', label='Indep. Noise')
             ax[row].errorbar(x=[col+0.5], 
-                        y=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['lv']['delta_dprime']).mean()],
-                        yerr=[np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['lv']['delta_dprime']).sem()],
+                        y=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['lv'][metric]).mean()],
+                        yerr=[np.abs(results[fit_val]['raw'][metric]-results[fit_val]['lv'][metric]).sem()],
                         marker='o', capsize=2, lw=1, color='tab:green', label='LV Model')    
 
             
             # add stats
 
-            rlv_err = np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['pup_indep']['delta_dprime'])
-            ind_err = np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['indep_noise']['delta_dprime'])
-            lv_err = np.abs(results[fit_val]['raw']['delta_dprime']-results[fit_val]['lv']['delta_dprime'])
+            rlv_err = np.abs(results[fit_val]['raw'][metric]-results[fit_val]['pup_indep'][metric])
+            ind_err = np.abs(results[fit_val]['raw'][metric]-results[fit_val]['indep_noise'][metric])
+            lv_err = np.abs(results[fit_val]['raw'][metric]-results[fit_val]['lv'][metric])
             _sites = results[fit_val]['raw']['site']
             
             d = {s: rlv_err[_sites==s].values - ind_err[_sites==s].values for s in _sites.unique()} 
-            bootsample = get_bootstrapped_sample(d, metric='mean', even_sample=False, nboot=1000) 
+            bootsample = get_bootstrapped_sample(d, metric=stat_metric, even_sample=False, nboot=1000) 
             p = get_direct_prob(bootsample, np.zeros(len(bootsample)))[0]
             ax[row].text(col-0.5, ax[row].get_ylim()[1], f'p={round(p, 3)}', fontsize=6)  
 
             d = {s: ind_err[_sites==s].values - lv_err[_sites==s].values for s in _sites.unique()} 
-            bootsample = get_bootstrapped_sample(d, metric='mean', even_sample=False, nboot=1000) 
+            bootsample = get_bootstrapped_sample(d, metric=stat_metric, even_sample=False, nboot=1000) 
             p = get_direct_prob(bootsample, np.zeros(len(bootsample)))[0]
             ax[row].text(col+0.25, ax[row].get_ylim()[1], f'p={round(p, 3)}', fontsize=6)   
+
+            d = {s: rlv_err[_sites==s].values - lv_err[_sites==s].values for s in _sites.unique()} 
+            bootsample = get_bootstrapped_sample(d, metric=stat_metric, even_sample=False, nboot=1000) 
+            p = get_direct_prob(bootsample, np.zeros(len(bootsample)))[0]
+            ax[row].text(col-0.1, ax[row].get_ylim()[1], f'p={round(p, 3)}', fontsize=6)   
 
         ax[row].set_xticks([])
         if (row==0) & (col==0):

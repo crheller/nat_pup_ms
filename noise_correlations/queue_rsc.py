@@ -2,13 +2,13 @@ import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
 batches = [331] #[289, 294, 331]
-force_rerun = True
+force_rerun = False
 boxcar = True
 evoked = True
 slow = False
 perstim = True
 custom = False  # run a subset of jobs
-movement_mask = (25, 1) #True
+movement_mask = False #(25, 2) #True
 
 if custom:
     modelnames = ['rsc_pr_rm1', 
