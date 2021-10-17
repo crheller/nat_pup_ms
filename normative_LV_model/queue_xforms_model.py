@@ -10,7 +10,7 @@ force_rerun = False
 exacloud = True
 stategain = True
 gain = True
-epochs = 'er2'
+epochs = 'er3'
 
 
 # all four models, ss1, 1sec mvm mask
@@ -69,7 +69,7 @@ batches = [331] * len(sites) #+ [322]*len(HIGHR_SITES)
 #batches = [322] * len(HIGHR_SITES)
 
 # manual code to pare down models that we fit for testing. This changes all the time
-modellist = [m for m in modellist if ('ss3' in m) and ('.w1' in m)]
+modellist = [m for m in modellist if (('ss3' in m) | ('ss' not in m)) and ('mvm' not in m)]
 
 if exacloud:
     from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models

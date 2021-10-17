@@ -1,11 +1,11 @@
+from logging import shutdown
 import nems.db as nd
 import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
 mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
-mvm_masks = [(25, 1)]
+#mvm_masks = [(25, 1)]
 noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
-noise_dims = [0, 1, 2]
 
 batch = 331
 njack = 10
@@ -17,7 +17,8 @@ no_crossval = True  # ******** for no cross validation (on the larger 289 set )
 pca = False
 pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
 pc_keys = ['pca-4-psth-whiten']
-zscore = False     # ********
+zscore = True     # ********
+shuffle = False
 temp_subset = False # for exculding subset of models/sites for faster time on jobs
 nc_lv = False        # beta defined using nc LV method (if False, don't bother loading betas -- 09.08.2021, I think this is what we want. nclv isn't super relevant anymore)
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
@@ -27,9 +28,9 @@ thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
-lvmodels = False   # run for the simulated, model results from lv xforms models
+lvmodels = True   # run for the simulated, model results from lv xforms models
 gain_models = True
-fit_epochs = 'er2'
+fit_epochs = 'er3'
 loadpredkey = 'loadpred.cpnmvm,t25,w1'
 
 use_old_cpn = False
@@ -63,7 +64,7 @@ for movement_mask in mvm_masks:
                 # no movement mask
                 lvmodelnames += [m.replace('-mvm.t25.w1', '') for m in lvmodelnames if 'w1' in m]
             
-            lvmodelnames = [m.replace('e10', fit_epochs) for m in lvmodelnames]
+            lvmodelnames = [m.replace('er2', fit_epochs) for m in lvmodelnames]
             
             if gain_models:
                 lvmodelnames = [m.replace('.d.so', '.so') for m in lvmodelnames]
@@ -109,6 +110,9 @@ for movement_mask in mvm_masks:
         # NOTE: as of 06.04.2020: tried regressing out only baseline or only gain (prd / prg models). Didn't see much of 
         # a difference. Still an option though. May want to look into a bug at some point.
         # NOTE: as of 08.23.2020: removed sim2 models from queue list. Decided to just use first order and first + second order
+
+        if shuffle:
+            modellist = [m.replace('dprime_', 'dprime_shuffle_') for m in modellist]
 
         if pca:
             new = []
