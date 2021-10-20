@@ -7,7 +7,12 @@ mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in se
 #mvm_masks = [(25, 1)]
 noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
 
-batch = 294
+thirds = True  # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
+               # sort of weird, but idea is that then nothing changes (calculation of decoding axis etc.),
+               # we just project a different set of data into the "thing" classified as "big pupil". Kludgy,
+               # but should work fine.
+
+batch = 331
 njack = 10
 force_rerun = False
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -106,6 +111,15 @@ for movement_mask in mvm_masks:
                     f'dprime_sim1_pr_jk{njack}_zscore', f'dprime_sim12_pr_jk{njack}_zscore',
                     f'dprime_pr_rm2_jk{njack}_zscore', 
                     f'dprime_sim1_pr_rm2_jk{njack}_zscore', f'dprime_sim12_pr_rm2_jk{njack}_zscore']
+        
+        if thirds:
+            modellist13 = [m+'_png13' for m in modellist]
+            modellist23 = [m+'_png23' for m in modellist]
+            modellist33 = [m+'_png33' for m in modellist]
+            bmodellist13 = [m+'_pbg13' for m in modellist]
+            bmodellist23 = [m+'_pbg23' for m in modellist]
+            bmodellist33 = [m+'_pbg33' for m in modellist]
+            modellist = modellist + modellist13 + modellist23 + modellist33 + bmodellist13 + bmodellist23 + bmodellist33
 
         # NOTE: as of 06.04.2020: tried regressing out only baseline or only gain (prd / prg models). Didn't see much of 
         # a difference. Still an option though. May want to look into a bug at some point.

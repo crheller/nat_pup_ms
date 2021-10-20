@@ -62,6 +62,7 @@ options = modelname.split('_')
 
 njacks = 10
 zscore = False
+pup_ops = None
 shuffle_trials = False
 regress_pupil = False
 use_xforms = False
@@ -97,6 +98,18 @@ for op in options:
         zscore = True
     if 'shuffle' in op:
         shuffle_trials = True
+    if op.startswith('png'):
+        pup_ops = []
+        # png = "pupil norm. group"
+        pup_ops.append('max_norm')
+        pup_ops.append((int(op[3])-1) / int(op[4]))
+        pup_ops.append(int(op[3]) / int(op[4]))
+    if op.startswith('pbg'):
+        pup_ops = []
+        # pbg = "pupil balanced group"
+        pup_ops.append('even_split')
+        pup_ops.append((int(op[3])-1) / int(op[4]))
+        pup_ops.append(int(op[3]) / int(op[4]))
     if op == 'pr':
         regress_pupil = True
     if op == 'prg':
@@ -242,6 +255,7 @@ else:
 # ================================= load recording ==================================
 X, sp_bins, X_pup, pup_mask, epochs = decoding.load_site(site=site, batch=batch, 
                                        pca_ops=pca_ops,
+                                       pup_ops=pup_ops,
                                        regress_pupil=regress_pupil,
                                        gain_only=gain_only,
                                        dc_only=dc_only,
@@ -409,6 +423,14 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
         ptrain_mask = p_est[ev_set][:, :, [combo[0], combo[1]]]
         ptest_mask = p_val[ev_set][:, :, [combo[0], combo[1]]]
         tdr2_axis = tdr2_axes[ev_set]
+
+        # if ptrain_mask is all False, just set it to None so
+        # that we don't attempt to run the bp/sp analysis. This is a kludgy 
+        # way to deal with cases where we selected a pupil window for which there 
+        # was not valid data in this experiment
+        if (np.sum(ptrain_mask[:, :, 0]) < 10) | (np.sum(ptrain_mask[:, :, 1]) < 10):
+            log.info(f"For combo: {combo}, ev_set: {ev_set} not enough data matched the specified pupil state")
+            ptrain_mask = None
 
         xtrain = nat_preproc.flatten_X(X_train[:, :, :, np.newaxis])
         xtest = nat_preproc.flatten_X(X_test[:, :, :, np.newaxis])

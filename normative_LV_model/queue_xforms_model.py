@@ -63,8 +63,8 @@ if gain:
 # slow drift control models
 # modellist = [m.replace('.pvp0', '').replace('.pvp', '').replace('st.pup0-', 'st.drf.pup0-').replace('st.pup-', 'st.drf.pup-') for m in modellist]
 
-sites = CPN_SITES #+ HIGHR_SITES
-batches = [331] * len(sites) #+ [322]*len(HIGHR_SITES)
+sites = CPN_SITES + HIGHR_SITES
+batches = [331] * len(CPN_SITES) + [322]*len(HIGHR_SITES)
 #sites = HIGHR_SITES
 #batches = [322] * len(HIGHR_SITES)
 
