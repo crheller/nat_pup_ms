@@ -508,6 +508,11 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
             tdr_results = pd.DataFrame(index=tdr_index, columns=temp_tdr_results.columns)
             tdr_results.loc[tdr_idx] = temp_tdr_results.iloc[0].values
             temp_tdr_results = pd.DataFrame()
+            if 'bp_dp' not in tdr_results.columns:
+                tdr_results['bp_dp'] = np.nan # add place holder in case the first didn't have data for this
+            if 'sp_dp' not in tdr_results.columns:
+                tdr_results['sp_dp'] = np.nan # add place holder in case the first didn't have data for this
+
 
         else:
             temp_tdr_results = temp_tdr_results.append([_tdr_results])
