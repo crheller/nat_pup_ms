@@ -4,15 +4,18 @@ import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
 mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
+mvm_masks = [None] # for NAT data, would need to reanalyze pupil
 #mvm_masks = [(25, 1)]
 noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+noise_dims = [-1, 0, 1, 2]
 
-thirds = True  # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
+thirds = False # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
                # sort of weird, but idea is that then nothing changes (calculation of decoding axis etc.),
                # we just project a different set of data into the "thing" classified as "big pupil". Kludgy,
                # but should work fine.
-
-batch = 331
+allPup = False  # project all pupil data (full mask, not kacnkifed) into the est decoding space to prevent low rep count stuff from happening
+               # alternative is to set this to false, and all stim where <5 reps of each in each state won't be used.
+batch = 294 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
 njack = 10
 force_rerun = False
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -33,7 +36,7 @@ thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
-lvmodels = False   # run for the simulated, model results from lv xforms models
+lvmodels = True   # run for the simulated, model results from lv xforms models
 gain_models = True
 fit_epochs = 'er3'
 loadpredkey = 'loadpred.cpnmvm,t25,w1'
@@ -61,6 +64,9 @@ for movement_mask in mvm_masks:
             lvmodelnames += [m.replace('ss1', 'ss2') for m in lvmodelnames]
             lvmodelnames += [m.replace('ss1', 'ss3') for m in lvmodelnames if 'ss1' in m]
             lvmodelnames = [m for m in lvmodelnames if 'ss3' in m]
+
+            if batch != 331:
+                lvmodelnames = [lv.replace('-epcpn', '') for lv in lvmodelnames]
             
             if movement_mask == (25, 2):
                 # 2 sec movement mask
@@ -89,6 +95,10 @@ for movement_mask in mvm_masks:
         if batch == 289:
             sites = HIGHR_SITES
             sites = [s for s in sites if s not in ['BOL005c', 'BOL006b']]
+        
+        elif batch == 322:
+            sites = HIGHR_SITES
+            sites = [s for s in sites if s not in ['BOL005c', 'BOL006b']]
                     
         elif batch == 294:
             sites = ['BOL005c', 'BOL006b']
@@ -111,6 +121,9 @@ for movement_mask in mvm_masks:
                     f'dprime_sim1_pr_jk{njack}_zscore', f'dprime_sim12_pr_jk{njack}_zscore',
                     f'dprime_pr_rm2_jk{njack}_zscore', 
                     f'dprime_sim1_pr_rm2_jk{njack}_zscore', f'dprime_sim12_pr_rm2_jk{njack}_zscore']
+
+        if allPup:
+            modellist = [m+'_allPup' for m in modellist]
         
         if thirds:
             modellist13 = [m+'_png13' for m in modellist]

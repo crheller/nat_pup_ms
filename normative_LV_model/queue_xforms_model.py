@@ -1,7 +1,6 @@
 """
 Script for queuing xforms latent variable models
 """
-from nems.xform_helper import fit_model_xform
 import nems.db as nd
 
 from global_settings import HIGHR_SITES, CPN_SITES
@@ -90,7 +89,10 @@ if exacloud:
         #        _modellist = [m.replace('loadpred', 'loadpred.cpn') for m in modellist]
         #else:
         #    _modellist = modellist
-        _modellist = modellist
+        if b in [322, 294]:
+            _modellist = [m.replace('epcpn-', '') for m in modellist]
+        else:
+            _modellist = modellist
         enqueue_exacloud_models(
             cellist=[s], batch=b, modellist=_modellist,
             user=lbhb_user, linux_user=user, force_rerun=force_rerun,

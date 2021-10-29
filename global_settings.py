@@ -8,7 +8,8 @@ ALL_SITES = ['BOL005c', 'BOL006b', 'bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', '
             'DRX006b.e1:64', 'DRX006b.e65:128',
             'DRX007a.e1:64', 'DRX007a.e65:128',
             'DRX008b.e1:64', 'DRX008b.e65:128',
-            'CRD016d', 'CRD017c']
+            'CRD016d', 'CRD017c',
+            'TNC008a','TNC009a', 'TNC010a', 'TNC012a', 'TNC013a', 'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a', 'TNC020a']
 
 CPN_SITES = ['AMT020a', 'AMT026a', 'ARM029a', 'ARM031a',
        'ARM032a', 'ARM033a', 'CRD018d', 'TNC013a', 'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a'] # (batch 331)
@@ -24,7 +25,8 @@ HIGHR_SITES = ['BOL005c', 'BOL006b', 'TAR010c', 'TAR017b',
             'bbl086b', 'DRX006b.e1:64', 'DRX006b.e65:128', 
             'DRX007a.e1:64', 'DRX007a.e65:128', 
             'DRX008b.e1:64', 'DRX008b.e65:128',
-            'CRD016d', 'CRD017c']
+            'CRD016d', 'CRD017c',
+            'TNC008a','TNC009a', 'TNC010a', 'TNC012a', 'TNC013a', 'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a', 'TNC020a']
 
 
 # subset in which cross-validation not possible

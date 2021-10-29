@@ -91,6 +91,7 @@ exclude_low_fr = False
 threshold = None
 movement_mask = False
 use_old_cpn = False
+all_pup = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -209,6 +210,11 @@ for op in options:
     if op == 'oldCPN':
         # use old (buggy) cpn epoch fixing
         use_old_cpn = True
+
+    if op == "allPup":
+        # use all pupil data for big / small comparison (not the est/val split. so each "jackknife" should use the exact same data, but use a diff 
+        # decoding axis depending on the est set)
+        all_pup = True
 
 if do_pls:
     log.info("Also running PLS dimensionality reduction for N components. Will be slower")
@@ -371,13 +377,13 @@ components = np.min([ncells, nreps_train, 10])
 # ============================ preprocess est / val sets =============================
 if zscore:
     log.info("z-score est / val sets")
-    est, val = nat_preproc.scale_est_val(est, val)
-    est_raw, val_raw = nat_preproc.scale_est_val(est_raw, val_raw)
+    est, val, fullX = nat_preproc.scale_est_val(est, val, full=X)
+    est_raw, val_raw, fullX_raw = nat_preproc.scale_est_val(est_raw, val_raw, full=X_raw)
 else:
     # just center data
     log.info("center est / val sets")
-    est, val = nat_preproc.scale_est_val(est, val, sd=False)
-    est_raw, val_raw = nat_preproc.scale_est_val(est_raw, val_raw, sd=False)
+    est, val, fullX = nat_preproc.scale_est_val(est, val, full=X, sd=False)
+    est_raw, val_raw, fullX_raw = nat_preproc.scale_est_val(est_raw, val_raw, full=X_raw, sd=False)
 
 # =========================== if fix tdr 2 =======================================
 # calculate first noise PC for each val set, use this to define TDR2, rather
@@ -420,20 +426,28 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
     for ev_set in range(njacks):
         X_train = est[ev_set][:, :, [combo[0], combo[1]]] 
         X_test = val[ev_set][:, :, [combo[0], combo[1]]]
-        ptrain_mask = p_est[ev_set][:, :, [combo[0], combo[1]]]
-        ptest_mask = p_val[ev_set][:, :, [combo[0], combo[1]]]
+        _Xfull = fullX[ev_set][:, :, [combo[0], combo[1]]]
+        if all_pup:
+            # use all data for big / small pupil
+            ptrain_mask = pup_mask.copy()[:, :, [combo[0], combo[1]]]
+            ptest_mask = pup_mask.copy()[:, :, [combo[0], combo[1]]]
+
+        else:
+            ptrain_mask = p_est[ev_set][:, :, [combo[0], combo[1]]]
+            ptest_mask = p_val[ev_set][:, :, [combo[0], combo[1]]]
         tdr2_axis = tdr2_axes[ev_set]
 
         # if ptrain_mask is all False, just set it to None so
         # that we don't attempt to run the bp/sp analysis. This is a kludgy 
         # way to deal with cases where we selected a pupil window for which there 
-        # was not valid data in this experiment
-        if (np.sum(ptrain_mask[:, :, 0]) < 10) | (np.sum(ptrain_mask[:, :, 1]) < 10):
-            log.info(f"For combo: {combo}, ev_set: {ev_set} not enough data matched the specified pupil state")
+        # was not valid data (or enough valid data) in this experiment
+        if (np.sum(ptrain_mask[:, :, 0]) < 5) | (np.sum(ptrain_mask[:, :, 1]) < 5):
+            log.info(f"For combo: {combo}, ev_set: {ev_set} not enough data. stim1: {ptrain_mask[:, :, 0].sum()}, stim2: {ptrain_mask[:, :, 1].sum()}")
             ptrain_mask = None
 
         xtrain = nat_preproc.flatten_X(X_train[:, :, :, np.newaxis])
         xtest = nat_preproc.flatten_X(X_test[:, :, :, np.newaxis])
+        xfull = nat_preproc.flatten_X(_Xfull[:, :, :, np.newaxis])
 
         # define raw data
         if xraw_equals_x:
@@ -462,6 +476,8 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
                                                     beta1=beta1,
                                                     beta2=beta2,
                                                     tdr2_axis=tdr2_axis,
+                                                    fullpup=all_pup,
+                                                    fullX=xfull,
                                                     ptrain_mask=ptrain_mask,
                                                     ptest_mask=ptest_mask)
                 else:
@@ -480,6 +496,8 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
                                                             beta1=beta1,
                                                             beta2=beta2,
                                                             tdr2_axis=tdr2_axis,
+                                                            fullpup=all_pup,
+                                                            fullX=xfull,                                                            
                                                             ptrain_mask=ptrain_mask,
                                                             ptest_mask=ptest_mask)
             else:
@@ -504,15 +522,37 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
         })
         # preallocate space for subsequent iterations
         if tdr_idx == 0:
+            if 'bp_dp' not in _tdr_results.keys():
+                bp_cols = ['bp_dp', 'bp_evals', 'bp_dU_mag', 'bp_dU_dot_evec',
+                                    'bp_cos_dU_wopt', 'bp_dU_dot_evec_sq', 'bp_evec_snr', 
+                                    'bp_cos_dU_evec']
+                for bp_col in bp_cols:
+                    if bp_col in ['bp_dU_dot_evec', 'bp_dU_dot_evec_sq', 'bp_evec_snr', 'bp_cos_dU_evec']:
+                        _tdr_results[bp_col] = np.nan * np.ones((1, 2+n_noise_axes))
+                    elif bp_col == 'bp_evals':
+                        _tdr_results[bp_col] = np.nan * np.ones(2+n_noise_axes)
+                    elif bp_col == 'bp_cos_dU_wopt':
+                        _tdr_results[bp_col] = np.nan * np.ones((1, 1))
+                    else:
+                        _tdr_results[bp_col] = np.nan # add place holder in case the first didn't have data for this
+            if 'sp_dp' not in _tdr_results.keys():
+                sp_cols = ['sp_dp', 'sp_evals', 'sp_dU_mag', 'sp_dU_dot_evec',
+                                    'sp_cos_dU_wopt', 'sp_dU_dot_evec_sq', 'sp_evec_snr', 
+                                    'sp_cos_dU_evec']
+                for sp_col in sp_cols:
+                    if sp_col in ['sp_dU_dot_evec', 'sp_dU_dot_evec_sq', 'sp_evec_snr', 'sp_cos_dU_evec']:
+                        _tdr_results[sp_col] = np.nan * np.ones((1, 2+n_noise_axes))
+                    elif sp_col == 'sp_evals':
+                        _tdr_results[sp_col] = np.nan * np.ones(2+n_noise_axes)
+                    elif sp_col == 'sp_cos_dU_wopt':
+                        _tdr_results[sp_col] = np.nan * np.ones((1, 1))
+                    else:
+                        _tdr_results[sp_col] = np.nan # add place holder in case the first didn't have data for this
+
             temp_tdr_results = temp_tdr_results.append([_tdr_results])
             tdr_results = pd.DataFrame(index=tdr_index, columns=temp_tdr_results.columns)
             tdr_results.loc[tdr_idx] = temp_tdr_results.iloc[0].values
             temp_tdr_results = pd.DataFrame()
-            if 'bp_dp' not in tdr_results.columns:
-                tdr_results['bp_dp'] = np.nan # add place holder in case the first didn't have data for this
-            if 'sp_dp' not in tdr_results.columns:
-                tdr_results['sp_dp'] = np.nan # add place holder in case the first didn't have data for this
-
 
         else:
             temp_tdr_results = temp_tdr_results.append([_tdr_results])
