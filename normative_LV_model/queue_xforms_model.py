@@ -5,12 +5,11 @@ import nems.db as nd
 
 from global_settings import HIGHR_SITES, CPN_SITES
 
-force_rerun = False
+force_rerun = True
 exacloud = True
 stategain = True
 gain = True
-epochs = 'er3'
-
+epochs = 'er5'
 
 # all four models, ss1, 1sec mvm mask
 # 30.09.2021 -- Noticed a bug in the epoch selection due to `.sp` option. Remove this going forward.
@@ -64,11 +63,9 @@ if gain:
 
 sites = CPN_SITES + HIGHR_SITES
 batches = [331] * len(CPN_SITES) + [322]*len(HIGHR_SITES)
-#sites = HIGHR_SITES
-#batches = [322] * len(HIGHR_SITES)
 
 # manual code to pare down models that we fit for testing. This changes all the time
-modellist = [m for m in modellist if (('ss3' in m) | ('ss' not in m)) and ('mvm' not in m)]
+modellist = [m for m in modellist if ('mvm' not in m)]
 
 if exacloud:
     from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models

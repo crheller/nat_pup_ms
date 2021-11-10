@@ -1,8 +1,8 @@
 import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
-batches = [331] #[289, 294, 331]
-force_rerun = False
+batches = [294, 322, 331] #[289, 294, 331]
+force_rerun = True
 boxcar = True
 evoked = True
 slow = False
@@ -79,7 +79,7 @@ modelnames = [m for m in modelnames if ('fft' not in m) & ('pr' not in m)]
 
 for batch in batches:
 
-    if batch == 289:
+    if batch == 322:
         sites = [s for s in HIGHR_SITES if s not in ['BOL005c', 'BOL006b']]  
     if batch == 294:
         sites = ['BOL005c', 'BOL006b']

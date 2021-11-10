@@ -134,7 +134,7 @@ cellid, _ = io.parse_cellid({'batch': batch, 'cellid': site})
 
 if not regression_method2:
     # only load model fit if using for regression
-    if batch != 331:
+    if 0: #batch != 331:
         options = {'cellid': site, 'rasterfs': fs, 'batch': batch, 'pupil': True, 'stim': False}
         if batch == 294:
             options['runclass'] = 'VOC'
@@ -143,8 +143,14 @@ if not regression_method2:
             raise ValueError("Movement mask not set up for batch 289 or 294 yet")
     else:
         manager = BAPHYExperiment(cellid=site, batch=batch)
-        options = {'rasterfs': fs, 'pupil': True, 'stim': False, 'resp': True, 'pupil_variable_name': 'area'}
+        options = {'rasterfs': 4, 'resp': True, 'stim': False, 'pupil': True, 'pupil_variable_name': 'area'}
         rec = manager.get_recording(**options)
+        rec['resp'] = rec['resp'].rasterize()
+        if batch == 294:
+            stims = [s for s in rec['resp'].epochs.name.unique() if ('STIM_' in s) & ('Pips' not in s)]
+            rec = rec.and_mask(stims)
+            rec = rec.apply_mask(reset_epochs=True)
+            
     rec['resp'] = rec['resp'].rasterize()
     if 'cells_to_extract' in rec.meta.keys():
         if rec.meta['cells_to_extract'] is not None:

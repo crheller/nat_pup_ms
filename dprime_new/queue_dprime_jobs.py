@@ -4,18 +4,18 @@ import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
 mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
-mvm_masks = [None] # for NAT data, would need to reanalyze pupil
+#mvm_masks = [None] # for NAT data, would need to reanalyze pupil
 #mvm_masks = [(25, 1)]
 noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
-noise_dims = [-1, 0, 1, 2]
+#noise_dims = [-1, 0, 1, 2]
 
-thirds = False # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
+thirds = True # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
                # sort of weird, but idea is that then nothing changes (calculation of decoding axis etc.),
                # we just project a different set of data into the "thing" classified as "big pupil". Kludgy,
                # but should work fine.
 allPup = False  # project all pupil data (full mask, not kacnkifed) into the est decoding space to prevent low rep count stuff from happening
                # alternative is to set this to false, and all stim where <5 reps of each in each state won't be used.
-batch = 294 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
+batch = 331 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
 njack = 10
 force_rerun = False
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -36,7 +36,7 @@ thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
-lvmodels = True   # run for the simulated, model results from lv xforms models
+lvmodels = False   # run for the simulated, model results from lv xforms models
 gain_models = True
 fit_epochs = 'er3'
 loadpredkey = 'loadpred.cpnmvm,t25,w1'
