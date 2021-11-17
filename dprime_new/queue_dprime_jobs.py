@@ -4,12 +4,12 @@ import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES
 
 mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
-#mvm_masks = [None] # for NAT data, would need to reanalyze pupil
+mvm_masks = [None] # for NAT data, would need to reanalyze pupil
 #mvm_masks = [(25, 1)]
-noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
-#noise_dims = [-1, 0, 1, 2]
+#noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
+noise_dims = [-1, 0, 1, 2]
 
-thirds = True # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
+thirds = False # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
                # sort of weird, but idea is that then nothing changes (calculation of decoding axis etc.),
                # we just project a different set of data into the "thing" classified as "big pupil". Kludgy,
                # but should work fine.
@@ -36,9 +36,10 @@ thresh = 1 # minimum mean FR across all conditions
 sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the TDR space.
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
-lvmodels = False   # run for the simulated, model results from lv xforms models
+lvmodels = True   # run for the simulated, model results from lv xforms models
 gain_models = True
-fit_epochs = 'er3'
+remove_ss = False
+fit_epochs = 'er5'
 loadpredkey = 'loadpred.cpnmvm,t25,w1'
 
 use_old_cpn = False
@@ -53,17 +54,19 @@ for movement_mask in mvm_masks:
                 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
                 'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
                 'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.2xR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
+                'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
+                #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                #'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.2xR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
                 ]
 
             # add ss2 / ss3
-            lvmodelnames += [m.replace('ss1', 'ss2') for m in lvmodelnames]
-            lvmodelnames += [m.replace('ss1', 'ss3') for m in lvmodelnames if 'ss1' in m]
-            lvmodelnames = [m for m in lvmodelnames if 'ss3' in m]
+            if remove_ss:
+                lvmodelnames = [m.replace('.ss1', '') for m in lvmodelnames]
+            else:
+                lvmodelnames += [m.replace('ss1', 'ss2') for m in lvmodelnames]
+                lvmodelnames += [m.replace('ss1', 'ss3') for m in lvmodelnames if 'ss1' in m]
 
             if batch != 331:
                 lvmodelnames = [lv.replace('-epcpn', '') for lv in lvmodelnames]
@@ -86,7 +89,8 @@ for movement_mask in mvm_masks:
                 lvmodelnames = [lv.replace('-mvm.t25.w1', '') for lv in lvmodelnames]
 
             # temp code to pare down modellist for testing
-            lvmodelnames = [m for m in lvmodelnames if ('ss3' in m) & ('stategain.2xR' not in m)]
+            #lvmodelnames = [m for m in lvmodelnames if ('ss3' in m) & ('stategain.2xR' not in m)]
+            lvmodelnames = [m for m in lvmodelnames if ('stategain.2xR' not in m)]
 
 
         if no_crossval & loocv:

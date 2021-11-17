@@ -5,11 +5,11 @@ import nems.db as nd
 
 from global_settings import HIGHR_SITES, CPN_SITES
 
-force_rerun = True
+force_rerun = False
 exacloud = True
 stategain = True
 gain = True
-epochs = 'er5'
+epochs = 'er3'
 
 # all four models, ss1, 1sec mvm mask
 # 30.09.2021 -- Noticed a bug in the epoch selection due to `.sp` option. Remove this going forward.
@@ -33,12 +33,12 @@ modellist = [
     "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
 ]
 # add the pared down models (without extra lv signals, e.g. pvp0)
-modellist += [
-    "psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.1xR.d.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-    "psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.1xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-    "psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-    "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
-]
+# modellist += [
+#     "psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.1xR.d.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
+#     "psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.1xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
+#     "psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
+#     "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
+# ]
 
 # add ss2 / ss3 / full rank
 modellist += [m.replace('ss1', 'ss2') for m in modellist]
@@ -66,6 +66,7 @@ batches = [331] * len(CPN_SITES) + [322]*len(HIGHR_SITES)
 
 # manual code to pare down models that we fit for testing. This changes all the time
 modellist = [m for m in modellist if ('mvm' not in m)]
+modellist = [m for m in modellist if "stategain.2xR" not in m]
 
 if exacloud:
     from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models
