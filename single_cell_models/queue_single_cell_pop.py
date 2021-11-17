@@ -4,8 +4,6 @@ Pop model for single cell
 import nems.db as nd
 from global_settings import CPN_SITES, HIGHR_SITES
 
-batch = 294 # 294, 289 || 323 (PEG) | 331 (CPN)
-batch = 331
 force_rerun = True
 exacloud = True
 sites = CPN_SITES + HIGHR_SITES
@@ -14,12 +12,19 @@ batches = [331]*len(CPN_SITES) + [322]*len(HIGHR_SITES)
 
 # 04/26/2020 - Queue sdexp models again. New sdexp architecture allows easy extraction 
 # gain params. Should be easy to invert these models to get rid of first order pupil
-modelnames = ['psth.fs4.pup-ld-st.pup-epcpn-mvm-hrc-psthfr-aev_stategain.SxR_tfinit.n.lr1e4.cont.et5.i50000',
-              'psth.fs4.pup-ld-st.pup-epcpn-mvm-hrc-psthfr-aev_sdexp2.SxR_tfinit.n.lr1e4.cont.et5.i50000',
-              'psth.fs4.pup-ld-st.pup-epcpn-mvm-hrc-psthfr_stategain.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000',
-              'psth.fs4.pup-ld-st.pup-epcpn-mvm-hrc-psthfr_sdexp2.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000'
-                ]
-
+# sdexp seems to be a little unreliable for the pop model. Safer to stick with stategain, I think.
+# also, the psthfr.z I don't think is implemented for sdexp2 yet and was important for getting first
+# order models fit on single cells to agree with the same pop model.
+sexp_models = [ 'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr-aev_sdexp2.SxR_tfinit.n.lr1e4.cont.et5.i50000',
+                'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr_sdexp2.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000',
+                'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr-aev_sdexp2.SxR_tfinit.n.lr1e4.cont.et5.i50000',
+                'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr_sdexp2.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000'
+              ]
+modelnames = ['psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr.z-aev_stategain.SxR_tfinit.n.lr1e4.cont.et5.i50000',
+              'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr.z-aev_stategain.SxR_tfinit.n.lr1e4.cont.et5.i50000',
+              'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr.z_stategain.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000',
+              'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr.z_stategain.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000'
+              ]
 
 if exacloud:
     from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models
@@ -33,17 +38,11 @@ if exacloud:
     for s, b in zip(sites, batches):
         if s in ['BOL005c', 'BOL006b']:
             b = 294
-        #if b == 331:
-        #    if movement_mask:
-        #        _modellist = [m.replace('loadpred', f'loadpred.{mask_key}') for m in modellist]
-        #    else:
-        #        _modellist = [m.replace('loadpred', 'loadpred.cpn') for m in modellist]
-        #else:
-        #    _modellist = modellist
+
         if b in [322, 294]:
-            _modellist = [m.replace('epcpn-', '') for m in modellist]
+            _modellist = [m.replace('epcpn-', '') for m in modelnames]
         else:
-            _modellist = modellist
+            _modellist = modelnames
         enqueue_exacloud_models(
             cellist=[s], batch=b, modellist=_modellist,
             user=lbhb_user, linux_user=user, force_rerun=force_rerun,
@@ -66,7 +65,7 @@ else:
         #        _modellist = [m.replace('loadpred', 'loadpred.cpn') for m in modellist]
         #else:
         #    _modellist = modellist
-        _modellist = modellist
+        _modellist = modelnames
         nd.enqueue_models(celllist=[s],
                         batch=b,
                         modellist=_modellist,
