@@ -4,11 +4,10 @@ Pop model for single cell
 import nems.db as nd
 from global_settings import CPN_SITES, HIGHR_SITES
 
-force_rerun = True
+force_rerun = False
 exacloud = True
 sites = CPN_SITES + HIGHR_SITES
 batches = [331]*len(CPN_SITES) + [322]*len(HIGHR_SITES)
-
 
 # 04/26/2020 - Queue sdexp models again. New sdexp architecture allows easy extraction 
 # gain params. Should be easy to invert these models to get rid of first order pupil
@@ -22,13 +21,12 @@ sexp_models = [ 'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr-aev_sdexp2.SxR_tfinit.n
               ]
 modelnames = ['psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr.z-aev_stategain.SxR_tfinit.n.lr1e4.cont.et5.i50000',
               'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr.z-aev_stategain.SxR_tfinit.n.lr1e4.cont.et5.i50000',
-              'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr.z_stategain.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000',
-              'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr.z_stategain.SxR_jk.nf10-tfinit.n.lr1e4.cont.et5.i50000'
+              'psth.fs4.pup-ld-st.pup-epcpn-hrc-psthfr.z_stategain.SxR_jk.nf20-tfinit.n.lr1e4.cont.et5.i50000',
+              'psth.fs4.pup-ld-st.pup0-epcpn-hrc-psthfr.z_stategain.SxR_jk.nf20-tfinit.n.lr1e4.cont.et5.i50000'
               ]
 
 if exacloud:
     from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models
-    #force_rerun=True
     lbhb_user="hellerc"
     # exacloud settings:
     executable_path = '/home/users/davids/anaconda3/envs/nems/bin/python'  # works for GPU / non GPU
