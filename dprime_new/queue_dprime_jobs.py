@@ -7,7 +7,7 @@ mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in se
 mvm_masks = [None] # for NAT data, would need to reanalyze pupil
 #mvm_masks = [(25, 1)]
 #noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6] # how many additional TDR dims? 0 is the default, standard TDR world. additional dims are controls
-noise_dims = [-1, 0, 1, 2]
+noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6]
 
 thirds = False # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
                # sort of weird, but idea is that then nothing changes (calculation of decoding axis etc.),
