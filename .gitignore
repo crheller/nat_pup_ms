@@ -2,7 +2,7 @@
 
 path_settings.py
 
-
+.ipynb_checkpoints
 # pycache
 __pycache__/
 

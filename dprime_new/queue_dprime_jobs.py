@@ -15,7 +15,7 @@ thirds = False # create 3 additional jobs that split pupil up into thirds -- co-
                # but should work fine.
 allPup = False  # project all pupil data (full mask, not kacnkifed) into the est decoding space to prevent low rep count stuff from happening
                # alternative is to set this to false, and all stim where <5 reps of each in each state won't be used.
-batch = 331 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
+batch = 294 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
 njack = 10
 force_rerun = False
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -37,6 +37,7 @@ sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
 lvmodels = True   # run for the simulated, model results from lv xforms models
+stateMod = True  # sdexp applied to pupil prior to noise
 gain_models = True
 remove_ss = False
 fit_epochs = 'er5'
@@ -48,18 +49,25 @@ for movement_mask in mvm_masks:
     for n_additional_noise_dims in noise_dims:
         if lvmodels:
             # define list of lv models to fit 
-
-            # 30.09.2021 ID'd a (biggish) problem with the .sp option. Trying these new models
-            lvmodelnames = [
-                'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
-                #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.2xR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
-                ]
+            if stateMod:
+                    lvmodelnames = [
+                    "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
+                    "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.SxR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
+                    "psth.fs4.pup-ld-st.pup+r1+s1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
+                    "psth.fs4.pup-ld-st.pup+r1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
+                    ]
+            else:
+                # 30.09.2021 ID'd a (biggish) problem with the .sp option. Trying these new models
+                lvmodelnames = [
+                    'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                    'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                    'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                    'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
+                    #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                    #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                    #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
+                    #'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.2xR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
+                    ]
 
             # add ss2 / ss3
             if remove_ss:
