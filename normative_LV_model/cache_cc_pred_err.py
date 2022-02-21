@@ -11,16 +11,21 @@ import os
 import pickle
 
 savedir = "/auto/users/hellerc/results/nat_pupil_ms/normativeModel/modelPreds/"
-filename = "cc_err.pickle" # how to save results within batch/site/modelname directory
-
+perstim = True
+if perstim:
+    filename = "cc_err_perstim.pickle"
+else:
+    filename = "cc_err.pickle" # how to save results within batch/site/modelname directory
+recache = False # typically, this should be true. Only case for false is if cache stopped halfway through and need to rerun for remaining sites
 modellist = [
-    'psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x1-inoise.4xR.x1,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-    'psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x1-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-    'psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-    'psth.fs4.pup-ld-st.pup+r2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
+    'psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x1-inoise.4xR.x1,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.md.t5.f0.ss3.rb5',
+    'psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x1-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.md.t5.f0.ss3.rb5',
+    'psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.md.t5.f0.ss3.rb5',
+    'psth.fs4.pup-ld-st.pup+r2-epcpn-hrc-psthfr.z-plgsm.er5-aev_stategain.2xR.x2,3-spred-lvnorm.4xR.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.md.t5.f0.ss3.rb5'
 ]
 # for saving, come up with shorterened modelnames, more human readable
-architecture_spec = "stategain_chanCtrl_ccnorm_ss1"
+# note, saved the additive lv models with the wrong name!! (I used indep.d, stupidly)
+architecture_spec = "stategain_chanCtrl_ccnorm.md_ss3.rb5"
 mn_shortened = [
     f'firstOrderOnly_{architecture_spec}',
     f'indepNoise_{architecture_spec}',
@@ -104,11 +109,28 @@ for batch, site in zip(batches, sites):
         else:
             os.mkdir(d2)
 
-        #save the results for this site/batch/model       
-        cells, ops = parse_cellid({"batch": batch, "cellid": site})
-        xf, ctx = load_model_xform(modelname=modelname, batch=batch, cellid=cells[0], eval_model=True)
-        extra_epochs = [':'.join([e[0], str(e[1])]) for e in ctx["val"].meta['mask_bins']]
-        err = cc_comp(ctx["val"], extra_epochs)
         fn = d2+f"/{filename}"
-        with open(fn, "wb") as handle:
-            pickle.dump(err, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        if os.path.isfile(fn) & (recache==False):
+            pass
+        else:
+            #save the results for this site/batch/model
+            if batch not in [331]:
+                mn = modelname.replace("-epcpn", "")
+            else:
+                mn = modelname       
+            cells, ops = parse_cellid({"batch": batch, "cellid": site})
+            xf, ctx = load_model_xform(modelname=mn, batch=batch, cellid=cells[0], eval_model=True)
+            extra_epochs = [':'.join([e[0], str(e[1])]) for e in ctx["val"].meta['mask_bins']]
+            err = cc_comp(ctx["val"], extra_epochs)
+
+            if perstim:
+                pstim_err = {}
+                pstim_err["all"] = err
+                for s in extra_epochs:
+                    err = cc_comp(ctx["val"], s)
+                    pstim_err[s] = err
+                with open(fn, "wb") as handle:
+                    pickle.dump(pstim_err, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                with open(fn, "wb") as handle:
+                    pickle.dump(err, handle, protocol=pickle.HIGHEST_PROTOCOL)

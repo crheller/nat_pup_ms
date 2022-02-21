@@ -6,16 +6,19 @@ import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
 force_rerun = False
-exacloud = False
+exacloud = True
 stategain = True
-gain = True
-indepGain = False  # usually this has been false (additive noise). Worth trying with gain?
+gain = False        # this defaults to True in nems_db (additive=False). If lvnorm**.d, then additive=True
+indepGain = False   # this defaults to False (additive=True) in nems_db. If indep**.g, then additive=False
 gp_shuff = False
 newState = True
 balanceStateChans = True
+dim_controls = True # new, 2022.02.07 -- test how predictions (avg) change as fn of dimensionality (w/o pupil) 
 stateMod = False
 epochs = 'er5'
+rand_init = "rb5"  # rb5 or "" prevent local minima that seemed to (particularly) hurt .md models
 use_md = True
+ccnorm_tol = "t5" # was using t5, but looks like getting early stopping sometimes?
 
 queueOne = False
 
@@ -24,38 +27,47 @@ queueOne = False
 # don't use `.sp` (it doesn't do anything anymore, but just to differentiate new from old fits)
 # try fitting models without the "extra" latent variables. e.g. indep becomes lvnorm.1xR instead of 2xR
 # order of models: first order only, indep pup noise only, single pup lv, two pup lvs
-if newState & (not balanceStateChans):
+
+if dim_controls:
+    # 1d vs. 2d. vs. 3d models. How does avg cc predicitons change? Is there real signal beyond pc1?
+    modellist = [
+            f"psth.fs4.pup-ld-st.pup+r1+s1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x1-inoise.4xR.x1,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x1-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}"
+        ]
+elif newState & (not balanceStateChans):
     # more flexbile way of specifying nState variables. Also, added "stateMod" to allow sdepx mod of state signals for lvs
     if stateMod:
         modellist = [
-            "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.SxR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r1+s1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
+            f"psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.SxR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r1+s1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}"
         ]
     else:
         modellist = [
-            "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r1+s1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
+            f"psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r1+s1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}"
         ]
 
 elif balanceStateChans & newState:
     # new list of models where we can explicitly say which state channels get used by each module using e.g. .x1 (to exclude chan 1). 
     # this gives us much better control of number of free params so that it doesn't change between control / "test" models
     modellist = [
-            "psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x1-inoise.4xR.x1,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x1-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-            "psth.fs4.pup-ld-st.pup+r2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
+            f"psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x1-inoise.4xR.x1,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x1-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r2+s1,2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+            f"psth.fs4.pup-ld-st.pup+r2-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.2xR.x2,3-lvnorm.4xR.d.so.x3-inoise.4xR.x2,3_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}"
         ]
 else:
     modellist = [
-        "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-        "psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-        "psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-        "psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
+        f"psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+        f"psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.2xR.d.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+        f"psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}",
+        f"psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.e10-aev_sdexp2.SxR-lvnorm.SxR.d.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.{ccnorm_tol}.f0.ss1.{rand_init}"
     ]
 
 
@@ -85,6 +97,9 @@ if stategain:
 if gain:
     modellist = [m.replace('.d.so', '.so') for m in modellist]
 
+if indepGain:
+    modellist = [m.replace("inoise.4xR", "inoise.4xR.g") for m in modellist]
+
 if use_md:
     modellist = [m.replace("ccnorm", "ccnorm.md") for m in modellist]
 
@@ -99,9 +114,10 @@ modellist = [m for m in modellist if ('mvm' not in m)]
 #modellist = [m for m in modellist if "stategain.2xR" not in m]
 
 if queueOne:
-    modellist = [modellist[0].replace("i50000", "i5").replace("t5", "t1")]
-    sites = ["AMT020a"]
-    batches = [331]
+    #modellist = [modellist[0].replace("i50000", "i5").replace("t5", "t1")]
+    modellist = [modellist[2]+".ver2"]
+    sites = ["TAR010c"]
+    batches = [322]
 
 if exacloud:
     from nems_lbhb.exacloud.queue_exacloud_job import enqueue_exacloud_models
@@ -153,4 +169,4 @@ else:
                         user='hellerc',
                         force_rerun=force_rerun,
                         GPU_job=1,
-                        reserve_gb=4)
+                        reserve_gb=8)
