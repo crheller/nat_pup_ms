@@ -2,6 +2,8 @@
 
 path_settings.py
 
+temp_figs/
+
 .ipynb_checkpoints
 # pycache
 __pycache__/

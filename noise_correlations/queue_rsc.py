@@ -6,7 +6,7 @@ force_rerun = True
 boxcar = True
 evoked = True
 slow = False
-perstim = True
+perstim = False
 custom = False  # run a subset of jobs
 movement_mask = False #(25, 2) #True
 

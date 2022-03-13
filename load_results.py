@@ -16,7 +16,7 @@ def load_noise_correlation(modelname, xforms_model='NULL', path=None, batch=None
         pass
 
     if batch is None:
-        batch = [289, 294, 331]
+        batch = [322, 294, 331]
     elif type(batch) != list:
         batch = [batch]
     else:
