@@ -50,6 +50,9 @@ def get_dim(LL):
 def sigma_shared(model):
     return (model.components_.T @ model.components_)
 
+def pred_cov(sig_shared, model):
+    return sig_shared + np.diag(model.noise_variance_)
+
 def get_dim95(model):
     """
     number of dims to explain 95% of shared var
@@ -61,7 +64,7 @@ def get_dim95(model):
 
 def get_sv(model):
     sig_shared = sigma_shared(model) # rank n_components cov matrix
-    full_cov_pred = sig_shared + np.diag(model.noise_variance_)
+    full_cov_pred = pred_cov(sig_shared, model)
     # % shared variance
     # per neuron
     pn = np.diag(sig_shared) / np.diag(full_cov_pred)
@@ -190,6 +193,8 @@ results = {
         "fa_small.components_": fa_small.components_,
         "fa_big.sigma_shared": sigma_shared(fa_big),
         "fa_small.sigma_shared": sigma_shared(fa_small),
+        "fa_big.sigma_full": pred_cov(sigma_shared(fa_big), fa_big),
+        "fa_small.sigma_full": pred_cov(sigma_shared(fa_small), fa_small),
         "bp_sv_all": bp_sv_all,
         "sp_sv_all": sp_sv_all,
         "bp_ls_all": bp_ls_all,

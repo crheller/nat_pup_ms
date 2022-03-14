@@ -92,6 +92,8 @@ threshold = None
 movement_mask = False
 use_old_cpn = False
 all_pup = False
+fa_model = False
+fa_ind_var = False
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -119,6 +121,12 @@ for op in options:
     if op == 'prd':
         regress_pupil = True
         dc_only = True
+    if op.startswith("faModel"):
+        fa_model = True
+        _ops = op.split('.')[1:]
+        for _op in _ops:
+            if _op=="ind":
+                fa_ind_var = True
     if op == 'sim1':
         sim1 = True
     if op == 'sim2': 
@@ -312,6 +320,23 @@ elif lv_model:
 
 elif sim_tdr_space:
     log.info("Performing simulations within TDR space. Unique simulation per each jackknife")
+
+elif fa_model:
+    log.info("Simulate data based on factor analysis model for this dataset")
+    big_psth = np.stack([X.reshape(ncells, nreps_raw, nstim)[:, pup_mask.reshape(1, nreps_raw, nstim)[0, :, s], s].mean(axis=1) for s in range(nstim)]).T.reshape(ncells, X.shape[2], nbins)[:, np.newaxis, :, :]
+    small_psth = np.stack([X.reshape(ncells, nreps_raw, nstim)[:, pup_mask.reshape(1, nreps_raw, nstim)[0, :, s]==False, s].mean(axis=1) for s in range(nstim)]).T.reshape(ncells, X.shape[2], nbins)[:, np.newaxis, :, :]
+    if fa_ind_var:
+        # also model changes in indep. variance
+        big_var = np.stack([X.reshape(ncells, nreps_raw, nstim)[:, pup_mask.reshape(1, nreps_raw, nstim)[0, :, s], s].var(axis=1) for s in range(nstim)]).T.reshape(ncells, X.shape[2], nbins)[:, np.newaxis, :, :]
+        small_var = np.stack([X.reshape(ncells, nreps_raw, nstim)[:, pup_mask.reshape(1, nreps_raw, nstim)[0, :, s]==False, s].var(axis=1) for s in range(nstim)]).T.reshape(ncells, X.shape[2], nbins)[:, np.newaxis, :, :]
+        X, pup_mask = decoding.load_FA_model(site, batch, big_psth, small_psth, big_var=big_var, small_var=big_var, nreps=2000)
+    else:
+        X, pup_mask = decoding.load_FA_model(site, batch, big_psth, small_psth, big_var=None, small_var=None, nreps=2000)
+
+# another option for surrogates based on pop metrics
+# how to do this? Generate data elsewhere, then load? 
+# that way can compute pop metrics / pairwise metrics on each
+# set and then just load them here for decoding
 
 else:
     pass

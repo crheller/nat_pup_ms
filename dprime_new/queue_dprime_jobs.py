@@ -19,7 +19,7 @@ force_rerun = False
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
 subset_331 = False # specialized subset of 331 data (e.g. only run for a subset of sites that are new data)
-no_crossval = True  # ******** for no cross validation (on the larger 289 set ) and/or debugging purposes
+no_crossval = False  # ******** for no cross validation (on the larger 289 set ) and/or debugging purposes
 pca = False
 pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
 pc_keys = ['pca-4-psth-whiten']
@@ -35,9 +35,9 @@ sim_in_tdr = True   # for sim1, sim2, and sim12 models, do the simulation IN the
 loocv = False         # leave-one-out cross validation
 NOSIM = True   # If true, don't run simulations
 
-
 lvmodels = False   # run for the simulated, model results from lv xforms models
 lvmodelset = "2022.02.06" # options were getting confusing, just organize by date
+faModel = False # load results of factor analysis models for the site, then generate data based on these low-D representations 
 
 use_old_cpn = False
 
@@ -57,58 +57,7 @@ for movement_mask in mvm_masks:
                 lvmodelnames = lvmodelnames + ss2 + ss3
 
             else:
-                raise DeprecationWarning("These are old. Look closely at these before choosing a model to run")
-                # if stateMod:
-                #         lvmodelnames = [
-                #         "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-                #         "psth.fs4.pup-ld-st.pup+r1+s0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.2xR.d.so.sm-inoise.SxR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-                #         "psth.fs4.pup-ld-st.pup+r1+s1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1",
-                #         "psth.fs4.pup-ld-st.pup+r1-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-stmod.S.0,1-lvnorm.SxR.d.so.sm-inoise.2xR.sm_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1"
-                #         ]
-                # else:
-                #     # 30.09.2021 ID'd a (biggish) problem with the .sp option. Trying these new models
-                #     lvmodelnames = [
-                #         'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #         'psth.fs4.pup-ld-st.pup0.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.2xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #         'psth.fs4.pup-ld-st.pup.pvp0-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #         'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
-                #         #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.1xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #         #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.1xR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #         #'psth.fs4.pup-ld-st.pup-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.SxR-spred-lvnorm.SxR.so-inoise.SxR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1',
-                #         #'psth.fs4.pup-ld-st.pup.pvp-epcpn-mvm.t25.w1-hrc-psthfr.z-plgsm.er2-aev_stategain.2xR-spred-lvnorm.SxR.so-inoise.2xR_tfinit.xx0.n.lr1e4.cont.et5.i50000-lvnoise.r8-aev-ccnorm.t5.f0.ss1'
-                #         ]
-
-                # # add ss2 / ss3
-                # if remove_ss:
-                #     lvmodelnames = [m.replace('.ss1', '') for m in lvmodelnames]
-                # else:
-                #     lvmodelnames += [m.replace('ss1', 'ss2') for m in lvmodelnames]
-                #     lvmodelnames += [m.replace('ss1', 'ss3') for m in lvmodelnames if 'ss1' in m]
-
-                # if batch != 331:
-                #     lvmodelnames = [lv.replace('-epcpn', '') for lv in lvmodelnames]
-                
-                # if movement_mask == (25, 2):
-                #     # 2 sec movement mask
-                #     lvmodelnames += [m.replace('-mvm.t25.w1', '-mvm.t25.w2') for m in lvmodelnames]
-                # elif movement_mask is None:
-                #     # no movement mask
-                #     lvmodelnames += [m.replace('-mvm.t25.w1', '') for m in lvmodelnames if 'w1' in m]
-                
-                # lvmodelnames = [m.replace('er2', fit_epochs) for m in lvmodelnames]
-                
-                # if gain_models:
-                #     lvmodelnames = [m.replace('.d.so', '.so') for m in lvmodelnames]
-
-                # if movement_mask:
-                #     lvmodelnames = [lv.replace('t25.w1', f't{movement_mask[0]}.w{movement_mask[1]}') for lv in lvmodelnames]
-                # else:
-                #     lvmodelnames = [lv.replace('-mvm.t25.w1', '') for lv in lvmodelnames]
-
-                # # temp code to pare down modellist for testing
-                # #lvmodelnames = [m for m in lvmodelnames if ('ss3' in m) & ('stategain.2xR' not in m)]
-                # lvmodelnames = [m for m in lvmodelnames if ('stategain.2xR' not in m)]
-
+                raise DeprecationWarning("Thise was for old models. Do this by 'hand' now with dates (see above)")
 
         if no_crossval & loocv:
             raise ValueError("loocv implies no_crossval (eev). Only set one or the other true")
@@ -206,7 +155,6 @@ for movement_mask in mvm_masks:
             if batch != 331:
                 modellist = [m.replace('-epcpn', "") for m in modellist]
 
-
         if zscore == False:
             modellist = [m.replace('_zscore', '') for m in modellist]
 
@@ -218,6 +166,9 @@ for movement_mask in mvm_masks:
 
         if use_old_cpn:
             modellist = [m.replace('dprime_', f'dprime_oldCPN_') for m in modellist]
+        
+        if faModel:
+            modellist = [m.replace("dprime_", "dprime_faModel_") for m in modellist]
 
         modellist = [m for m in modellist if '_pr' not in m]
 
