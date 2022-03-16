@@ -15,7 +15,7 @@ allPup = False  # project all pupil data (full mask, not kacnkifed) into the est
                # alternative is to set this to false, and all stim where <5 reps of each in each state won't be used.
 batch = 294 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
 njack = 10
-force_rerun = False
+force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
 subset_331 = False # specialized subset of 331 data (e.g. only run for a subset of sites that are new data)
@@ -37,7 +37,9 @@ NOSIM = True   # If true, don't run simulations
 
 lvmodels = False   # run for the simulated, model results from lv xforms models
 lvmodelset = "2022.02.06" # options were getting confusing, just organize by date
-faModel = False # load results of factor analysis models for the site, then generate data based on these low-D representations 
+faModel = True # load results of factor analysis models for the site, then generate data based on these low-D representations 
+fa_ind_var = False # allow ind. variance to change between stimuli (makes sense if gain). fa model only models shared noise between stim by default
+fa_ind_var_only = True  # only allow ind. variance to change. FA shared factors are fixed between states.
 
 use_old_cpn = False
 
@@ -168,7 +170,12 @@ for movement_mask in mvm_masks:
             modellist = [m.replace('dprime_', f'dprime_oldCPN_') for m in modellist]
         
         if faModel:
-            modellist = [m.replace("dprime_", "dprime_faModel_") for m in modellist]
+            if fa_ind_var:
+                modellist = [m.replace("dprime_", "dprime_faModel.ind_") for m in modellist]
+            elif fa_ind_var_only:
+                modellist = [m.replace("dprime_", "dprime_faModel.ind-null_") for m in modellist]
+            else:
+                modellist = [m.replace("dprime_", "dprime_faModel_") for m in modellist]
 
         modellist = [m for m in modellist if '_pr' not in m]
 
