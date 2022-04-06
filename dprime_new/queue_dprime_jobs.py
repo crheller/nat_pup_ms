@@ -13,7 +13,7 @@ thirds = False # create 3 additional jobs that split pupil up into thirds -- co-
                # but should work fine.
 allPup = False  # project all pupil data (full mask, not kacnkifed) into the est decoding space to prevent low rep count stuff from happening
                # alternative is to set this to false, and all stim where <5 reps of each in each state won't be used.
-batch = 294 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
+batch = 322 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
 njack = 10
 force_rerun = True
 subset_289 = True  # only high rep sites (so that we can do cross validation)
@@ -38,9 +38,8 @@ NOSIM = True   # If true, don't run simulations
 lvmodels = False   # run for the simulated, model results from lv xforms models
 lvmodelset = "2022.02.06" # options were getting confusing, just organize by date
 faModel = True # load results of factor analysis models for the site, then generate data based on these low-D representations 
-fa_ind_var = False # allow ind. variance to change between stimuli (makes sense if gain). fa model only models shared noise between stim by default
-fa_ind_var_only = True  # only allow ind. variance to change. FA shared factors are fixed between states.
-
+faModelFull = False # (not implemented yet) load results of FA fit across all data (large and small), then generate state-dependent cov matrices (see decoding.load_fullFA_Model)
+fa_rr = False
 use_old_cpn = False
 
 for movement_mask in mvm_masks:
@@ -170,12 +169,29 @@ for movement_mask in mvm_masks:
             modellist = [m.replace('dprime_', f'dprime_oldCPN_') for m in modellist]
         
         if faModel:
-            if fa_ind_var:
-                modellist = [m.replace("dprime_", "dprime_faModel.ind_") for m in modellist]
-            elif fa_ind_var_only:
-                modellist = [m.replace("dprime_", "dprime_faModel.ind-null_") for m in modellist]
+            if fa_rr:
+                rr1 = [m.replace("dprime_", "dprime_faModel.rr1_") for m in modellist]
+                rr2 = [m.replace("dprime_", "dprime_faModel.rr2_") for m in modellist]
+                rr3 = [m.replace("dprime_", "dprime_faModel.rr3_") for m in modellist]
+                rr4 = [m.replace("dprime_", "dprime_faModel.rr4_") for m in modellist]
+                rr5 = [m.replace("dprime_", "dprime_faModel.rr5_") for m in modellist]
+                rr6 = [m.replace("dprime_", "dprime_faModel.rr6_") for m in modellist]
+                rr7 = [m.replace("dprime_", "dprime_faModel.rr7_") for m in modellist]
+                # modellist = rr1 + rr2
+                modellist = rr1 + rr2 + rr3 + rr4 + rr5 + rr6 + rr7
             else:
-                modellist = [m.replace("dprime_", "dprime_faModel_") for m in modellist]
+                full = [m.replace("dprime_", "dprime_faModel.sim4_") for m in modellist]
+                ind1_only = [m.replace("dprime_", "dprime_faModel.sim3_") for m in modellist]
+                ind2_only = [m.replace("dprime_", "dprime_faModel.sim2_") for m in modellist]
+                ctrl_full = [m.replace("dprime_", "dprime_faModel.sim1_") for m in modellist]
+                modellist = full + ind1_only + ind2_only + ctrl_full
+        if faModelFull:
+            full = [m.replace("dprime_", "dprime_faModel.all_") for m in modellist]
+            ind_only = [m.replace("dprime_", "dprime_faModel.all.ind_") for m in modellist]
+            ctrl_ind = [m.replace("dprime_", "dprime_faModel.all.ind-null_") for m in modellist]
+            ctrl_full = [m.replace("dprime_", "dprime_faModel.all.null_") for m in modellist]
+            modellist = full + ind_only + ctrl_ind + ctrl_full
+
 
         modellist = [m for m in modellist if '_pr' not in m]
 

@@ -93,8 +93,8 @@ movement_mask = False
 use_old_cpn = False
 all_pup = False
 fa_model = False # simulate data from FA
-fa_ind_var = False # use the diag covariance matrix (indep noise only)
-fix_between_states = False # fix the covariance matrix between states
+fa_sim = False
+fa_rr = None
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -126,13 +126,10 @@ for op in options:
         fa_model = True
         _ops = op.split('.')[1:]
         for _op in _ops:
-            if _op=="ind":
-                fa_ind_var = True
-            if _op=="ind-null":
-                fa_ind_var = True
-                fix_between_states = True
-            if _op=="null":
-                fix_between_states = True
+            if _op.startswith("sim"):
+                fa_sim = int(_op[3:])
+            if _op.startswith("rr"):
+                fa_rr = int(_op[2:])
     if op == 'sim1':
         sim1 = True
     if op == 'sim2': 
@@ -328,21 +325,11 @@ elif sim_tdr_space:
     log.info("Performing simulations within TDR space. Unique simulation per each jackknife")
 
 elif fa_model:
-    log.info("Simulate data based on factor analysis model for this dataset")
+    log.info(f"Simulate data based on factor analysis model with sim={fa_sim} for this dataset")
     big_psth = np.stack([X.reshape(ncells, nreps_raw, nstim)[:, pup_mask.reshape(1, nreps_raw, nstim)[0, :, s], s].mean(axis=1) for s in range(nstim)]).T.reshape(ncells, X.shape[2], nbins)[:, np.newaxis, :, :]
     small_psth = np.stack([X.reshape(ncells, nreps_raw, nstim)[:, pup_mask.reshape(1, nreps_raw, nstim)[0, :, s]==False, s].mean(axis=1) for s in range(nstim)]).T.reshape(ncells, X.shape[2], nbins)[:, np.newaxis, :, :]
-    if fa_ind_var_only:
-        # use the estimate of independent noise variance (diagonal matrix, no correlations)
-        if fix_between_states:
-            X, pup_mask = decoding.load_FA_model(site, batch, big_psth, small_psth, use_indep=True, fix_between_states=True, nreps=2000)
-        else:
-            X, pup_mask = decoding.load_FA_model(site, batch, big_psth, small_psth, use_indep=True, nreps=2000)
-    else:
-        if fix_between_states:
-            X, pup_mask = decoding.load_FA_model(site, batch, big_psth, small_psth, use_indep=False, fix_between_states=True, nreps=2000)
-        else:
-            X, pup_mask = decoding.load_FA_model(site, batch, big_psth, small_psth, use_indep=False, nreps=2000)
-
+    X, pup_mask = decoding.load_FA_model(site, batch, big_psth, small_psth, sim=fa_sim, nreps=5000)
+   
 # another option for surrogates based on pop metrics
 # how to do this? Generate data elsewhere, then load? 
 # that way can compute pop metrics / pairwise metrics on each

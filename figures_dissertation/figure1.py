@@ -163,7 +163,10 @@ miax.text(mi_bins.min(), miax.get_ylim()[-1]-2, r"p=%s" % round(p, 4))
 
 # plot noise correlation
 rsc_path = '/auto/users/hellerc/results/nat_pupil_ms/noise_correlations_final/'
-rsc_df = ld.load_noise_correlation('rsc_ev_perstim')
+rsc_df = ld.load_noise_correlation('rsc_ev_perstim_mvm-25-1') #, xforms_model='NULL', path=rsc_path)
+rsc_df = rsc_df[rsc_df.site.isin(CPN_SITES)]
+rsc_df = pd.concat([rsc_df, ld.load_noise_correlation('rsc_ev_perstim')])
+rsc_df = rsc_df[rsc_df.site.isin(sites)]
 #rsc_df = rsc_df[(rsc_df.gm_bp>1) & (rsc_df.gm_sp>1)]
 mask = ~(rsc_df['bp'].isna() | rsc_df['sp'].isna()) & (rsc_df['gm_bp']>1) & (rsc_df['gm_sp']>1)
 rsc_df = rsc_df[mask]

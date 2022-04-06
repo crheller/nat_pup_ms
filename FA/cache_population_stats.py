@@ -93,6 +93,7 @@ shuffle = False
 # "special" cross-validation -- fitting individual stims doesn't work, not enough data
 # instead, leave-one-stim out fitting to find dims that are shared / stimulus-independent
 nstim = X.shape[-1] * X.shape[-2]
+nCells = X.shape[0]
 Xsub = (X - X.mean(axis=1, keepdims=True))
 Xfa = Xsub.reshape(X.shape[0], X.shape[1], nstim)
 pm = pup_mask.reshape(pup_mask.shape[0], pup_mask.shape[1], nstim)
@@ -128,6 +129,23 @@ for ii in np.arange(1, LL.shape[0]+1):
 
 
 log.info("Estimating %sv and loading similarity for the 'best' model")
+# all data
+all_dim_sem = np.std([get_dim(LL[:, i]) for i in range(LL.shape[1])]) / np.sqrt(LL.shape[1])
+all_dim = get_dim(LL.mean(axis=-1))
+# fit the "best" model over jackknifes
+all_sv = np.zeros(nfold)
+all_loading_sim = np.zeros(nfold)
+all_dim95 = np.zeros(nfold)
+for nf in range(nfold):
+    fit = [x for x in np.arange(0, nstim) if x != nf]
+    fa_all = FactorAnalysis(n_components=all_dim, random_state=0) 
+    fa_all.fit(Xfa[:, :, fit].reshape(nCells, -1).T)
+    all_sv[nf] = get_sv(fa_all)
+    all_loading_sim[nf] = get_loading_similarity(fa_all)
+    # get n dims needs to explain 95% of shared variance
+    all_dim95[nf] = get_dim95(fa_all)
+
+# small pupil
 sp_dim_sem = np.std([get_dim(LL_small[:, i]) for i in range(LL.shape[1])]) / np.sqrt(LL.shape[1])
 sp_dim = get_dim(LL_small.mean(axis=-1))
 # fit the "best" model over jackknifes
@@ -143,6 +161,7 @@ for nf in range(nfold):
     # get n dims needs to explain 95% of shared variance
     sp_dim95[nf] = get_dim95(fa_small)
 
+# large pupil
 bp_dim_sem = np.std([get_dim(LL_large[:, i]) for i in range(LL.shape[1])]) / np.sqrt(LL.shape[1])
 bp_dim = get_dim(LL_large.mean(axis=-1))
 # fit the "best" model over jackknifes
@@ -160,6 +179,12 @@ for nf in range(nfold):
 
 
 # final fit with all data to get components
+fa_all = FactorAnalysis(n_components=all_dim, random_state=0) 
+fa_all.fit(Xfa.reshape(nCells, -1).T)
+all_sv_all = get_sv(fa_all)
+all_ls_all = get_loading_similarity(fa_all)
+all_dim95_all = get_dim95(fa_all)
+
 fa_big = FactorAnalysis(n_components=bp_dim, random_state=0) 
 fa_big.fit(Xfa[:, pm[0]==True].T)
 bp_sv_all = get_sv(fa_big)
@@ -174,6 +199,14 @@ sp_dim95_all = get_dim95(fa_small)
 
 # Save results
 results = {
+    "all_sv": all_sv.mean(),
+    "all_sv_sd": all_sv.std(),
+    "all_loading_sim": all_loading_sim.mean(),
+    "all_loading_sim_sd": all_loading_sim.std(),
+    "all_dim95": all_dim95.mean(),
+    "all_dim95_sd": all_dim95.std(),
+    "all_dim": all_dim,
+    "all_dim_sem": all_dim_sem,
     "bp_sv": bp_sv.mean(),
     "sp_sv": sp_sv.mean(),
     "bp_sv_sd": bp_sv.std(),
@@ -192,6 +225,13 @@ results = {
     "sp_dim_sem": sp_dim_sem,
     "nCells": X.shape[0],
     "final_fit": {
+        "fa_all.components_": fa_all.components_,
+        "fa_all.sigma_shared": sigma_shared(fa_all),
+        "fa_all.sigma_ind": sigma_ind(fa_all),
+        "fa_all.sigma_full": pred_cov(fa_all),
+        "all_sv_all": all_sv_all,
+        "all_ls_all": all_ls_all,
+        "all_dim95_all": all_dim95_all,
         "fa_big.components_": fa_big.components_,
         "fa_small.components_": fa_small.components_,
         "fa_big.sigma_shared": sigma_shared(fa_big),
