@@ -1,4 +1,5 @@
-from logging import shutdown
+import sys
+sys.path.append("/auto/users/hellerc/code/projects/nat_pupil_ms/")
 import nems.db as nd
 import numpy as np
 from global_settings import CPN_SITES, HIGHR_SITES

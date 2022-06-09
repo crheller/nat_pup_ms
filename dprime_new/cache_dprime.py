@@ -95,6 +95,13 @@ all_pup = False
 fa_model = False # simulate data from FA
 fa_sim = False
 fa_rr = None
+# NEW OPTIONS FOR GENERAL DECODING AXIS 09.06.2022
+fixed_decoding_axis = False
+fixed_ddr_space = False
+ddr_nStimDims = None
+ddr_nNoiseDims = None
+#=======================================
+
 for op in options:
     if 'jk' in op:
         njacks = int(op[2:])
@@ -177,12 +184,33 @@ for op in options:
         nc_lv = True
     if op == 'nclvz':
         nc_lv_z = True
+    
+    # normal ddr, but with a fixed noise axis
     if op.startswith('fixtdr2'):
         fix_tdr2 = True
         try:
             ddr2_method = op.split('-')[1]
         except:
             ddr2_method = 'pca'
+    
+    # new, custom ddr. Fix the whole decoding space based on options
+    if op.startswith("globalDDR"):
+        fixed_ddr_space = True
+        ddr_nStimDims = 1
+        ddr_nNoiseDims = 1
+        ops = op.split("-")
+        for o in ops:
+            if o.startswith("sd"):
+                ddr_nStimDims = int(o[2:])
+            elif o.startswith("nd"):
+                ddr_nNoiseDims = int(o[2:])
+
+    if op == "globalDecodingAxis":
+        if fixed_ddr_space == False:
+            raise ValueError("Fixed decoding axis is not implemented for cases where ddr space is not fixed")
+        else:
+            fixed_decoding_axis = True
+
     if op == 'eev':
         est_equal_val = True
     if op == 'loocv':
@@ -422,6 +450,26 @@ if fix_tdr2:
         tdr2_axes = nat_preproc.get_first_pc_per_est(est_raw, method=ddr2_method)
 else:
     tdr2_axes = [None] * len(val)
+
+# ================= if we want a "general", fixed decoding space ===============
+# measure a "STIM" space for each est set (PCA on psths)
+# measure a "NOISE" space for each est set (PCA on residuals - after deflating with STIM)
+# choose how many of each to keep
+if fixed_ddr_space:
+    ddr_spaces = nat_preproc.get_fixed_ddr_space_per_est(est_raw, stimDims=ddr_nStimDims, noiseDims=ddr_nNoiseDims)
+    if fixed_decoding_axis:
+        if ddr_nStimDims < 1:
+            raise ValueError("for general decoding axis, we just use the first stimDim to decode on")
+        else:
+            # define decoding axis as the first "stimulus" dimension (1st PC of psth)
+            # needs to be in ddr space, so just a 1-hot vector corresponding to first ddr dimension
+            decoding_axes = [np.array([1]+list(np.zeros(ddr_nStimDims+ddr_nNoiseDims-1)))[:, np.newaxis] for d in ddr_spaces]
+    else:
+        decoding_axes = [None] * len(val)
+else:
+    decoding_axes = [None] * len(val)
+    ddr_space = [None] * len(val)
+
 # set up data frames to save results (wait to preallocate space on first
 # iteration, because then we'll have the columns)
 temp_pca_results = pd.DataFrame()
@@ -458,6 +506,8 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
             ptrain_mask = p_est[ev_set][:, :, [combo[0], combo[1]]]
             ptest_mask = p_val[ev_set][:, :, [combo[0], combo[1]]]
         tdr2_axis = tdr2_axes[ev_set]
+        ddr_space = ddr_spaces[ev_set]
+        decoding_axis = decoding_axes[ev_set]
 
         # if ptrain_mask is all False, just set it to None so
         # that we don't attempt to run the bp/sp analysis. This is a kludgy 
@@ -509,10 +559,13 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
                 _tdr_results = {}
         else:
             if not loocv:
+                # this is the typical workhorse
                 _tdr_results = decoding.do_tdr_dprime_analysis(xtrain,
                                                             xtest,
                                                             nreps_train,
                                                             nreps_test,
+                                                            ddr_space=ddr_space,
+                                                            decoding_axis=decoding_axis,
                                                             tdr_data=raw_data,
                                                             n_additional_axes=n_noise_axes,
                                                             beta1=beta1,
@@ -571,13 +624,15 @@ for stim_pair_idx, (ecombo, combo) in enumerate(zip(epochs_str_combos, all_combo
                     else:
                         _tdr_results[sp_col] = np.nan # add place holder in case the first didn't have data for this
 
-            temp_tdr_results = temp_tdr_results.append([_tdr_results])
+            #temp_tdr_results = temp_tdr_results.append([_tdr_results])
+            temp_tdr_results = pd.concat([temp_tdr_results, pd.DataFrame.from_dict(_tdr_results, orient="index").T])
             tdr_results = pd.DataFrame(index=tdr_index, columns=temp_tdr_results.columns)
             tdr_results.loc[tdr_idx] = temp_tdr_results.iloc[0].values
             temp_tdr_results = pd.DataFrame()
 
         else:
-            temp_tdr_results = temp_tdr_results.append([_tdr_results])
+            #temp_tdr_results = temp_tdr_results.append([_tdr_results])
+            temp_tdr_results = pd.concat([temp_tdr_results, pd.DataFrame.from_dict(_tdr_results, orient="index").T])
             tdr_results.loc[tdr_idx, temp_tdr_results.keys()] = temp_tdr_results.iloc[0].values
             temp_tdr_results = pd.DataFrame()
         tdr_idx += 1
