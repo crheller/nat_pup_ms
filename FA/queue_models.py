@@ -2,8 +2,10 @@ import nems.db as nd
 from global_settings import HIGHR_SITES, CPN_SITES
 
 batches = [294, 322, 331]
-modelnames = ["factor_analysis"]
-force_rerun = True
+modelnames = ["factor_analysis_pca_evoked"]
+force_rerun = False
+
+raise ValueError("USE FACTOR ANALYSIS CODE IN nat-ms-final! crh 10.06.2022")
 
 for batch in batches:
 
@@ -15,7 +17,7 @@ for batch in batches:
         sites = CPN_SITES
 
     script = '/auto/users/hellerc/code/projects/nat_pupil_ms/FA/cache_population_stats.py'
-    python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
+    python_path = '/auto/users/hellerc/miniconda3/envs/lbhb/bin/python'
     nd.enqueue_models(celllist=sites,
                     batch=batch,
                     modellist=modelnames,

@@ -4,7 +4,7 @@ import av
 import numpy as np
 import nems_lbhb.pup_py.utils as ut
 from nems_lbhb.baphy_experiment import BAPHYExperiment
-import pickle 
+import h5py
 
 import os
 import sys
@@ -33,6 +33,10 @@ modelname = sys.argv[3]
 
 manager = BAPHYExperiment(cellid=site, batch=int(batch))
 parmfiles = manager.parmfile
+animal = str(parmfiles[0]).split("/")[4]
+pen = str(parmfiles[0]).split("/")[5]
+
+outputfile =  f"/auto/data/daq/{animal}/{pen}/sorted/facePCs.h5"
 
 videos = [str(p).replace(".m", ".avi") for p in parmfiles]
 nframes = 0
@@ -58,8 +62,9 @@ for video in videos:
         nframes+=1
 
 log.info("Decoding video")
-data = np.zeros((224*224, nframes))
+data = np.zeros((224*224, nframes), dtype=np.float32)
 idx = 0
+per_vid_ends = []
 for i, video in enumerate(videos):
     if suffix[i] is not None:
         video = video.replace(".avi", suffix[i])
@@ -82,8 +87,10 @@ for i, video in enumerate(videos):
                 log.info("frame: {0}/{1}...".format(i, nframes))
         except:
             log.info(f"couldn't decode frame {i}")
-        
         idx+=1
+    per_vid_ends.append(idx) # keep track of per parmfile data
+
+per_vid_starts = [0] + per_vid_ends
 
 log.info("Perform incremental PCA")
 pca = IncrementalPCA(batch_size=200)
@@ -94,28 +101,23 @@ log.info("Save results")
 projection = data.T.dot(pca.components_[0:10, :].T)
 components = pca.components_[0:10, :]
 var_explained = pca.explained_variance_ratio_
-results = {
-    "proejction": projection,
-    "components": components,
-    "var_explained": var_explained
-}
 
-
-def save(d, path):
-    with open(path+f'/{modelname}.pickle', 'wb') as handle:
-        pickle.dump(d, handle, protocol=pickle.HIGHEST_PROTOCOL)
+def save_hdf5(d, filename):
+    fh = h5py.File(filename, 'w')
+    for k in d.keys():
+        fh.create_dataset(k, data=d[k])
+    fh.close()
     return None
 
-path = "/auto/users/hellerc/results/nat_pupil_ms/face_pca/"
-if os.path.isdir(os.path.join(path, str(batch), site)):
-   pass
-elif os.path.isdir(os.path.join(path, str(batch))):
-    os.mkdir(os.path.join(path, str(batch), site))
-else:
-    os.mkdir(os.path.join(path, str(batch)))
-    os.mkdir(os.path.join(path, str(batch), site))
-
-save(results, os.path.join(path, str(batch), site))
+for i, p in enumerate(parmfiles):
+    thisfile = os.path.basename(p).strip(".m")
+    results = {
+        "projection": projection[per_vid_starts[i]:per_vid_ends[i], :],
+        "components": components,
+        "var_explained": var_explained
+    }
+    savefile = outputfile.replace("facePCs.h5", f"{thisfile}.facePCs.h5")
+    save_hdf5(results, savefile)
 
 if queueid:
     nd.update_job_complete(queueid)

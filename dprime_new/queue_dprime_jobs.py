@@ -6,7 +6,7 @@ from global_settings import CPN_SITES, HIGHR_SITES
 
 mvm_masks = [None, (25, 1), (25, 2)] # (threshold (in sd*100) and binsize (in sec)) -- for raw data analsysi
 mvm_masks = [None] # for NAT data, would need to reanalyze pupil
-noise_dims = [-1, 0, 1, 2, 3, 4, 5, 6]
+noise_dims = [0] #[-1, 0, 1, 2, 3, 4, 5, 6]
 
 thirds = False # create 3 additional jobs that split pupil up into thirds -- co-opt the "bp" mask for this.
                # sort of weird, but idea is that then nothing changes (calculation of decoding axis etc.),
@@ -14,9 +14,9 @@ thirds = False # create 3 additional jobs that split pupil up into thirds -- co-
                # but should work fine.
 allPup = False  # project all pupil data (full mask, not kacnkifed) into the est decoding space to prevent low rep count stuff from happening
                # alternative is to set this to false, and all stim where <5 reps of each in each state won't be used.
-batch = 322 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
+batch = 331 # note, slowly replacing 29.10.2021, replacing batch 289 with 322 (this is where array NAT data is stored. 289 should have all)
 njack = 10
-force_rerun = True
+force_rerun = False
 subset_289 = True  # only high rep sites (so that we can do cross validation)
 subset_323 = False # only high rep sites (for cross val)
 subset_331 = False # specialized subset of 331 data (e.g. only run for a subset of sites that are new data)
@@ -25,7 +25,8 @@ pca = False
 pc_keys = ['pca-3-psth-whiten', 'pca-4-psth-whiten', 'pca-5-psth-whiten']
 pc_keys = ['pca-4-psth-whiten']
 zscore = True     # ********
-shuffle = False
+shuffle = True
+shuffle_pupil = False
 temp_subset = False # for exculding subset of models/sites for faster time on jobs
 nc_lv = False        # beta defined using nc LV method (if False, don't bother loading betas -- 09.08.2021, I think this is what we want. nclv isn't super relevant anymore)
 fix_tdr2 = True     # force tdr2 axis to be defined based on first PC of POOLED noise data. Not on a per stimulus basis.
@@ -38,10 +39,16 @@ NOSIM = True   # If true, don't run simulations
 
 lvmodels = False   # run for the simulated, model results from lv xforms models
 lvmodelset = "2022.02.06" # options were getting confusing, just organize by date
-faModel = True # load results of factor analysis models for the site, then generate data based on these low-D representations 
+faModel = False # load results of factor analysis models for the site, then generate data based on these low-D representations 
 faModelFull = False # (not implemented yet) load results of FA fit across all data (large and small), then generate state-dependent cov matrices (see decoding.load_fullFA_Model)
 fa_rr = False
 use_old_cpn = False
+
+# general decoding strategies
+global_decoder = False
+fix_ddr_space = False
+nStimDims = 1
+nNoiseDims = 1
 
 for movement_mask in mvm_masks:
     for n_additional_noise_dims in noise_dims:
@@ -76,7 +83,8 @@ for movement_mask in mvm_masks:
             sites = ['BOL005c', 'BOL006b']
 
         elif batch == 331:
-            sites = CPN_SITES
+            #sites = CPN_SITES
+            sites, _ = nd.get_batch_sites(331)
             if subset_331:
                 input("NOTE -- using only a subset of batch 331 sites. Okay?")
                 sites = [s for s in sites if (s!='TNC016a') & (s!='TNC013a')]
@@ -112,6 +120,9 @@ for movement_mask in mvm_masks:
 
         if shuffle:
             modellist = [m.replace('dprime_', 'dprime_shuffle_') for m in modellist]
+        
+        if shuffle_pupil:
+            modellist = [m.replace('dprime_', 'dprime_shufpup_') for m in modellist]
 
         if pca:
             new = []
@@ -136,6 +147,15 @@ for movement_mask in mvm_masks:
                 modellist = [m+'_fixtdr2' for m in modellist]
             else:
                 modellist = [m+f'_fixtdr2-{ddr2_method}' for m in modellist]
+        
+        if fix_ddr_space:
+            modellist = [m+f"_globalDDR-sd{nStimDims}-nd{nNoiseDims}" for m in modellist]
+        
+        if global_decoder:
+            if fix_ddr_space == False:
+                raise ValueError
+            else:
+                modellist = [m+"_globalDecodingAxis" for m in modellist]
 
         if temp_subset:
             sites = [s for s in sites if 'CRD' in s]
@@ -185,7 +205,11 @@ for movement_mask in mvm_masks:
                 ind1_only = [m.replace("dprime_", "dprime_faModel.sim3_") for m in modellist]
                 ind2_only = [m.replace("dprime_", "dprime_faModel.sim2_") for m in modellist]
                 ctrl_full = [m.replace("dprime_", "dprime_faModel.sim1_") for m in modellist]
-                modellist = full + ind1_only + ind2_only + ctrl_full
+                null_model = [m.replace("dprime_", "dprime_faModel.sim0_") for m in modellist]
+                shuff_model = [m.replace("dprime_", "dprime_faModel.sim5_") for m in modellist]
+                shuff_model0 = [m.replace("dprime_", "dprime_faModel.sim6_") for m in modellist]
+                shuff_model00 = [m.replace("dprime_", "dprime_faModel.sim7_") for m in modellist]
+                modellist = full + ind1_only + ind2_only + ctrl_full + null_model + shuff_model + shuff_model0 + shuff_model00
         if faModelFull:
             full = [m.replace("dprime_", "dprime_faModel.all_") for m in modellist]
             ind_only = [m.replace("dprime_", "dprime_faModel.all.ind_") for m in modellist]
@@ -197,7 +221,7 @@ for movement_mask in mvm_masks:
         modellist = [m for m in modellist if '_pr' not in m]
 
         script = '/auto/users/hellerc/code/projects/nat_pupil_ms/dprime_new/cache_dprime.py'
-        python_path = '/auto/users/hellerc/anaconda3/envs/lbhb/bin/python'
+        python_path = '/auto/users/hellerc/miniconda3/envs/lbhb/bin/python'
 
         nd.enqueue_models(celllist=sites,
                         batch=batch,

@@ -13,10 +13,15 @@ ALL_SITES = ['BOL005c', 'BOL006b', 'bbl086b', 'bbl099g', 'bbl104h', 'BRT026c', '
 
 #CPN_SITES = ['AMT020a', 'AMT026a', 'ARM029a', 'ARM031a',
 #       'ARM032a', 'ARM033a', 'CRD018d', 'TNC013a', 'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a'] # (batch 331)
+# CPN_SITES = ['AMT020a', 'AMT026a', 'ARM029a', 'ARM031a',
+#        'ARM032a', 'ARM033a', 'CRD018d', 'TNC008a','TNC009a', 
+#        'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a']
 CPN_SITES = ['AMT020a', 'AMT026a', 'ARM029a', 'ARM031a',
-       'ARM032a', 'ARM033a', 'CRD018d', 'TNC008a','TNC009a', 'TNC011a', 
-       'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a']
-# ARM029 and ARM031 are borderline. Pupil stays pretty big for the whole recording.
+       'ARM032a', 'ARM033a', 'CRD018d',
+       'TNC006a', 'TNC008a', 'TNC009a', 'TNC010a', 'TNC012a',
+       'TNC013a', 'TNC014a', 'TNC015a', 'TNC016a', 'TNC017a', 'TNC018a',
+       'TNC019a', 'TNC020a', 'TNC021a', 'TNC043a', 'TNC044a', 'TNC045a']
+# 'TNC011a' not enough cells, ARM029 and ARM031 are borderline. Pupil stays pretty big for the whole recording.
 # bad sites: AMT021b (no pupil variability), AMT005e (no pupil variability), CRD005b (no pupil variability), CRD019b (no pupil variability), 'CRD004a' (not much pupil variability)
 
 PEG_SITES = ['AMT028b', 'AMT029a', 'AMT031a', 'AMT032a', 'ARM018a', 'ARM019a', 'ARM021b', 'ARM022b']

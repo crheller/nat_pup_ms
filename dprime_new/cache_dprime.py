@@ -64,6 +64,7 @@ njacks = 10
 zscore = False
 pup_ops = None
 shuffle_trials = False
+shuffle_pupil = False
 regress_pupil = False
 use_xforms = False
 sim1 = False
@@ -109,6 +110,8 @@ for op in options:
         zscore = True
     if 'shuffle' in op:
         shuffle_trials = True
+    if 'shufpup' in op:
+        shuffle_pupil = True
     if op.startswith('png'):
         pup_ops = []
         # png = "pupil norm. group"
@@ -328,6 +331,9 @@ spont_ev_combos = [c for c in all_combos if (c not in ev_ev_combos) & (c not in 
 epochs_bins = np.concatenate([[e+'_'+str(k) for k in range(nbins)] for e in epochs])
 epochs_str_combos = list(combinations(epochs_bins, 2))
 
+if shuffle_pupil:
+    pup_mask = pup_mask[:, np.random.choice(np.arange(0, nreps_raw), nreps_raw, replace=False), :, :]
+
 # =================================== simulate =======================================
 # update X to simulated data if specified. Else X = X_raw.
 # point of this is so that decoding axes / TDR space doesn't change for simulation (or for xforms predicted data)
@@ -468,7 +474,7 @@ if fixed_ddr_space:
         decoding_axes = [None] * len(val)
 else:
     decoding_axes = [None] * len(val)
-    ddr_space = [None] * len(val)
+    ddr_spaces = [None] * len(val)
 
 # set up data frames to save results (wait to preallocate space on first
 # iteration, because then we'll have the columns)
